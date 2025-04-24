@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class SimpleKotilnTests: FunSpec( {
+class SimpleKotilnTests : FunSpec({
     test("kotest 동작 확인") {
         1 + 2 shouldBe 3
     }
