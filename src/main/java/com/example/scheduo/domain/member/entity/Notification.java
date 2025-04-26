@@ -38,7 +38,7 @@ public class Notification extends BaseEntity {
 	@Column(length = 200)
 	private String title;
 
-	private String data;
+	private long data;
 
 	@ColumnDefault("false")
 	private boolean isRead;
