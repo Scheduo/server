@@ -1,6 +1,8 @@
 package com.example.scheduo.domain.schedule.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,5 +24,6 @@ public class Category {
 
 	private String name;
 
-	private String color;
+	@Enumerated(EnumType.STRING)
+	private Color color;
 }
