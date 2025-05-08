@@ -1,6 +1,9 @@
 package com.example.scheduo.domain.member.entity;
 
-import org.hibernate.annotations.ColumnDefault;
+import java.util.Map;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import com.example.scheduo.domain.common.BaseEntity;
 
@@ -12,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +27,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "notification")
 public class Notification extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,8 +43,8 @@ public class Notification extends BaseEntity {
 	@Column(length = 200)
 	private String title;
 
-	private long data;
-
-	@ColumnDefault("false")
-	private boolean isRead;
+	// private long data;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(columnDefinition = "json")
+	private Map<String, Object> data;
 }
