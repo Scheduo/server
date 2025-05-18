@@ -22,12 +22,12 @@ class UniformTFResponse(
          *     "code": 200,
          *     "success": true,
          *     "message": "성공 응답 테스트",
-         *     "data": {}
+         *     "data": "testing"
          * }
          */
         context("성공 응답을 반환할 때") {
             it("code=200, success=true, message, data가 포함된 JSON을 반환한다") {
-                val response = mockMvc.get("/test/response/success")
+                val response = mockMvc.get("/test/response/success2")
                         .andReturn().response
 
                 response.status shouldBe 200
@@ -36,29 +36,30 @@ class UniformTFResponse(
                 json["code"].asInt() shouldBe 200
                 json["success"].asBoolean() shouldBe true
                 json["message"].asText() shouldBe "성공 응답 테스트"
+                json["data"].asText() shouldBe "testing"
             }
         }
 
         /**
          * {
-         *     "code": 404,
-         *     "status" : "COMMON_0001"
+         *     "code": 401,
          *     "success": false,
-         *     "message": "실패 응답 테스트."
+         *     "status" : "COMMON_0003",
+         *     "message": "인증에 실패했습니다."
          * }
          */
         context("실패 응답을 반환할 때") {
             it("code, success=false, status, message가 포함된 JSON을 반환한다") {
-                val response = mockMvc.get("/test/response/fail")
+                val response = mockMvc.get("/test/response/fail2")
                         .andReturn().response
 
-                response.status shouldBe 404
+                response.status shouldBe 401
 
                 val json = objectMapper.readTree(response.contentAsString)
-                json["code"].asInt() shouldBe 404
+                json["code"].asInt() shouldBe 401
                 json["success"].asBoolean() shouldBe false
-                json["status"].asText() shouldBe "COMMON_0001"
-                json["message"].asText() shouldBe "실패 응답 테스트."
+                json["status"].asText() shouldBe "COMMON_0003"
+                json["message"].asText() shouldBe "인증에 실패했습니다."
             }
         }
     }
