@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.example.scheduo.global.response.ApiResponse;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Hidden
 @RestControllerAdvice(annotations = {RestController.class})
 public class GlobalExceptionHandler {
 
