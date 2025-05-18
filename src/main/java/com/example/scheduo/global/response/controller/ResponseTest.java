@@ -8,8 +8,11 @@ import com.example.scheduo.global.response.ApiResponse;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 @RestController
 @RequestMapping("/test/response")
+@Hidden
 public class ResponseTest {
 	@GetMapping("/success1")
 	public ApiResponse<String> success1() {
