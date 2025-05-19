@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(ApiException.class)
 	public ResponseEntity<ErrorResponseDto> handleApiException(ApiException ex) {
 		ResponseStatus status = ex.getResponseStatus();
-		log.info("[CustomError] " + status.getStatus() + " - " + status.getMessage());
+		log.error("[CustomError] {} - {}", status.getStatus(), status.getMessage());
 
 		ErrorResponseDto response = ApiResponse.onFailure(
 			status.getHttpStatus().value(),
@@ -33,9 +33,9 @@ public class GlobalExceptionHandler {
 	// 그 외 처리하지 않은 예외에 대한 핸들러 (선택)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
-		ErrorResponseDto response = ApiResponse.onFailure(ResponseStatus._INTERNAL_SERVER_ERROR);
-		log.info("[Error] " + response.getStatus() + " - " + response.getMessage());
+		ErrorResponseDto response = ApiResponse.onFailure(ResponseStatus.INTERNAL_SERVER_ERROR);
+		log.error("[UnhandledError] {} - {}", response.getStatus(), response.getMessage());
 
-		return ResponseEntity.status(ResponseStatus._INTERNAL_SERVER_ERROR.getHttpStatus()).body(response);
+		return ResponseEntity.status(ResponseStatus.INTERNAL_SERVER_ERROR.getHttpStatus()).body(response);
 	}
 }
