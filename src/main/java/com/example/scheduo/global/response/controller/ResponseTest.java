@@ -46,6 +46,6 @@ public class ResponseTest {
 	}
 
 	private Object throwErrorFail2() {
-		throw new ApiException(ResponseStatus._UNAUTHORIZED);
+		throw new ApiException(ResponseStatus.UNAUTHORIZED);
 	}
 }

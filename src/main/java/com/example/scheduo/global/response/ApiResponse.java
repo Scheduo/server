@@ -18,15 +18,15 @@ public class ApiResponse<T> {
 
 	// 성공한 경우 응답 생성
 	public static <T> ApiResponse<T> onSuccess() {
-		return new ApiResponse<>(ResponseStatus._OK.getHttpStatus().value(), true, "OK.", null);
+		return new ApiResponse<>(ResponseStatus.OK.getHttpStatus().value(), true, "OK.", null);
 	}
 
 	public static <T> ApiResponse<T> onSuccess(T result) {
-		return new ApiResponse<>(ResponseStatus._OK.getHttpStatus().value(), true, "OK.", result);
+		return new ApiResponse<>(ResponseStatus.OK.getHttpStatus().value(), true, "OK.", result);
 	}
 
 	public static <T> ApiResponse<T> onSuccess(String message, T result) {
-		return new ApiResponse<>(ResponseStatus._OK.getHttpStatus().value(), true, message, result);
+		return new ApiResponse<>(ResponseStatus.OK.getHttpStatus().value(), true, message, result);
 	}
 
 	// 실패 응답 생성
