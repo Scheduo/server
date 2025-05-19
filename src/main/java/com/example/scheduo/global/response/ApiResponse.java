@@ -17,6 +17,10 @@ public class ApiResponse<T> {
 	private final T data;
 
 	// 성공한 경우 응답 생성
+	public static <T> ApiResponse<T> onSuccess() {
+		return new ApiResponse<>(ResponseStatus._OK.getHttpStatus().value(), true, "OK.", null);
+	}
+
 	public static <T> ApiResponse<T> onSuccess(T result) {
 		return new ApiResponse<>(ResponseStatus._OK.getHttpStatus().value(), true, "OK.", result);
 	}

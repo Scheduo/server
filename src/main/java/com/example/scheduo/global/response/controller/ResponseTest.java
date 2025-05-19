@@ -24,6 +24,11 @@ public class ResponseTest {
 		return ApiResponse.onSuccess("성공 응답 테스트", "testing");
 	}
 
+	@GetMapping("/success3")
+	public ApiResponse<String> success3() {
+		return ApiResponse.onSuccess();
+	}
+
 	@GetMapping("/fail1")
 	public ApiResponse<String> fail1() {
 		throwErrorFail1();
