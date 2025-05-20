@@ -1,10 +1,12 @@
 package com.example.scheduo.domain.member.service;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.scheduo.domain.member.dto.MemberRequestDto;
+import com.example.scheduo.domain.member.dto.MemberResponseDto;
 import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.member.entity.Member;
@@ -14,6 +16,11 @@ import com.example.scheduo.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
+public interface MemberService {
+	MemberResponseDto.GetProfile getMyProfile();
+	MemberResponseDto.GetProfile editMyProfile(MemberRequestDto.EditInfo dto);
+	List<MemberResponseDto.GetProfile> searchByEmail(String email);
+}
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
