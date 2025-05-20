@@ -8,11 +8,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
+import com.example.scheduo.domain.calendar.dto.CalendarResponseDto;
+import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.global.response.ApiResponse;
+import com.example.scheduo.global.response.status.ResponseStatus;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -20,7 +24,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/calendars")
 @Tag(name = "Calendar", description = "캘린더 관련 API")
 public class CalendarController {
+
 	private final CalendarService calendarService;
+
+	@PostMapping
+	public ApiResponse<CalendarResponseDto.CalendarInfo> createCalendar(
+		@Valid @RequestBody CalendarRequestDto.Create request
+	) {
+		//로그인 반영 후 memberId 수정 예정
+		Long memberId = 1L;
+
+		Calendar calendar = calendarService.createCalendar(request, memberId);
+
+		return ApiResponse.onSuccess(ResponseStatus.CREATED_CALENDAR,
+			CalendarResponseDto.CalendarInfo.fromEntity(calendar));
+	}
 
 	@PostMapping("/{calendarId}/invite")
 	@Operation(summary = "캘린더 초대", description = "캘린더에 사용자를 초대합니다.")
