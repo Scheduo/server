@@ -33,6 +33,4 @@ public class Calendar extends BaseEntity {
 	private Member member;
 
 	private String name;
-
-	private boolean isShared;
 }

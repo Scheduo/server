@@ -16,7 +16,13 @@ public enum ResponseStatus {
 	NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_0002", "리소스를 찾을 수 없습니다."),
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_0003", "인증에 실패했습니다."),
 	FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_0004", "권한이 없습니다."),
-	;
+	VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "COMMON_0005", "잘못된 형식 입니다."),
+
+	//calendar
+	CREATED_CALENDAR(HttpStatus.CREATED, "SUCCESS", "캘린더 생성 성공."),
+
+	//member
+	NOT_FOUND_MEMBER(HttpStatus.NOT_FOUND, "MEMBER_0001", "해당하는 회원을 찾을 수 없습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String status;
