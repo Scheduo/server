@@ -11,6 +11,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.scheduo.global.auth.CustomOAuth2UserService;
+import com.example.scheduo.global.config.security.handler.CustomOAuth2FailureHandler;
 import com.example.scheduo.global.config.security.handler.CustomOAuth2SuccessHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 	private final CustomOAuth2UserService customOAuth2UserService;
 	private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+	private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,7 +47,8 @@ public class SecurityConfig {
 			.authorizeHttpRequests(request -> request.anyRequest().authenticated())
 			.oauth2Login(oauth2 -> oauth2
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-				.successHandler(customOAuth2SuccessHandler));
+				.successHandler(customOAuth2SuccessHandler)
+				.failureHandler(customOAuth2FailureHandler));
 
 		return http.build();
 	}
