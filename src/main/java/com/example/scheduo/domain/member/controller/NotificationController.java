@@ -23,14 +23,7 @@ public class NotificationController {
 
 	@GetMapping
 	public ApiResponse<NotificationResponseDto.GetNotifications> getNotifications(Long memberId) {
-		List<Notification> notifications = notificationService.findAllByMemberId(memberId);
-
-		List<NotificationResponseDto.GetNotification> notificationDtos = notifications.stream()
-			.map(NotificationResponseDto.GetNotification::from)
-			.collect(Collectors.toList());
-
-		NotificationResponseDto.GetNotifications response = NotificationResponseDto.GetNotifications.from(notificationDtos);
-
-		return ApiResponse.onSuccess(response);
+		NotificationResponseDto.GetNotifications notifications = notificationService.findAllByMemberId(memberId);
+		return ApiResponse.onSuccess(notifications);
 	}
 }
