@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.scheduo.domain.member.dto.NotificationResponseDto;
 import com.example.scheduo.domain.member.entity.Notification;
@@ -17,6 +18,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private final NotificationRepository notificationRepository;
 
 	@Override
+	@Transactional(readOnly = true)
 	public NotificationResponseDto.GetNotifications findAllByMemberId(Long memberId) {
 		List<Notification> notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId);
 		List<NotificationResponseDto.GetNotification> notificationDtos = notifications.stream()
