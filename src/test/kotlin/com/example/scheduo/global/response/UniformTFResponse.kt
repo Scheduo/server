@@ -1,4 +1,4 @@
-package com.example.scheduo.response
+package com.example.scheduo.global.response
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
