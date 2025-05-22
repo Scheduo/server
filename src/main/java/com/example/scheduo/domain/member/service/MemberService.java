@@ -22,7 +22,7 @@ public class MemberService {
 
 	@Transactional
 	public Member findOrCreateMember(String email, String nickname, SocialType socialType) {
-		Optional<Member> existingMember = memberRepository.findMemberByEmail(email);
+		Optional<Member> existingMember = memberRepository.findMemberByEmailAndSocialType(email, socialType);
 		if (existingMember.isPresent()) {
 			return existingMember.get();
 		}
