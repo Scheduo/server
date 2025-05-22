@@ -1,5 +1,7 @@
 package com.example.scheduo.domain.member.dto;
 
+import java.util.List;
+
 import com.example.scheduo.domain.member.entity.Member;
 
 import lombok.Getter;
@@ -19,6 +21,16 @@ public class MemberResponseDto {
 				member.getEmail(),
 				member.getNickname()
 			);
+		}
+	}
+
+	@Getter
+	@RequiredArgsConstructor
+	public static class SearchProfiles {
+		private final List<MemberResponseDto.GetProfile> users;
+
+		public static SearchProfiles from(List<MemberResponseDto.GetProfile> profiles) {
+			return new SearchProfiles(profiles);
 		}
 	}
 }

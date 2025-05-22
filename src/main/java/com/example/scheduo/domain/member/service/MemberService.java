@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public interface MemberService {
 	MemberResponseDto.GetProfile getMyProfile(Long memberId);
 	MemberResponseDto.GetProfile editMyProfile(Long memberId, MemberRequestDto.EditInfo dto);
-	List<MemberResponseDto.GetProfile> searchByEmail(String email);
+	MemberResponseDto.SearchProfiles searchByEmail(String email);
 }
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
