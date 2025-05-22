@@ -35,7 +35,7 @@ class MemberControllerTest(
 
         context("프로필을 조회하면") {
             beforeTest {
-                every { memberService.getMyProfile() } returns memberProfile
+                every { memberService.getMyProfile(1L) } returns memberProfile
             }
 
             it("200 OK와 프로필 정보가 반환된다") {
@@ -56,7 +56,7 @@ class MemberControllerTest(
             val editedProfile = MemberResponseDto.GetProfile(1L, "user@example.com", "이몽룡")
 
             beforeTest {
-                every { memberService.editMyProfile(match { it.nickname == "이몽룡" }) } returns editedProfile
+                every { memberService.editMyProfile(1L, match { it.nickname == "이몽룡" }) } returns editedProfile
             }
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
