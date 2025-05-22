@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.member
 
 import com.example.scheduo.domain.member.controller.NotificationController
+import com.example.scheduo.domain.member.dto.NotificationResponseDto
 import com.example.scheduo.domain.member.entity.Member
 import com.example.scheduo.domain.member.entity.Notification
 import com.example.scheduo.domain.member.entity.NotificationType
@@ -31,7 +32,7 @@ class NotificationControllerDescribeSpec(
     describe("NotificationController GET /notifications 요청 시") {
         context("인증된 사용자가 요청할 때") {
             val memberId = 1L
-            val memberMock = mockk<Member>() // member는 실제로는 memberId로 조회되므로 mock 처리
+            val memberMock = mockk<Member>()
 
             val notification1 = Notification(
                     123,
@@ -65,9 +66,13 @@ class NotificationControllerDescribeSpec(
                     mapOf("calendarId" to 10, "inviterId" to 2)
             )
 
-            every { notificationService.findAllByMemberId(memberId) } returns listOf(
-                    notification1, notification2, notification3, notification4
-            )
+            val notificationEntities = listOf(notification1, notification2, notification3, notification4)
+            val notificationDtos = notificationEntities.map {
+                NotificationResponseDto.GetNotification.from(it)
+            }
+            val getNotifications = NotificationResponseDto.GetNotifications.from(notificationDtos)
+
+            every { notificationService.findAllByMemberId(memberId) } returns getNotifications
 
             it("반환된 알림에는 type, title, data, createdAt이 포함된다") {
                 val response = mockMvc.get("/notifications?memberId=1")
