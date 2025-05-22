@@ -15,10 +15,9 @@ import com.example.scheduo.domain.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@Service
 public interface MemberService {
-	MemberResponseDto.GetProfile getMyProfile();
-	MemberResponseDto.GetProfile editMyProfile(MemberRequestDto.EditInfo dto);
+	MemberResponseDto.GetProfile getMyProfile(Long memberId);
+	MemberResponseDto.GetProfile editMyProfile(Long memberId, MemberRequestDto.EditInfo dto);
 	List<MemberResponseDto.GetProfile> searchByEmail(String email);
 }
 @RequiredArgsConstructor
