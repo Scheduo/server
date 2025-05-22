@@ -1,4 +1,4 @@
-package com.example.scheduo.domain.member
+package com.example.scheduo.domain.member.controller
 
 import com.example.scheduo.domain.member.dto.MemberRequestDto
 import com.example.scheduo.domain.member.entity.Member
@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class MemberControllerIntegrationTest(
-        @Autowired val mockMvc: MockMvc,
-        @Autowired val objectMapper: ObjectMapper,
-        @Autowired val memberRepository: MemberRepository
+class MemberControllerTest(
+    @Autowired val mockMvc: MockMvc,
+    @Autowired val objectMapper: ObjectMapper,
+    @Autowired val memberRepository: MemberRepository
 ) : DescribeSpec({
     // TODO: authentication 연동에 따른 테스트 코드 수정 필요 (현재는 id 값에 의존적)
     var testId: Long? = null
@@ -42,7 +42,7 @@ class MemberControllerIntegrationTest(
 
             it("200 OK와 프로필 정보가 반환된다") {
                 val response = mockMvc.get("/members/me?tempId=$testId")
-                        .andReturn().response
+                    .andReturn().response
 
                 val json = objectMapper.readTree(response.contentAsString)
                 json["code"].asInt() shouldBe 200
@@ -112,7 +112,7 @@ class MemberControllerIntegrationTest(
         context("존재하는 이메일 중 prefix 검색값으로 검색하면") {
             it("200 OK와 해당 사용자의 리스트가 반환된다") {
                 val response = mockMvc.get("/members/search?email=$searchQuery")
-                        .andReturn().response
+                    .andReturn().response
 
                 val json = objectMapper.readTree(response.contentAsString)
                 json["code"].asInt() shouldBe 200
