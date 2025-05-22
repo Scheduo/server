@@ -30,6 +30,7 @@ class MemberControllerTest(
         @Autowired val memberService: MemberService,
 ) : DescribeSpec({
 
+
     describe("인증된 사용자가") {
         val memberProfile = MemberResponseDto.GetProfile(1L, "user@example.com", "홍길동")
 
@@ -39,8 +40,9 @@ class MemberControllerTest(
             }
 
             it("200 OK와 프로필 정보가 반환된다") {
-                val response = mockMvc.get("/members/me")
+                val response = mockMvc.get("/members/me?tempId=1")
                         .andReturn().response
+                println(response.contentAsString)
 
                 val json = objectMapper.readTree(response.contentAsString)
                 json["code"].asInt() shouldBe 200
@@ -60,7 +62,7 @@ class MemberControllerTest(
             }
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
-                val response = mockMvc.patch("/members/me") {
+                val response = mockMvc.patch("/members/me?tempId=1") {
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(editRequest)
                 }.andReturn().response
@@ -77,10 +79,11 @@ class MemberControllerTest(
 
     describe("이메일로 사용자를 검색할 때") {
         val searchQuery = "sear"
-        val foundMembers = listOf(
+        val profiles = listOf(
                 MemberResponseDto.GetProfile(2L, "search@example1.com", "임꺽정"),
                 MemberResponseDto.GetProfile(3L, "search@example2.com", "장길산")
         )
+        val foundMembers = MemberResponseDto.SearchProfiles.from(profiles)
 
         context("존재하는 이메일 중 일부 검색값으로 검색하면") {
             beforeTest {
@@ -88,17 +91,17 @@ class MemberControllerTest(
             }
 
             it("200 OK와 해당 사용자의 리스트가 반환된다") {
-                val response = mockMvc.get("/members/search?query=$searchQuery")
+                val response = mockMvc.get("/members/search?email=$searchQuery")
                         .andReturn().response
 
                 val json = objectMapper.readTree(response.contentAsString)
                 json["code"].asInt() shouldBe 200
                 json["success"].asBoolean() shouldBe true
                 json["message"].asText() shouldBe "OK."
-                json["data"][0]["email"].asText() shouldBe "search@example1.com"
-                json["data"][0]["nickname"].asText() shouldBe "임꺽정"
-                json["data"][1]["email"].asText() shouldBe "search@example2.com"
-                json["data"][1]["nickname"].asText() shouldBe "장길산"
+                json["data"]["users"][0]["email"].asText() shouldBe "search@example1.com"
+                json["data"]["users"][0]["nickname"].asText() shouldBe "임꺽정"
+                json["data"]["users"][1]["email"].asText() shouldBe "search@example2.com"
+                json["data"]["users"][1]["nickname"].asText() shouldBe "장길산"
             }
         }
     }

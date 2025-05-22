@@ -1,7 +1,5 @@
 package com.example.scheduo.domain.member.service;
 
-import java.util.List;
-
 import com.example.scheduo.domain.member.dto.MemberRequestDto;
 import com.example.scheduo.domain.member.dto.MemberResponseDto;
 
