@@ -1,15 +1,20 @@
-package com.example.scheduo.domain.member.service;
+package com.example.scheduo.domain.member.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.scheduo.domain.calendar.entity.Calendar;
+import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.member.dto.MemberRequestDto;
 import com.example.scheduo.domain.member.dto.MemberResponseDto;
 import com.example.scheduo.domain.member.entity.Member;
+import com.example.scheduo.domain.member.entity.SocialType;
 import com.example.scheduo.domain.member.repository.MemberRepository;
+import com.example.scheduo.domain.member.service.MemberService;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
@@ -17,11 +22,12 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MemberServiceImpl implements MemberService{
+@Transactional(readOnly = true)
+public class MemberServiceImpl implements MemberService {
 	private final MemberRepository memberRepository;
+	private final CalendarRepository calendarRepository;
 
 	@Override
-	@Transactional(readOnly = true)
 	public MemberResponseDto.GetProfile getMyProfile(Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
@@ -52,5 +58,30 @@ public class MemberServiceImpl implements MemberService{
 			.collect(Collectors.toList());
 
 		return MemberResponseDto.SearchProfiles.from(profiles);
+	}
+
+	@Transactional
+	@Override
+	public Member findOrCreateMember(String email, String nickname, SocialType socialType) {
+		Optional<Member> existingMember = memberRepository.findMemberByEmailAndSocialType(email, socialType);
+		if (existingMember.isPresent()) {
+			return existingMember.get();
+		}
+
+		Member member = Member.builder()
+			.email(email)
+			.nickname(nickname)
+			.socialType(socialType)
+			.build();
+		memberRepository.save(member);
+
+		Calendar defaultCalendar = Calendar.builder()
+			.member(member)
+			.name("기본 캘린더")
+			.build();
+		calendarRepository.save(defaultCalendar);
+
+		return member;
+
 	}
 }
