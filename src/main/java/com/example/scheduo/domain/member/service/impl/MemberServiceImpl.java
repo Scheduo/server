@@ -2,7 +2,6 @@ package com.example.scheduo.domain.member.service.impl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,14 +49,9 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	public MemberResponseDto.SearchProfiles searchByEmail(String emailPrefix) {
 		List<Member> members = memberRepository.findByEmailStartingWith(emailPrefix);
-		List<MemberResponseDto.GetProfile> profiles = members.stream()
-			.map(MemberResponseDto.GetProfile::from)
-			.collect(Collectors.toList());
-
-		return MemberResponseDto.SearchProfiles.from(profiles);
+		return MemberResponseDto.SearchProfiles.from(members);
 	}
 
 	@Transactional
