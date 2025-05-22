@@ -8,5 +8,5 @@ import com.example.scheduo.domain.member.dto.MemberResponseDto;
 public interface MemberService {
 	MemberResponseDto.GetProfile getMyProfile(Long memberId);
 	MemberResponseDto.GetProfile editMyProfile(Long memberId, MemberRequestDto.EditInfo dto);
-	List<MemberResponseDto.GetProfile> searchByEmail(String email);
+	MemberResponseDto.SearchProfiles searchByEmail(String email);
 }

@@ -39,8 +39,8 @@ public class MemberController {
 	}
 
 	@GetMapping("/search")
-	public ApiResponse<List<MemberResponseDto.GetProfile>> searchMember(String query) {
-		List<MemberResponseDto.GetProfile> data = memberService.searchByEmail(query);
+	public ApiResponse<MemberResponseDto.SearchProfiles> searchMember(String email) {
+		MemberResponseDto.SearchProfiles data = memberService.searchByEmail(email);
 		return ApiResponse.onSuccess(data);
 	}
 }
