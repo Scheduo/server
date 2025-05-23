@@ -38,4 +38,3 @@ out/
 
 # Spring Boot profile properties
 application-*.properties
-application-*.yml
