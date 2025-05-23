@@ -19,6 +19,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
+        show-sql: true
         format_sql: true
         use_sql_comments: true
   security:
@@ -51,3 +52,8 @@ spring:
     jwt:
       token:
         secret: ${JWT_TOKEN_SECRET}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

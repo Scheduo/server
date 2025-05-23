@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -37,6 +38,7 @@ public class Participant extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
+	@Setter
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "calendarId")
 	private Calendar calendar;
@@ -45,6 +47,8 @@ public class Participant extends BaseEntity {
 	@JoinColumn(name = "memberId")
 	private Member member;
 
+	@Setter
 	@Enumerated(EnumType.STRING)
 	private ParticipationStatus status;
+
 }
