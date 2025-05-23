@@ -11,15 +11,19 @@ import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.global.response.ApiResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/calendars")
+@Tag(name = "Calendar", description = "캘린더 관련 API")
 public class CalendarController {
 	private final CalendarService calendarService;
 
 	@PostMapping("/{calendarId}/invite")
+	@Operation(summary = "캘린더 초대", description = "캘린더에 사용자를 초대합니다.")
 	public ApiResponse<?> invite(@PathVariable("calendarId") Long calendarId,
 		@RequestBody CalendarRequestDto.Invite request,
 		@RequestParam("memberId") Long memberId) {
