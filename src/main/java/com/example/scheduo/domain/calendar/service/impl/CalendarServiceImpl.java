@@ -8,6 +8,7 @@ import com.example.scheduo.domain.calendar.entity.Participant;
 import com.example.scheduo.domain.calendar.entity.ParticipationStatus;
 import com.example.scheduo.domain.calendar.entity.Role;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
+import com.example.scheduo.domain.calendar.repository.ParticipantRepository;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.repository.MemberRepository;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class CalendarServiceImpl implements CalendarService {
 	private final MemberRepository memberRepository;
 	private final CalendarRepository calendarRepository;
+	private final ParticipantRepository participantRepository;
 
 	@Override
 	@Transactional
@@ -56,5 +58,18 @@ public class CalendarServiceImpl implements CalendarService {
 			.role(Role.VIEW)
 			.build();
 		calendar.addParticipant(participant);
+	}
+
+	@Override
+	@Transactional
+	public void acceptInvitation(Long calendarId, Long memberId) {
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
+
+		switch (participant.getStatus()) {
+			case PENDING -> participant.setStatus(ParticipationStatus.ACCEPTED);
+			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
+			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
+		}
 	}
 }
