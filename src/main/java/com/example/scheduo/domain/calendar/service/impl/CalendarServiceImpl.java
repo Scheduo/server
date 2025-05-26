@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.entity.Participant;
 import com.example.scheduo.domain.calendar.entity.ParticipationStatus;
+import com.example.scheduo.domain.calendar.entity.Role;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.domain.member.entity.Member;
@@ -52,6 +53,7 @@ public class CalendarServiceImpl implements CalendarService {
 			.calendar(calendar)
 			.member(invitee)
 			.status(ParticipationStatus.PENDING)
+			.role(Role.VIEW)
 			.build();
 		calendar.addParticipant(participant);
 	}
