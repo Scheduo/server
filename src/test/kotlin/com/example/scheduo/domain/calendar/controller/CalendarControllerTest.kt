@@ -1,10 +1,8 @@
 package com.example.scheduo.domain.calendar.controller;
 
-import com.example.scheduo.domain.calendar.entity.Calendar
 import com.example.scheduo.domain.calendar.entity.ParticipationStatus
 import com.example.scheduo.domain.calendar.repository.CalendarRepository
 import com.example.scheduo.domain.calendar.repository.ParticipantRepository
-import com.example.scheduo.domain.member.entity.Member
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.fixture.createCalendar
 import com.example.scheduo.fixture.createMember
@@ -34,19 +32,12 @@ class CalendarControllerTest(
     @Autowired private val participantRepository: ParticipantRepository
 ) : DescribeSpec({
 
-    lateinit var owner: Member
-    lateinit var invitee: Member
-    lateinit var calendar: Calendar
-
-    beforeSpec {
-        owner = memberRepository.save(createMember())
-        invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
-        calendar = calendarRepository.save(createCalendar(member = owner))
-    }
-
     describe("POST /calendars/{calendarId}/invite") {
         context("정상 초대 요청일 경우") {
             it("200 OK를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
                     contentType = MediaType.APPLICATION_JSON
@@ -60,6 +51,8 @@ class CalendarControllerTest(
         }
         context("캘린더가 존재하지 않는 경우") {
             it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/999/invite?memberId=${owner.id}") {
                     contentType = MediaType.APPLICATION_JSON
@@ -75,6 +68,9 @@ class CalendarControllerTest(
 
         context("초대한 멤버가 캘린더 소유자가 아닌 경우") {
             it("403 Forbidden을 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=100") {
                     contentType = MediaType.APPLICATION_JSON
@@ -90,6 +86,8 @@ class CalendarControllerTest(
 
         context("초대할 멤버가 존재하지 않는 경우") {
             it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to 999)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
                     contentType = MediaType.APPLICATION_JSON
@@ -104,16 +102,18 @@ class CalendarControllerTest(
         }
 
         context("초대할 멤버가 이미 초대된 경우") {
-            val alreadyInvited = memberRepository.save(createMember())
-            participantRepository.save(
-                createParticipant(
-                    calendar = calendar,
-                    member = alreadyInvited,
-                    participationStatus = ParticipationStatus.PENDING
-                )
-            )
             it("409 Conflict를 반환한다") {
-                val request = mapOf("memberId" to alreadyInvited.id)
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = invitee,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
+                val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
@@ -127,16 +127,18 @@ class CalendarControllerTest(
         }
 
         context("초대할 멤버가 이미 참여 중인 경우") {
-            val participatingMember = memberRepository.save(createMember())
-            participantRepository.save(
-                createParticipant(
-                    calendar = calendar,
-                    member = participatingMember,
-                    participationStatus = ParticipationStatus.ACCEPTED
-                )
-            )
             it("409 Conflict를 반환한다") {
-                val request = mapOf("memberId" to participatingMember.id)
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = invitee,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
+                val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
@@ -150,16 +152,18 @@ class CalendarControllerTest(
         }
 
         context("초대할 멤버가 초대를 이미 거부한 경우") {
-            val declinedMember = memberRepository.save(createMember())
-            val participant = participantRepository.save(
-                createParticipant(
-                    calendar = calendar,
-                    member = declinedMember,
-                    participationStatus = ParticipationStatus.DECLINED
-                )
-            )
             it("200 OK를 반환하고 상태를 PENDING으로 변경한다") {
-                val request = mapOf("memberId" to declinedMember.id)
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val participant = participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = invitee,
+                        participationStatus = ParticipationStatus.DECLINED
+                    )
+                )
+                val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
@@ -171,7 +175,6 @@ class CalendarControllerTest(
 
                 val updatedParticipant = participantRepository.findById(participant.id).get()
                 updatedParticipant.status shouldBe ParticipationStatus.PENDING
-
             }
         }
     }
