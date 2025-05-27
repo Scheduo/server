@@ -32,7 +32,7 @@ public class CalendarController {
 		return ApiResponse.onSuccess();
 	}
 
-	@PostMapping("/{calendarId}/accept")
+	@PostMapping("/{calendarId}/invite/accept")
 	@Operation(summary = "캘린더 초대 수락", description = "캘린더 초대를 수락합니다.")
 	public ApiResponse<?> accept(@PathVariable("calendarId") Long calendarId,
 		@RequestParam("memberId") Long memberId) {
