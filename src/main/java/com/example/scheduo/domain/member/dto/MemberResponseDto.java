@@ -29,7 +29,10 @@ public class MemberResponseDto {
 	public static class SearchProfiles {
 		private final List<MemberResponseDto.GetProfile> users;
 
-		public static SearchProfiles from(List<MemberResponseDto.GetProfile> profiles) {
+		public static SearchProfiles from(List<Member> members) {
+			List<MemberResponseDto.GetProfile> profiles = members.stream()
+				.map(MemberResponseDto.GetProfile::from)
+				.toList();
 			return new SearchProfiles(profiles);
 		}
 	}
