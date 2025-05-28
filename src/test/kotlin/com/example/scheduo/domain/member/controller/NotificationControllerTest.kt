@@ -1,4 +1,4 @@
-package com.example.scheduo.domain.member
+package com.example.scheduo.domain.member.controller
 
 import com.example.scheduo.domain.member.entity.Member
 import com.example.scheduo.domain.member.entity.Notification
