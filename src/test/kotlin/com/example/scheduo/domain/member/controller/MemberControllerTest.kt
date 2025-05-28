@@ -39,10 +39,8 @@ class MemberControllerTest(
         memberRepository.save(Member(null, "search@example2.com", "장길산", SocialType.GOOGLE))
     }
 
-    describe("인증된 사용자가") {
-
-        context("프로필을 조회하면") {
-
+    describe("GET /members/me 요청 시") {
+        context("인증된 사용자가 요청하면") {
             it("200 OK와 프로필 정보가 반환된다") {
                 val response = mockMvc.get("/members/me?tempId=$testId")
                         .andReturn().response
@@ -55,7 +53,9 @@ class MemberControllerTest(
                 json["data"]["nickname"].asText() shouldBe "홍길동"
             }
         }
+    }
 
+    describe("PATCH /members/me 요청 시") {
         context("기존 내 닉네임으로 프로필을 수정하면") {
             val editRequest = MemberRequestDto.EditInfo("홍길동")
 
@@ -109,7 +109,7 @@ class MemberControllerTest(
         }
     }
 
-    describe("이메일로 사용자를 검색할 때") {
+    describe("GET /members/search?email=??? 요청 시") {
         val searchQuery = "sear"
 
         context("존재하는 이메일 중 prefix 검색값으로 검색하면") {
