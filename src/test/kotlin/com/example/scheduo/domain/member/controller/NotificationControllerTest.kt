@@ -6,6 +6,9 @@ import com.example.scheduo.domain.member.entity.NotificationType
 import com.example.scheduo.domain.member.entity.SocialType
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.domain.member.repository.NotificationRepository
+import com.example.scheduo.fixture.createCalendarInvitationNotification
+import com.example.scheduo.fixture.createMemberGOOGLE
+import com.example.scheduo.fixture.createScheduleNotification
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -32,40 +35,31 @@ class NotificationControllerIntegrationTest(
         notificationRepository.deleteAll()
         memberRepository.deleteAll()
 
-        // 테스트용 멤버 저장
         val savedMember = memberRepository.save(
-                Member(null, "user@example.com", "홍길동", SocialType.GOOGLE)
+                createMemberGOOGLE(email = "user@example.com", nickname = "홍길동")
         )
         memberId = savedMember.id
 
-        notificationRepository.save(Notification(
-                null,
-                savedMember,
-                NotificationType.SCHEDULE_NOTIFICATION,
-                "회의 일정이 곧 시작됩니다",
-                mapOf("scheduleId" to 45, "calendarId" to 3)
-        ))
-        notificationRepository.save(Notification(
-                null,
-                savedMember,
-                NotificationType.CALENDAR_INVITATION,
-                "새로운 캘린더 초대가 도착했습니다",
-                mapOf("calendarId" to 7)
-        ))
-        notificationRepository.save(Notification(
-                null,
-                savedMember,
-                NotificationType.SCHEDULE_NOTIFICATION,
-                "중요 일정 알림",
-                mapOf("scheduleId" to 88, "calendarId" to 3)
-        ))
-        notificationRepository.save(Notification(
-                null,
-                savedMember,
-                NotificationType.CALENDAR_INVITATION,
-                "캘린더 초대 수락됨",
-                mapOf("calendarId" to 10, "inviterId" to 2)
-        ))
+        notificationRepository.save(
+                createScheduleNotification(member = savedMember)
+        )
+        notificationRepository.save(
+                createCalendarInvitationNotification(member = savedMember)
+        )
+        notificationRepository.save(
+                createScheduleNotification(
+                        member = savedMember,
+                        title = "중요 일정 알림",
+                        data = mapOf("scheduleId" to 88, "calendarId" to 3)
+                )
+        )
+        notificationRepository.save(
+                createCalendarInvitationNotification(
+                        member = savedMember,
+                        title = "캘린더 초대 수락됨",
+                        data = mapOf("calendarId" to 10, "inviterId" to 2)
+                )
+        )
     }
 
     describe("GET /notifications 요청 시") {

@@ -1,10 +1,10 @@
 package com.example.scheduo.domain.member.controller
 
 import com.example.scheduo.domain.member.dto.MemberRequestDto
-import com.example.scheduo.domain.member.entity.Member
-import com.example.scheduo.domain.member.entity.SocialType
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.domain.member.repository.NotificationRepository
+import com.example.scheduo.fixture.createEditInfoRequest
+import com.example.scheduo.fixture.createMemberGOOGLE
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -33,10 +33,26 @@ class MemberControllerTest(
         // db 데이터 삭제 주의
         notificationRepository.deleteAll()
         memberRepository.deleteAll()
-        val savedMember = memberRepository.save(Member(null, "user@example.com", "홍길동", SocialType.GOOGLE))
+
+        val savedMember = memberRepository.save(
+                createMemberGOOGLE(
+                        email = "user@example.com",
+                        nickname = "홍길동"
+                )
+        )
         testId = savedMember.id
-        memberRepository.save(Member(null, "search@example1.com", "임꺽정", SocialType.GOOGLE))
-        memberRepository.save(Member(null, "search@example2.com", "장길산", SocialType.GOOGLE))
+        memberRepository.save(
+                createMemberGOOGLE(
+                        email = "search@example1.com",
+                        nickname = "임꺽정"
+                )
+        )
+        memberRepository.save(
+                createMemberGOOGLE(
+                        email = "search@example2.com",
+                        nickname = "장길산"
+                )
+        )
     }
 
     describe("GET /members/me 요청 시") {
@@ -57,7 +73,7 @@ class MemberControllerTest(
 
     describe("PATCH /members/me 요청 시") {
         context("기존 내 닉네임으로 프로필을 수정하면") {
-            val editRequest = MemberRequestDto.EditInfo("홍길동")
+            val editRequest = createEditInfoRequest("홍길동")
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
                 val response = mockMvc.patch("/members/me?tempId=$testId") {
@@ -75,7 +91,7 @@ class MemberControllerTest(
         }
 
         context("unique한 닉네임으로 프로필을 수정하면") {
-            val editRequest = MemberRequestDto.EditInfo("이몽룡")
+            val editRequest = createEditInfoRequest("이몽룡")
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
                 val response = mockMvc.patch("/members/me?tempId=$testId") {
@@ -93,7 +109,7 @@ class MemberControllerTest(
         }
 
         context("이미 있는 닉네임으로 프로필을 수정하면") {
-            val editRequest = MemberRequestDto.EditInfo("임꺽정")
+            val editRequest = createEditInfoRequest("임꺽정")
 
             it("409 DUPLICATE_NICKNAME 에러가 반환된다") {
                 val response = mockMvc.patch("/members/me?tempId=$testId") {
