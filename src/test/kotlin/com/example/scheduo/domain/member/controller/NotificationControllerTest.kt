@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class NotificationControllerIntegrationTest(
+class NotificationControllerTest(
         @Autowired val mockMvc: MockMvc,
         @Autowired val objectMapper: ObjectMapper,
         @Autowired val notificationRepository: NotificationRepository,
