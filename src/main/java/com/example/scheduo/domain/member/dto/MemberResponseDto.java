@@ -10,13 +10,13 @@ import lombok.RequiredArgsConstructor;
 public class MemberResponseDto {
 	@Getter
 	@RequiredArgsConstructor
-	public static class GetProfile {
+	public static class MemberInfo {
 		private final Long id;
 		private final String email;
 		private final String nickname;
 
-		public static GetProfile from(Member member) {
-			return new GetProfile(
+		public static MemberInfo from(Member member) {
+			return new MemberInfo(
 				member.getId(),
 				member.getEmail(),
 				member.getNickname()
@@ -26,14 +26,14 @@ public class MemberResponseDto {
 
 	@Getter
 	@RequiredArgsConstructor
-	public static class SearchProfiles {
-		private final List<MemberResponseDto.GetProfile> users;
+	public static class MemberList {
+		private final List<MemberInfo> users;
 
-		public static SearchProfiles from(List<Member> members) {
-			List<MemberResponseDto.GetProfile> profiles = members.stream()
-				.map(MemberResponseDto.GetProfile::from)
+		public static MemberList from(List<Member> members) {
+			List<MemberInfo> profiles = members.stream()
+				.map(MemberInfo::from)
 				.toList();
-			return new SearchProfiles(profiles);
+			return new MemberList(profiles);
 		}
 	}
 }

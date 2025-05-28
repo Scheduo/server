@@ -20,12 +20,8 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public NotificationResponseDto.GetNotifications findAllByMemberId(Long memberId) {
+	public NotificationResponseDto.NoticeList findAllByMemberId(Long memberId) {
 		List<Notification> notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId);
-		List<NotificationResponseDto.GetNotification> notificationDtos = notifications.stream()
-			.map(NotificationResponseDto.GetNotification::from)
-			.collect(Collectors.toList());
-
-		return NotificationResponseDto.GetNotifications.from(notificationDtos);
+		return NotificationResponseDto.NoticeList.from(notifications);
 	}
 }
