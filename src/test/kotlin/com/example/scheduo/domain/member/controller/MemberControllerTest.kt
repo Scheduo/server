@@ -5,6 +5,7 @@ import com.example.scheduo.domain.member.entity.Member
 import com.example.scheduo.domain.member.entity.SocialType
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.fixture.JwtFixture
+import com.example.scheduo.fixture.createMember
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -32,10 +33,26 @@ class MemberControllerTest(
     beforeTest {
         // db 데이터 삭제 주의
         memberRepository.deleteAll()
-        val savedMember = memberRepository.save(Member(null, "user@example.com", "홍길동", SocialType.GOOGLE))
+
+        val savedMember = memberRepository.save(
+                createMember(
+                        email = "user@example.com",
+                        nickname = "홍길동"
+                )
+        )
         testId = savedMember.id
-        memberRepository.save(Member(null, "search@example1.com", "임꺽정", SocialType.GOOGLE))
-        memberRepository.save(Member(null, "search@example2.com", "장길산", SocialType.GOOGLE))
+        memberRepository.save(
+                createMember(
+                        email = "search@example1.com",
+                        nickname = "임꺽정"
+                )
+        )
+        memberRepository.save(
+                createMember(
+                        email = "search@example2.com",
+                        nickname = "장길산"
+                )
+        )
     }
 
     describe("인증된 사용자가") {
