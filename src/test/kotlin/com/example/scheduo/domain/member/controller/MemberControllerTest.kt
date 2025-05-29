@@ -4,6 +4,7 @@ import com.example.scheduo.domain.member.dto.MemberRequestDto
 import com.example.scheduo.domain.member.entity.Member
 import com.example.scheduo.domain.member.entity.SocialType
 import com.example.scheduo.domain.member.repository.MemberRepository
+import com.example.scheduo.fixture.JwtFixture
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -22,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional
 class MemberControllerTest(
     @Autowired val mockMvc: MockMvc,
     @Autowired val objectMapper: ObjectMapper,
-    @Autowired val memberRepository: MemberRepository
+    @Autowired val memberRepository: MemberRepository,
+    @Autowired val jwtFixture: JwtFixture
 ) : DescribeSpec({
     // TODO: authentication 연동에 따른 테스트 코드 수정 필요 (현재는 id 값에 의존적)
     var testId: Long? = null
@@ -39,9 +41,12 @@ class MemberControllerTest(
     describe("인증된 사용자가") {
 
         context("프로필을 조회하면") {
+            val validToken = jwtFixture.createValidToken(testId!!)
 
             it("200 OK와 프로필 정보가 반환된다") {
-                val response = mockMvc.get("/members/me?tempId=$testId")
+                val response = mockMvc.get("/members/me?tempId=$testId"){
+                    header("Authorization", "Bearer $validToken")
+                }
                     .andReturn().response
 
                 val json = objectMapper.readTree(response.contentAsString)
@@ -55,9 +60,11 @@ class MemberControllerTest(
 
         context("기존 내 닉네임으로 프로필을 수정하면") {
             val editRequest = MemberRequestDto.EditInfo("홍길동")
+            val validToken = jwtFixture.createValidToken(testId!!)
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
                 val response = mockMvc.patch("/members/me?tempId=$testId") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(editRequest)
                 }.andReturn().response
@@ -73,9 +80,11 @@ class MemberControllerTest(
 
         context("unique한 닉네임으로 프로필을 수정하면") {
             val editRequest = MemberRequestDto.EditInfo("이몽룡")
+            val validToken = jwtFixture.createValidToken(testId!!)
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
                 val response = mockMvc.patch("/members/me?tempId=$testId") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(editRequest)
                 }.andReturn().response
@@ -91,9 +100,11 @@ class MemberControllerTest(
 
         context("이미 있는 닉네임으로 프로필을 수정하면") {
             val editRequest = MemberRequestDto.EditInfo("임꺽정")
+            val validToken = jwtFixture.createValidToken(testId!!)
 
             it("409 DUPLICATE_NICKNAME 에러가 반환된다") {
                 val response = mockMvc.patch("/members/me?tempId=$testId") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(editRequest)
                 }.andReturn().response
@@ -108,10 +119,13 @@ class MemberControllerTest(
 
     describe("이메일로 사용자를 검색할 때") {
         val searchQuery = "sear"
+        val validToken = jwtFixture.createValidToken(testId!!)
 
         context("존재하는 이메일 중 prefix 검색값으로 검색하면") {
             it("200 OK와 해당 사용자의 리스트가 반환된다") {
-                val response = mockMvc.get("/members/search?email=$searchQuery")
+                val response = mockMvc.get("/members/search?email=$searchQuery") {
+                    header("Authorization", "Bearer $validToken")
+                }
                     .andReturn().response
 
                 val json = objectMapper.readTree(response.contentAsString)
