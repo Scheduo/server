@@ -11,7 +11,6 @@ import com.example.scheduo.global.response.status.ResponseStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -19,11 +18,12 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
+import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc()
 @ActiveProfiles("test")
-@Transactional
+@Transactional()
 class CalendarControllerTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
@@ -31,6 +31,12 @@ class CalendarControllerTest(
     @Autowired private val calendarRepository: CalendarRepository,
     @Autowired private val participantRepository: ParticipantRepository
 ) : DescribeSpec({
+
+    afterTest {
+        participantRepository.deleteAll()
+        calendarRepository.deleteAll()
+        memberRepository.deleteAll()
+    }
 
     describe("POST /calendars/{calendarId}/invite") {
         context("정상 초대 요청일 경우") {
