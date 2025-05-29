@@ -1,10 +1,9 @@
 package com.example.scheduo.domain.member.controller
 
-import com.example.scheduo.domain.member.dto.MemberRequestDto
-import com.example.scheduo.domain.member.entity.Member
-import com.example.scheduo.domain.member.entity.SocialType
 import com.example.scheduo.domain.member.repository.MemberRepository
+import com.example.scheduo.domain.member.repository.NotificationRepository
 import com.example.scheduo.fixture.JwtFixture
+import com.example.scheduo.fixture.createEditInfoRequest
 import com.example.scheduo.fixture.createMember
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
@@ -21,10 +21,12 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 class MemberControllerTest(
     @Autowired val mockMvc: MockMvc,
     @Autowired val objectMapper: ObjectMapper,
     @Autowired val memberRepository: MemberRepository,
+    @Autowired val notificationRepository: NotificationRepository,
     @Autowired val jwtFixture: JwtFixture
 ) : DescribeSpec({
     // TODO: authentication 연동에 따른 테스트 코드 수정 필요 (현재는 id 값에 의존적)
@@ -32,6 +34,7 @@ class MemberControllerTest(
 
     beforeTest {
         // db 데이터 삭제 주의
+        notificationRepository.deleteAll()
         memberRepository.deleteAll()
 
         val savedMember = memberRepository.save(
@@ -55,11 +58,14 @@ class MemberControllerTest(
         )
     }
 
-    describe("인증된 사용자가") {
+    afterTest {
+        notificationRepository.deleteAll()
+        memberRepository.deleteAll()
+    }
 
-        context("프로필을 조회하면") {
+    describe("GET /members/me 요청 시") {
+        context("인증된 사용자가 요청하면") {
             val validToken = jwtFixture.createValidToken(testId!!)
-
             it("200 OK와 프로필 정보가 반환된다") {
                 val response = mockMvc.get("/members/me?tempId=$testId"){
                     header("Authorization", "Bearer $validToken")
@@ -74,9 +80,11 @@ class MemberControllerTest(
                 json["data"]["nickname"].asText() shouldBe "홍길동"
             }
         }
+    }
 
+    describe("PATCH /members/me 요청 시") {
         context("기존 내 닉네임으로 프로필을 수정하면") {
-            val editRequest = MemberRequestDto.EditInfo("홍길동")
+            val editRequest = createEditInfoRequest("홍길동")
             val validToken = jwtFixture.createValidToken(testId!!)
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
@@ -96,7 +104,7 @@ class MemberControllerTest(
         }
 
         context("unique한 닉네임으로 프로필을 수정하면") {
-            val editRequest = MemberRequestDto.EditInfo("이몽룡")
+            val editRequest = createEditInfoRequest("이몽룡")
             val validToken = jwtFixture.createValidToken(testId!!)
 
             it("200 OK와 수정된 프로필 정보가 반환된다") {
@@ -116,7 +124,7 @@ class MemberControllerTest(
         }
 
         context("이미 있는 닉네임으로 프로필을 수정하면") {
-            val editRequest = MemberRequestDto.EditInfo("임꺽정")
+            val editRequest = createEditInfoRequest("임꺽정")
             val validToken = jwtFixture.createValidToken(testId!!)
 
             it("409 DUPLICATE_NICKNAME 에러가 반환된다") {
@@ -134,7 +142,7 @@ class MemberControllerTest(
         }
     }
 
-    describe("이메일로 사용자를 검색할 때") {
+    describe("GET /members/search?email=??? 요청 시") {
         val searchQuery = "sear"
         val validToken = jwtFixture.createValidToken(testId!!)
 

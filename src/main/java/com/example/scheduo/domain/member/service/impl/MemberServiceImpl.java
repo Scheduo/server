@@ -27,15 +27,15 @@ public class MemberServiceImpl implements MemberService {
 	private final CalendarRepository calendarRepository;
 
 	@Override
-	public MemberResponseDto.GetProfile getMyProfile(Long memberId) {
+	public MemberResponseDto.MemberInfo getMyProfile(Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
-		return MemberResponseDto.GetProfile.from(member);
+		return MemberResponseDto.MemberInfo.from(member);
 	}
 
 	@Override
 	@Transactional
-	public MemberResponseDto.GetProfile editMyProfile(Long memberId, MemberRequestDto.EditInfo editInfo) {
+	public MemberResponseDto.MemberInfo editMyProfile(Long memberId, MemberRequestDto.EditInfo editInfo) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
 
@@ -45,13 +45,13 @@ public class MemberServiceImpl implements MemberService {
 
 		member.changeNickname(editInfo.getNickname());
 
-		return MemberResponseDto.GetProfile.from(member);
+		return MemberResponseDto.MemberInfo.from(member);
 	}
 
 	@Override
-	public MemberResponseDto.SearchProfiles searchByEmail(String emailPrefix) {
+	public MemberResponseDto.MemberList searchByEmail(String emailPrefix) {
 		List<Member> members = memberRepository.findByEmailStartingWith(emailPrefix);
-		return MemberResponseDto.SearchProfiles.from(members);
+		return MemberResponseDto.MemberList.from(members);
 	}
 
 	@Transactional

@@ -20,7 +20,15 @@ public enum ResponseStatus {
 	// 멤버 관련 에러 응답
 	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_0001", "멤버를 찾을 수 없습니다."),
 	DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "MEMBER_0002", "이미 사용중인 닉네임입니다."),
-	;
+
+	//캘린더 관련 에러 응답
+	CALENDAR_NOT_FOUND(HttpStatus.NOT_FOUND, "CALENDAR_0001", "캘린더를 찾을 수 없습니다."),
+	MEMBER_NOT_OWNER(HttpStatus.FORBIDDEN, "CALENDAR_0002", "해당 캘린더의 소유자가 아닙니다."),
+	MEMBER_ALREADY_INVITED(HttpStatus.CONFLICT, "CALENDAR_0003", "이미 초대된 멤버입니다."),
+	MEMBER_ALREADY_PARTICIPANT(HttpStatus.CONFLICT, "CALENDAR_0004", "이미 참여중인 멤버입니다."),
+	INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "CALENDAR_0005", "초대 정보를 찾을 수 없습니다."),
+	INVITATION_ALREADY_ACCEPTED(HttpStatus.CONFLICT, "CALENDAR_0006", "이미 수락된 초대입니다."),
+	INVITATION_ALREADY_DECLINED(HttpStatus.CONFLICT, "CALENDAR_0007", "이미 거절된 초대입니다.");
 
 	private final HttpStatus httpStatus;
 	private final String status;

@@ -24,21 +24,21 @@ public class MemberController {
 
 	// TODO: tempId 대신 SecurityContextHolder 이용하기
 	@GetMapping("/me")
-	public ApiResponse<MemberResponseDto.GetProfile> retrieveMember(@RequestParam Long tempId) {
-		MemberResponseDto.GetProfile data = memberService.getMyProfile(tempId);
+	public ApiResponse<MemberResponseDto.MemberInfo> retrieveMember(@RequestParam Long tempId) {
+		MemberResponseDto.MemberInfo data = memberService.getMyProfile(tempId);
 		return ApiResponse.onSuccess(data);
 	}
 
 	// TODO: tempId 대신 SecurityContextHolder 이용하기
 	@PatchMapping("/me")
-	public ApiResponse<MemberResponseDto.GetProfile> modifiedMember(@RequestParam Long tempId, @RequestBody MemberRequestDto.EditInfo body) {
-		MemberResponseDto.GetProfile data = memberService.editMyProfile(tempId, body);
+	public ApiResponse<MemberResponseDto.MemberInfo> modifiedMember(@RequestParam Long tempId, @RequestBody MemberRequestDto.EditInfo body) {
+		MemberResponseDto.MemberInfo data = memberService.editMyProfile(tempId, body);
 		return ApiResponse.onSuccess(data);
 	}
 
 	@GetMapping("/search")
-	public ApiResponse<MemberResponseDto.SearchProfiles> searchMember(String email) {
-		MemberResponseDto.SearchProfiles data = memberService.searchByEmail(email);
+	public ApiResponse<MemberResponseDto.MemberList> searchMember(String email) {
+		MemberResponseDto.MemberList data = memberService.searchByEmail(email);
 		return ApiResponse.onSuccess(data);
 	}
 }
