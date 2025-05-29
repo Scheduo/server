@@ -4,36 +4,40 @@ import java.util.List;
 
 import com.example.scheduo.domain.member.entity.Member;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 public class MemberResponseDto {
 	@Getter
-	@RequiredArgsConstructor
-	public static class GetProfile {
-		private final Long id;
-		private final String email;
-		private final String nickname;
+	@Builder
+	public static class MemberInfo {
+		private Long id;
+		private String email;
+		private String nickname;
 
-		public static GetProfile from(Member member) {
-			return new GetProfile(
-				member.getId(),
-				member.getEmail(),
-				member.getNickname()
-			);
+		public static MemberInfo from(Member member) {
+			return MemberInfo.builder()
+				.id(member.getId())
+				.email(member.getEmail())
+				.nickname(member.getNickname())
+				.build();
 		}
 	}
 
 	@Getter
-	@RequiredArgsConstructor
-	public static class SearchProfiles {
-		private final List<MemberResponseDto.GetProfile> users;
+	@Builder
+	public static class MemberList {
+		private List<MemberInfo> users;
 
-		public static SearchProfiles from(List<Member> members) {
-			List<MemberResponseDto.GetProfile> profiles = members.stream()
-				.map(MemberResponseDto.GetProfile::from)
+		public static MemberList from(List<Member> members) {
+			List<MemberInfo> profiles = members.stream()
+				.map(MemberInfo::from)
 				.toList();
-			return new SearchProfiles(profiles);
+
+			return MemberList.builder()
+				.users(profiles)
+				.build();
 		}
 	}
 }
