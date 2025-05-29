@@ -56,8 +56,8 @@ class JwtAuthenticationTest(
 
                 response.status shouldBe 401
                 val json = objectMapper.readTree(response.contentAsString)
-                json["status"].asInt() shouldBe 401
-                json["error"].asText() shouldBe "Unauthorized"
+                json["code"].asInt() shouldBe 401
+                json["success"].asBoolean() shouldBe false
                 json["message"].asText() shouldBe "토큰이 없습니다."
             }
         }
@@ -73,8 +73,8 @@ class JwtAuthenticationTest(
 
                 response.status shouldBe 401
                 val json = objectMapper.readTree(response.contentAsString)
-                json["status"].asInt() shouldBe 401
-                json["error"].asText() shouldBe "Unauthorized"
+                json["code"].asInt() shouldBe 401
+                json["success"].asBoolean() shouldBe false
                 json["message"].asText() shouldBe "토큰이 유효하지 않습니다."
             }
         }

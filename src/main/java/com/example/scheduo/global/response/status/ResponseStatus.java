@@ -17,6 +17,12 @@ public enum ResponseStatus {
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_0003", "인증에 실패했습니다."),
 	FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_0004", "권한이 없습니다."),
 
+	// 토큰 관련 에러 응답
+	NOT_EXIST_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0001", "토큰이 없습니다."),
+	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0002", "토큰이 유효하지 않습니다."),
+	DEFAULT_TOKEN_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_0003", "인증에 실패하였습니다."),
+
+
 	// 멤버 관련 에러 응답
 	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_0001", "멤버를 찾을 수 없습니다."),
 	DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "MEMBER_0002", "이미 사용중인 닉네임입니다."),

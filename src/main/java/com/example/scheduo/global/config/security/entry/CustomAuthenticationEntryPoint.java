@@ -9,6 +9,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.example.scheduo.global.response.status.ResponseStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
@@ -23,18 +28,22 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		String message;
 		switch (exception) {
 			case "INVALID_TOKEN":
-				message = "토큰이 유효하지 않습니다.";
+				message = ResponseStatus.INVALID_TOKEN.getMessage();
 				break;
-			case "NO_TOKEN":
-				message = "토큰이 없습니다.";
+			case "NOT_EXIST_TOKEN":
+				message = ResponseStatus.NOT_EXIST_TOKEN.getMessage();
 				break;
 			default:
-				message = "인증에 실패하였습니다.";
+				message = ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();
 				break;
 		}
 
-		response.getWriter().write(
-			String.format("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"%s\"}", message)
-		);
+		Map<String, Object> result = new HashMap<>();
+		result.put("code", 401);
+		result.put("success", false);
+		result.put("message", message);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		response.getWriter().write(objectMapper.writeValueAsString(result));
 	}
 }

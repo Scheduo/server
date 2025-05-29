@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.scheduo.global.config.security.provider.JwtProvider;
+import com.example.scheduo.global.response.status.ResponseStatus;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -31,14 +32,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
 		// 토큰이 없으면 인증 예외 발생
 		if (token == null) {
-			request.setAttribute("exception", "NO_TOKEN");
+			request.setAttribute("exception", ResponseStatus.NOT_EXIST_TOKEN.name());
 			chain.doFilter(request, response);
 			return;
 		}
 
 		// 토큰이 있지만 유효하지 않으면 예외 발생
 		if (!jwtProvider.validateToken(token)) {
-			request.setAttribute("exception", "INVALID_TOKEN");
+			request.setAttribute("exception", ResponseStatus.INVALID_TOKEN.name());
 			chain.doFilter(request, response);
 			return;
 		}
