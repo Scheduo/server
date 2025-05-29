@@ -11,7 +11,6 @@ import com.example.scheduo.global.response.status.ResponseStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -19,11 +18,12 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
+import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc()
 @ActiveProfiles("test")
-@Transactional
+@Transactional()
 class CalendarControllerTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
@@ -31,6 +31,12 @@ class CalendarControllerTest(
     @Autowired private val calendarRepository: CalendarRepository,
     @Autowired private val participantRepository: ParticipantRepository
 ) : DescribeSpec({
+
+    afterTest {
+        participantRepository.deleteAll()
+        calendarRepository.deleteAll()
+        memberRepository.deleteAll()
+    }
 
     describe("POST /calendars/{calendarId}/invite") {
         context("정상 초대 요청일 경우") {
@@ -278,8 +284,103 @@ class CalendarControllerTest(
                 responseBody["message"].asText() shouldBe ResponseStatus.INVITATION_ALREADY_DECLINED.message
             }
         }
-
     }
 
+    describe("POST /calendars/{calendarId}/invite/decline") {
+        context("정상적으로 초대를 거부하는 경우") {
+            it("200 OK를 반환하고 참여 상태를 DECLINED로 변경한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val participant = participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = invitee,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
+                val request = mapOf("memberId" to invitee.id)
+                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(request)
+                }.andReturn().response
 
+                response.status shouldBe 200
+                val responseBody = objectMapper.readTree(response.contentAsString)
+                responseBody["code"].asInt() shouldBe 200
+                responseBody["success"].asBoolean() shouldBe true
+
+                val updatedParticipant = participantRepository.findById(participant.id).get()
+                updatedParticipant.status shouldBe ParticipationStatus.DECLINED
+            }
+        }
+        context("초대가 존재하지 않는 경우") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val request = mapOf("memberId" to invitee.id)
+                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(request)
+                }.andReturn().response
+
+                response.status shouldBe 404
+                val responseBody = objectMapper.readTree(response.contentAsString)
+                responseBody["code"].asInt() shouldBe 404
+                responseBody["success"].asBoolean() shouldBe false
+                responseBody["message"].asText() shouldBe ResponseStatus.INVITATION_NOT_FOUND.message
+            }
+        }
+        context("초대가 이미 수락된 경우") {
+            it("409 Conflict를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = invitee,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
+                val request = mapOf("memberId" to invitee.id)
+                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(request)
+                }.andReturn().response
+
+                response.status shouldBe 409
+                val responseBody = objectMapper.readTree(response.contentAsString)
+                responseBody["code"].asInt() shouldBe 409
+                responseBody["success"].asBoolean() shouldBe false
+                responseBody["message"].asText() shouldBe ResponseStatus.INVITATION_ALREADY_ACCEPTED.message
+            }
+        }
+        context("초대가 이미 거부된 경우") {
+            it("409 Conflict를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar(member = owner))
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = invitee,
+                        participationStatus = ParticipationStatus.DECLINED
+                    )
+                )
+                val request = mapOf("memberId" to invitee.id)
+                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(request)
+                }.andReturn().response
+
+                response.status shouldBe 409
+                val responseBody = objectMapper.readTree(response.contentAsString)
+                responseBody["code"].asInt() shouldBe 409
+                responseBody["success"].asBoolean() shouldBe false
+                responseBody["message"].asText() shouldBe ResponseStatus.INVITATION_ALREADY_DECLINED.message
+            }
+        }
+    }
 })

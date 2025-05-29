@@ -72,4 +72,17 @@ public class CalendarServiceImpl implements CalendarService {
 			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
 		}
 	}
+
+	@Override
+	@Transactional
+	public void rejectInvitation(Long calendarId, Long memberId) {
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
+
+		switch (participant.getStatus()) {
+			case PENDING -> participant.setStatus(ParticipationStatus.DECLINED);
+			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
+			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
+		}
+	}
 }
