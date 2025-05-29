@@ -1,13 +1,9 @@
 package com.example.scheduo.domain.member.controller
 
-import com.example.scheduo.domain.member.entity.Member
-import com.example.scheduo.domain.member.entity.Notification
-import com.example.scheduo.domain.member.entity.NotificationType
-import com.example.scheduo.domain.member.entity.SocialType
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.domain.member.repository.NotificationRepository
 import com.example.scheduo.fixture.createCalendarInvitationNotification
-import com.example.scheduo.fixture.createMemberGOOGLE
+import com.example.scheduo.fixture.createMember
 import com.example.scheduo.fixture.createScheduleNotification
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
@@ -36,7 +32,7 @@ class NotificationControllerTest(
         memberRepository.deleteAll()
 
         val savedMember = memberRepository.save(
-                createMemberGOOGLE(email = "user@example.com", nickname = "홍길동")
+                createMember(email = "user@example.com", nickname = "홍길동")
         )
         memberId = savedMember.id
 
@@ -74,17 +70,6 @@ class NotificationControllerTest(
                 json["success"].asBoolean() shouldBe true
                 json["message"].asText() shouldBe "OK."
                 json["data"]["notifications"].size() shouldBe 4
-            }
-
-            it("반환된 알림에는 type, title, data, createdAt이 포함된다") {
-                val response = mockMvc.get("/notifications?memberId=$memberId")
-                        .andReturn().response
-                println(response.contentAsString)
-
-                val json = objectMapper.readTree(response.contentAsString)
-                json["code"].asInt() shouldBe 200
-                json["success"].asBoolean() shouldBe true
-                json["message"].asText() shouldBe "OK."
                 json["data"]["notifications"][0]["type"].asText() shouldBe "CALENDAR_INVITATION"
                 json["data"]["notifications"][0]["title"].asText() shouldBe "캘린더 초대 수락됨"
                 json["data"]["notifications"][0]["data"]["calendarId"].asInt() shouldBe 10

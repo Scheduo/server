@@ -4,10 +4,10 @@ import com.example.scheduo.domain.member.dto.MemberRequestDto
 import com.example.scheduo.domain.member.entity.Member
 import com.example.scheduo.domain.member.entity.SocialType
 
-fun createMemberGOOGLE(
+fun createMember(
         id: Long? = null,
-        email: String = "test@example.com",
-        nickname: String? = "테스트닉네임",
+        email: String = "test@gmail.com",
+        nickname: String? = "null",
         socialType: SocialType = SocialType.GOOGLE
 ): Member {
     return Member(id, email, nickname, socialType)

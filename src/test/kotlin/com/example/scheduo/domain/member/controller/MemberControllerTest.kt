@@ -1,10 +1,9 @@
 package com.example.scheduo.domain.member.controller
 
-import com.example.scheduo.domain.member.dto.MemberRequestDto
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.domain.member.repository.NotificationRepository
 import com.example.scheduo.fixture.createEditInfoRequest
-import com.example.scheduo.fixture.createMemberGOOGLE
+import com.example.scheduo.fixture.createMember
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -35,20 +34,20 @@ class MemberControllerTest(
         memberRepository.deleteAll()
 
         val savedMember = memberRepository.save(
-                createMemberGOOGLE(
+                createMember(
                         email = "user@example.com",
                         nickname = "홍길동"
                 )
         )
         testId = savedMember.id
         memberRepository.save(
-                createMemberGOOGLE(
+                createMember(
                         email = "search@example1.com",
                         nickname = "임꺽정"
                 )
         )
         memberRepository.save(
-                createMemberGOOGLE(
+                createMember(
                         email = "search@example2.com",
                         nickname = "장길산"
                 )
