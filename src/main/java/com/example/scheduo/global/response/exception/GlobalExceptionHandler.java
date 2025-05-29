@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
 		ErrorResponseDto response = ApiResponse.onFailure(ResponseStatus.INTERNAL_SERVER_ERROR);
-		log.error("[UnhandledError] {} - {}", response.getStatus(), response.getMessage());
+		log.error("[UnhandledError] {} - {}", response.getStatus(), ex.getMessage());
 
 		return ResponseEntity.status(ResponseStatus.INTERNAL_SERVER_ERROR.getHttpStatus()).body(response);
 	}
