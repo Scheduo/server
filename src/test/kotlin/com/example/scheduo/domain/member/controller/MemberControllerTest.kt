@@ -30,6 +30,7 @@ class MemberControllerTest(
     @Autowired val jwtFixture: JwtFixture
 ) : DescribeSpec({
     // TODO: authentication 연동에 따른 테스트 코드 수정 필요 (현재는 id 값에 의존적)
+    // TODO: ValidToken과 Member생성 로직 하나로 묶을수없나?
     var testId: Long? = null
 
     beforeTest {

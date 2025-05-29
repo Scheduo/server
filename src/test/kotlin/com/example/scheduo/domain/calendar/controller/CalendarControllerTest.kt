@@ -45,6 +45,7 @@ class CalendarControllerTest(
         memberRepository.deleteAll()
     }
 
+    // TODO: header에 validToken 필요
     describe("POST /calendars/{calendarId}/invite") {
         context("정상 초대 요청일 경우") {
             it("200 OK를 반환한다") {
