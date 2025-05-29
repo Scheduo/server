@@ -6,11 +6,11 @@ import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.entity.SocialType;
 
 public interface MemberService {
-	MemberResponseDto.GetProfile getMyProfile(Long memberId);
+	MemberResponseDto.MemberInfo getMyProfile(Long memberId);
 
-	MemberResponseDto.GetProfile editMyProfile(Long memberId, MemberRequestDto.EditInfo dto);
+	MemberResponseDto.MemberInfo editMyProfile(Long memberId, MemberRequestDto.EditInfo dto);
 
-	MemberResponseDto.SearchProfiles searchByEmail(String email);
+	MemberResponseDto.MemberList searchByEmail(String email);
 
 	Member findOrCreateMember(String email, String nickname, SocialType socialType);
 }

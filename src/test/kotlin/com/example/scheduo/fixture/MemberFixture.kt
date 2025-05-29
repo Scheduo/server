@@ -16,4 +16,7 @@ fun createMember(
         nickname,
         socialType,
     )
+
+fun createEditInfoRequest(nickname: String = "홍길동"): MemberRequestDto.EditInfo {
+    return MemberRequestDto.EditInfo(nickname)
 }
