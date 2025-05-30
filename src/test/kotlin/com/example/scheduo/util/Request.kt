@@ -14,9 +14,9 @@ class Request(
         url: String,
         token: String? = null
     ): MockHttpServletResponse {
-        val requestBuilder = MockMvcRequestBuilders.get(url).contentType(MediaType.APPLICATION_JSON)
-        if (!token.isNullOrBlank()) requestBuilder.header("Authorization", "Bearer $token")
-        return mockMvc.perform(requestBuilder).andReturn().response
+        val requestBuilder = MockMvcRequestBuilders.get(url)
+            .contentType(MediaType.APPLICATION_JSON)
+        return execute(requestBuilder, token)
     }
 
     fun post(
@@ -24,10 +24,10 @@ class Request(
         body: Any? = null,
         token: String? = null
     ): MockHttpServletResponse {
-        val requestBuilder = MockMvcRequestBuilders.post(url).contentType(MediaType.APPLICATION_JSON)
-        if (body != null) requestBuilder.content(objectMapper.writeValueAsString(body))
-        if (!token.isNullOrBlank()) requestBuilder.header("Authorization", "Bearer $token")
-        return mockMvc.perform(requestBuilder).andReturn().response
+        val requestBuilder = MockMvcRequestBuilders.post(url)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(body))
+        return execute(requestBuilder, token)
     }
 
     fun patch(
@@ -35,18 +35,28 @@ class Request(
         body: Any? = null,
         token: String? = null
     ): MockHttpServletResponse {
-        val requestBuilder = MockMvcRequestBuilders.patch(url).contentType(MediaType.APPLICATION_JSON)
-        if (body != null) requestBuilder.content(objectMapper.writeValueAsString(body))
-        if (!token.isNullOrBlank()) requestBuilder.header("Authorization", "Bearer $token")
-        return mockMvc.perform(requestBuilder).andReturn().response
+        val requestBuilder = MockMvcRequestBuilders.patch(url)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(body))
+        return execute(requestBuilder, token)
     }
 
     fun delete(
         url: String,
         token: String? = null
     ): MockHttpServletResponse {
-        val requestBuilder = MockMvcRequestBuilders.delete(url).contentType(MediaType.APPLICATION_JSON)
-        if (!token.isNullOrBlank()) requestBuilder.header("Authorization", "Bearer $token")
+        val requestBuilder = MockMvcRequestBuilders.delete(url)
+            .contentType(MediaType.APPLICATION_JSON)
+        return execute(requestBuilder, token)
+    }
+
+    private fun execute(
+        requestBuilder: org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder,
+        token: String?
+    ): MockHttpServletResponse {
+        if (!token.isNullOrBlank()) {
+            requestBuilder.header("Authorization", "Bearer $token")
+        }
         return mockMvc.perform(requestBuilder).andReturn().response
     }
 }

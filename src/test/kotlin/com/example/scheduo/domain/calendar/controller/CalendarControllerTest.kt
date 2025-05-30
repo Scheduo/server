@@ -17,10 +17,8 @@ import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.post
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
@@ -38,16 +36,12 @@ class CalendarControllerTest(
     lateinit var req: Request
     lateinit var res: Response
 
+
     beforeTest {
         req = Request(mockMvc, objectMapper)
         res = Response(objectMapper)
     }
     val validToken = jwtFixture.createValidToken(1L!!)
-    beforeTest {
-        participantRepository.deleteAll()
-        calendarRepository.deleteAll()
-        memberRepository.deleteAll()
-    }
 
     afterTest {
         participantRepository.deleteAll()
@@ -62,18 +56,9 @@ class CalendarControllerTest(
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request)
+                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request, validToken)
 
                 res.assertSuccess(response)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 200
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 200
-                responseBody["success"].asBoolean() shouldBe true
             }
         }
         context("캘린더가 존재하지 않는 경우") {
@@ -81,19 +66,9 @@ class CalendarControllerTest(
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/999/invite?memberId=${owner.id}", request)
+                val response = req.post("/calendars/999/invite?memberId=${owner.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
-                val response = mockMvc.post("/calendars/999/invite?memberId=${owner.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 404
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 404
-                responseBody["success"].asBoolean() shouldBe false
-                responseBody["message"].asText() shouldBe ResponseStatus.CALENDAR_NOT_FOUND.message
             }
         }
 
@@ -103,19 +78,9 @@ class CalendarControllerTest(
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=100", request)
+                val response = req.post("/calendars/${calendar.id}/invite?memberId=100", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=100") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 403
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 403
-                responseBody["success"].asBoolean() shouldBe false
-                responseBody["message"].asText() shouldBe ResponseStatus.MEMBER_NOT_OWNER.message
             }
         }
 
@@ -124,17 +89,7 @@ class CalendarControllerTest(
                 val owner = memberRepository.save(createMember())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to 999)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 404
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 404
-                responseBody["success"].asBoolean() shouldBe false
-                responseBody["message"].asText() shouldBe ResponseStatus.MEMBER_NOT_FOUND.message
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request)
+                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.MEMBER_NOT_FOUND)
             }
@@ -153,19 +108,9 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request)
+                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.MEMBER_ALREADY_INVITED)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 409
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 409
-                responseBody["success"].asBoolean() shouldBe false
-                responseBody["message"].asText() shouldBe ResponseStatus.MEMBER_ALREADY_INVITED.message
             }
         }
 
@@ -182,19 +127,9 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request)
+                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.MEMBER_ALREADY_PARTICIPANT)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 409
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 409
-                responseBody["success"].asBoolean() shouldBe false
-                responseBody["message"].asText() shouldBe ResponseStatus.MEMBER_ALREADY_PARTICIPANT.message
             }
         }
 
@@ -211,16 +146,7 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                response.status shouldBe 200
-                val responseBody = objectMapper.readTree(response.contentAsString)
-                responseBody["code"].asInt() shouldBe 200
-                responseBody["success"].asBoolean() shouldBe true
+                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", request, validToken)
 
                 res.assertSuccess(response)
                 val updatedParticipant = participantRepository.findById(participant.id).get()
@@ -243,12 +169,8 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
 
                 res.assertSuccess(response)
                 val updatedParticipant = participantRepository.findById(participant.id).get()
@@ -262,12 +184,8 @@ class CalendarControllerTest(
                 val invitee = memberRepository.save(createMember())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                val response = req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request)
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_NOT_FOUND)
             }
@@ -286,12 +204,8 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                val response = req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request)
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_ACCEPTED)
             }
@@ -310,12 +224,8 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                val response = req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request)
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_DECLINED)
             }
@@ -336,12 +246,8 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                val response = req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request)
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request, validToken)
 
                 res.assertSuccess(response)
                 val updatedParticipant = participantRepository.findById(participant.id).get()
@@ -354,12 +260,8 @@ class CalendarControllerTest(
                 val invitee = memberRepository.save(createMember())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
-                val response = req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_NOT_FOUND)
             }
@@ -377,12 +279,8 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                val response = req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request)
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_ACCEPTED)
             }
@@ -400,12 +298,8 @@ class CalendarControllerTest(
                     )
                 )
                 val request = mapOf("memberId" to invitee.id)
-                val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
-                    header("Authorization", "Bearer $validToken")
-                    contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(request)
-                }.andReturn().response
-                val response = req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request)
+                val response =
+                    req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_DECLINED)
             }

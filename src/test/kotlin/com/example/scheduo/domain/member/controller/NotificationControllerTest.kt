@@ -23,15 +23,11 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @ActiveProfiles("test")
 class NotificationControllerTest(
-        @Autowired val mockMvc: MockMvc,
-        @Autowired val objectMapper: ObjectMapper,
-        @Autowired val notificationRepository: NotificationRepository,
-        @Autowired val memberRepository: MemberRepository,
-        @Autowired val jwtFixture: JwtFixture
     @Autowired val mockMvc: MockMvc,
     @Autowired val objectMapper: ObjectMapper,
     @Autowired val notificationRepository: NotificationRepository,
-    @Autowired val memberRepository: MemberRepository
+    @Autowired val memberRepository: MemberRepository,
+    @Autowired val jwtFixture: JwtFixture
 ) : DescribeSpec({
     var memberId: Long? = null
     lateinit var req: Request
@@ -83,11 +79,7 @@ class NotificationControllerTest(
 
             // TODO: 인증 연동 시 memberId 대신 인증 헤더로 테스트 가능하도록 수정
             it("200 OK와 알림 목록이 반환된다") {
-                val response = mockMvc.get("/notifications?memberId=$memberId") {
-                    header("Authorization", "Bearer $validToken")
-                }
-                        .andReturn().response
-                val response = req.get("/notifications?memberId=$memberId")
+                val response = req.get("/notifications?memberId=$memberId", validToken)
 
                 res.assertSuccess(response)
 
