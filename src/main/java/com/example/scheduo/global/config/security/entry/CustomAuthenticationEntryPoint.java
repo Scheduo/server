@@ -21,17 +21,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException authException) throws IOException {
-		String exception = (String) request.getAttribute("exception");
+		ResponseStatus exception = (ResponseStatus) request.getAttribute("exception");
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		response.setContentType("application/json;charset=UTF-8");
 
 		String message;
 		switch (exception) {
-			case "INVALID_TOKEN":
-				message = ResponseStatus.INVALID_TOKEN.getMessage();
-				break;
-			case "NOT_EXIST_TOKEN":
-				message = ResponseStatus.NOT_EXIST_TOKEN.getMessage();
+			case INVALID_TOKEN, NOT_EXIST_TOKEN:
+				message = exception.getMessage();
 				break;
 			default:
 				message = ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();

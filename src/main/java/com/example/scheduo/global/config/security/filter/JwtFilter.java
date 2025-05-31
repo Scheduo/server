@@ -27,19 +27,19 @@ public class JwtFilter extends OncePerRequestFilter {
 	@Override
 	public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 		throws IOException, ServletException {
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		HttpServletRequest httpRequest = request;
 		String token = resolveToken(httpRequest);
 
 		// 토큰이 없으면 인증 예외 발생
 		if (token == null) {
-			request.setAttribute("exception", ResponseStatus.NOT_EXIST_TOKEN.name());
+			request.setAttribute("exception", ResponseStatus.NOT_EXIST_TOKEN);
 			chain.doFilter(request, response);
 			return;
 		}
 
 		// 토큰이 있지만 유효하지 않으면 예외 발생
 		if (!jwtProvider.validateToken(token)) {
-			request.setAttribute("exception", ResponseStatus.INVALID_TOKEN.name());
+			request.setAttribute("exception", ResponseStatus.INVALID_TOKEN);
 			chain.doFilter(request, response);
 			return;
 		}
