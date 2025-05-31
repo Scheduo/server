@@ -33,6 +33,7 @@ class CalendarControllerTest(
     @Autowired private val participantRepository: ParticipantRepository,
     @Autowired val jwtFixture: JwtFixture
 ) : DescribeSpec({
+    val validToken = jwtFixture.createValidToken(1L!!)
     beforeTest {
         participantRepository.deleteAll()
         calendarRepository.deleteAll()
@@ -45,7 +46,6 @@ class CalendarControllerTest(
         memberRepository.deleteAll()
     }
 
-    // TODO: header에 validToken 필요
     describe("POST /calendars/{calendarId}/invite") {
         context("정상 초대 요청일 경우") {
             it("200 OK를 반환한다") {
@@ -54,6 +54,7 @@ class CalendarControllerTest(
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -69,6 +70,7 @@ class CalendarControllerTest(
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com"))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/999/invite?memberId=${owner.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -87,6 +89,7 @@ class CalendarControllerTest(
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=100") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -104,6 +107,7 @@ class CalendarControllerTest(
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to 999)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -129,6 +133,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -154,6 +159,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -179,6 +185,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite?memberId=${owner.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -208,6 +215,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -229,6 +237,7 @@ class CalendarControllerTest(
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -255,6 +264,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -281,6 +291,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -309,6 +320,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -329,6 +341,7 @@ class CalendarControllerTest(
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -354,6 +367,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
@@ -379,6 +393,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response = mockMvc.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}") {
+                    header("Authorization", "Bearer $validToken")
                     contentType = MediaType.APPLICATION_JSON
                     content = objectMapper.writeValueAsString(request)
                 }.andReturn().response
