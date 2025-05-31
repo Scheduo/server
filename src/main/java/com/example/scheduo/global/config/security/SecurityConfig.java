@@ -7,12 +7,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.scheduo.global.auth.CustomOAuth2UserService;
+import com.example.scheduo.global.config.security.entry.CustomAuthenticationEntryPoint;
+import com.example.scheduo.global.config.security.filter.JwtFilter;
 import com.example.scheduo.global.config.security.handler.CustomOAuth2FailureHandler;
 import com.example.scheduo.global.config.security.handler.CustomOAuth2SuccessHandler;
+import com.example.scheduo.global.config.security.provider.JwtProvider;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +29,8 @@ public class SecurityConfig {
 	private final CustomOAuth2UserService customOAuth2UserService;
 	private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 	private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
+	private final JwtProvider jwtProvider;
+	private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,11 +51,17 @@ public class SecurityConfig {
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.sessionManagement((session) -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(request -> request.anyRequest().permitAll())
+			.authorizeHttpRequests(request -> request
+				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/test/**").permitAll()
+				.anyRequest().authenticated())
 			.oauth2Login(oauth2 -> oauth2
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 				.successHandler(customOAuth2SuccessHandler)
-				.failureHandler(customOAuth2FailureHandler));
+				.failureHandler(customOAuth2FailureHandler))
+			.addFilterBefore(new JwtFilter(jwtProvider, new AntPathMatcher()), UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(exception -> exception
+				.authenticationEntryPoint(customAuthenticationEntryPoint)
+			);
 
 		return http.build();
 	}

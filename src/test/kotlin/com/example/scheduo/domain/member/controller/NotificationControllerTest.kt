@@ -2,6 +2,7 @@ package com.example.scheduo.domain.member.controller
 
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.domain.member.repository.NotificationRepository
+import com.example.scheduo.fixture.JwtFixture
 import com.example.scheduo.fixture.createCalendarInvitationNotification
 import com.example.scheduo.fixture.createMember
 import com.example.scheduo.fixture.createScheduleNotification
@@ -24,7 +25,8 @@ class NotificationControllerTest(
         @Autowired val mockMvc: MockMvc,
         @Autowired val objectMapper: ObjectMapper,
         @Autowired val notificationRepository: NotificationRepository,
-        @Autowired val memberRepository: MemberRepository
+        @Autowired val memberRepository: MemberRepository,
+        @Autowired val jwtFixture: JwtFixture
 ) : DescribeSpec({
     var memberId: Long? = null
 
@@ -60,11 +62,20 @@ class NotificationControllerTest(
         )
     }
 
+    afterTest {
+        notificationRepository.deleteAll()
+        memberRepository.deleteAll()
+    }
+
     describe("GET /notifications 요청 시") {
         context("인증된 사용자가 요청할 때") {
+            val validToken = jwtFixture.createValidToken(memberId!!)
+
             // TODO: 인증 연동 시 memberId 대신 인증 헤더로 테스트 가능하도록 수정
             it("200 OK와 알림 목록이 반환된다") {
-                val response = mockMvc.get("/notifications?memberId=$memberId")
+                val response = mockMvc.get("/notifications?memberId=$memberId") {
+                    header("Authorization", "Bearer $validToken")
+                }
                         .andReturn().response
 
                 val json = objectMapper.readTree(response.contentAsString)
