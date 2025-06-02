@@ -1,6 +1,10 @@
 package com.example.scheduo.domain.calendar.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,26 +103,37 @@ public class CalendarServiceImpl implements CalendarService {
 		Calendar calendar = Calendar.builder()
 			.name(request.getTitle())
 			.member(owner)
+			.participants(new ArrayList<>())
 			.build();
-		calendarRepository.save(calendar);
 
-		List<CalendarRequestDto.Participant> participants = request.getParticipants();
-		if (participants != null) {
-			for (CalendarRequestDto.Participant p : participants) {
-				Member participantMember = memberRepository.findById(p.getMemberId())
-					.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+		List<CalendarRequestDto.Participant> requestParticipants = request.getParticipants();
+
+		if (requestParticipants != null) {
+			List<Long> participantIds = requestParticipants.stream()
+				.map(CalendarRequestDto.Participant::getMemberId)
+				.toList();
+
+			List<Member> members = memberRepository.findAllById(participantIds);
+			Map<Long, Member> memberMap = members.stream()
+				.collect(Collectors.toMap(Member::getId, Function.identity()));
+
+			for (CalendarRequestDto.Participant p : requestParticipants) {
+				Member participantMember = memberMap.get(p.getMemberId());
+				if (participantMember == null) {
+					throw new ApiException(ResponseStatus.MEMBER_NOT_FOUND);
+				}
 
 				Participant participant = Participant.builder()
 					.member(participantMember)
-					.calendar(calendar)
 					.nickname(participantMember.getNickname())
 					.role(p.getRole())
 					.status(ParticipationStatus.PENDING)
 					.build();
 
-				participantRepository.save(participant);
+				calendar.addParticipant(participant);
 			}
 		}
+		calendarRepository.save(calendar);
 
 		return CalendarResponseDto.CalendarInfo.from(calendar);
 	}
