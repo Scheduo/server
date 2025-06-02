@@ -51,4 +51,7 @@ public class Participant extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private ParticipationStatus status;
 
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
+	}
 }

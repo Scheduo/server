@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.calendar.controller;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +28,7 @@ public class CalendarController {
 	private final CalendarService calendarService;
 
 	@PostMapping()
-	public ApiResponse<CalendarResponseDto.CalendarInfo> createCalendar(
+	public ApiResponse<CalendarResponseDto.CalendarInfo> create(
 		Authentication authentication,
 		@Valid @RequestBody CalendarRequestDto.Create request
 	) {
@@ -61,6 +62,15 @@ public class CalendarController {
 		@RequestParam("memberId") Long memberId) {
 		//Todo: 추후에 AuthenticationContext에서 memberId를 가져와서 사용하도록 수정
 		calendarService.rejectInvitation(calendarId, memberId);
+		return ApiResponse.onSuccess();
+	}
+
+	@PatchMapping("/{calendarId}")
+	public ApiResponse<?> edit(@PathVariable("calendarId") Long calendarId,
+		@RequestBody CalendarRequestDto.Edit editInfo,
+		Authentication authentication) {
+		Long memberId = (Long)authentication.getPrincipal();
+		calendarService.editCalendar(editInfo, calendarId, memberId);
 		return ApiResponse.onSuccess();
 	}
 }

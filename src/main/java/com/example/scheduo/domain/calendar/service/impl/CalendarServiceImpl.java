@@ -146,4 +146,25 @@ public class CalendarServiceImpl implements CalendarService {
 
 		return CalendarResponseDto.CalendarInfo.from(calendar);
 	}
+
+	@Override
+	@Transactional
+	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId) {
+		if (editInfo.getTitle() != null) {
+			Calendar calendar = calendarRepository.findById(calendarId)
+				.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+			if (!calendar.getMember().getId().equals(memberId)) {
+				throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
+			}
+			calendar.updateTitle(editInfo.getTitle());
+		}
+
+		if (editInfo.getNickname() != null) {
+			Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+				.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+			participant.updateNickname(editInfo.getNickname());
+		}
+	}
 }
