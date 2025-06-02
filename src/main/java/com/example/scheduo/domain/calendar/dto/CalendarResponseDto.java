@@ -17,7 +17,7 @@ public class CalendarResponseDto {
 		private Long calendarId;
 		private String calendarTitle;
 
-		public static CalendarInfo fromEntity(Calendar calendar) {
+		public static CalendarInfo from(Calendar calendar) {
 			return new CalendarInfo(calendar.getId(), calendar.getName());
 		}
 	}

@@ -1,5 +1,6 @@
 package com.example.scheduo.domain.calendar.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
 import com.example.scheduo.domain.calendar.dto.CalendarResponseDto;
-import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.global.response.ApiResponse;
 import com.example.scheduo.global.response.status.ResponseStatus;
@@ -27,17 +27,14 @@ public class CalendarController {
 
 	private final CalendarService calendarService;
 
-	@PostMapping
+	@PostMapping()
 	public ApiResponse<CalendarResponseDto.CalendarInfo> createCalendar(
+		Authentication authentication,
 		@Valid @RequestBody CalendarRequestDto.Create request
 	) {
-		//로그인 반영 후 memberId 수정 예정
-		Long memberId = 1L;
-
-		Calendar calendar = calendarService.createCalendar(request, memberId);
-
-		return ApiResponse.onSuccess(ResponseStatus.CREATED_CALENDAR,
-			CalendarResponseDto.CalendarInfo.fromEntity(calendar));
+		Long memberId = (Long)authentication.getPrincipal();
+		CalendarResponseDto.CalendarInfo calendarInfo = calendarService.createCalendar(request, memberId);
+		return ApiResponse.onSuccess(ResponseStatus.CREATED, calendarInfo);
 	}
 
 	@PostMapping("/{calendarId}/invite")

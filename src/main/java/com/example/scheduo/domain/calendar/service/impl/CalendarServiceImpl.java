@@ -1,8 +1,12 @@
 package com.example.scheduo.domain.calendar.service.impl;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
+import com.example.scheduo.domain.calendar.dto.CalendarResponseDto;
 import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.entity.Participant;
 import com.example.scheduo.domain.calendar.entity.ParticipationStatus;
@@ -84,5 +88,38 @@ public class CalendarServiceImpl implements CalendarService {
 			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
 			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
 		}
+	}
+
+	@Override
+	@Transactional
+	public CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create request, Long memberId) {
+		Member owner = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+
+		Calendar calendar = Calendar.builder()
+			.name(request.getTitle())
+			.member(owner)
+			.build();
+		calendarRepository.save(calendar);
+
+		List<CalendarRequestDto.Participant> participants = request.getParticipants();
+		if (participants != null) {
+			for (CalendarRequestDto.Participant p : participants) {
+				Member participantMember = memberRepository.findById(p.getMemberId())
+					.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+
+				Participant participant = Participant.builder()
+					.member(participantMember)
+					.calendar(calendar)
+					.nickname(participantMember.getNickname())
+					.role(p.getRole())
+					.status(ParticipationStatus.PENDING)
+					.build();
+
+				participantRepository.save(participant);
+			}
+		}
+
+		return CalendarResponseDto.CalendarInfo.from(calendar);
 	}
 }
