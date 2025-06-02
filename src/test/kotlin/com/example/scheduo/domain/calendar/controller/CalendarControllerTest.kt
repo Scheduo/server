@@ -13,6 +13,7 @@ import com.example.scheduo.util.Request
 import com.example.scheduo.util.Response
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -302,6 +303,104 @@ class CalendarControllerTest(
                     req.post("/calendars/${calendar.id}/invite/decline?memberId=${invitee.id}", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_DECLINED)
+            }
+        }
+    }
+
+    describe("POST /calendars") {
+        context("정상 캘린더 생성 요청일 경우") {
+            it("생성된 캘린더 정보와 함께 200 OK를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val members = listOf(
+                    createMember(email = "test2@gmail.com"),
+                    createMember(email = "test3@gmail.com"),
+                )
+                val participants = memberRepository.saveAll(members)
+
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val request = mapOf(
+                    "title" to "Test Calendar",
+                    "participants" to participants.map {
+                        mapOf(
+                            "memberId" to it.id,
+                            "role" to "VIEW"
+                        )
+                    }
+                )
+                val response = req.post("/calendars", request, token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendarId"].asLong() shouldBeGreaterThan 0
+                json["data"]["calendarTitle"].asText() shouldBe "Test Calendar"
+            }
+        }
+
+        context("제목이 빈 스트링이거나 null 일경우") {
+            it("400 Valid Error를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val members = listOf(
+                    createMember(email = "test2@gmail.com"),
+                    createMember(email = "test3@gmail.com"),
+                )
+                val participants = memberRepository.saveAll(members)
+
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val request = mapOf(
+                    "title" to "",
+                    "participants" to participants.map {
+                        mapOf(
+                            "memberId" to it.id,
+                            "role" to "VIEW"
+                        )
+                    }
+                )
+                val response = req.post("/calendars", request, token)
+
+                res.assertValidationFailure(response, ResponseStatus.VALIDATION_ERROR, "캘린더 제목은 필수입니다.")
+            }
+        }
+
+        context("참가할 memberId가 누락된 경우") {
+            it("400 Valid Error를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val request = mapOf(
+                    "title" to "Test Calendar",
+                    "participants" to listOf(
+                        mapOf(
+                            "memberId" to null,
+                            "role" to "VIEW"
+                        )
+                    )
+                )
+                val response = req.post("/calendars", request, token)
+
+                res.assertValidationFailure(response, ResponseStatus.VALIDATION_ERROR, "memberId는 필수입니다.")
+            }
+        }
+
+        context("참가할 멤버가 존재하지 않는 경우") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val request = mapOf(
+                    "title" to "Test Calendar",
+                    "participants" to listOf(
+                        mapOf(
+                            "memberId" to 999,
+                            "role" to "VIEW"
+                        )
+                    )
+                )
+                val response = req.post("/calendars", request, token)
+
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_FOUND)
             }
         }
     }

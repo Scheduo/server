@@ -9,14 +9,12 @@ fun createCalendar(
     id: Long? = null,
     name: String = "캘린더 이름",
     member: Member = createMember(),
-    isShared: Boolean = false,
     participants: List<Participant> = emptyList()
 ): Calendar {
     return Calendar(
         id,
         member,
         name,
-        isShared,
         participants
     )
 }
