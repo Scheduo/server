@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.scheduo.domain.member.dto.MemberRequestDto;
 import com.example.scheduo.domain.member.dto.MemberResponseDto;
+import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.service.MemberService;
-import com.example.scheduo.global.auth.RequestMemberHolder;
+import com.example.scheduo.global.auth.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -22,11 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MemberController {
 	private final MemberService memberService;
-	private final RequestMemberHolder requestMemberHolder;
 
 	@GetMapping("/me")
-	public ApiResponse<MemberResponseDto.MemberInfo> retrieveMember() {
-		Long memberId = requestMemberHolder.getMember().getId();
+	public ApiResponse<MemberResponseDto.MemberInfo> retrieveMember(@RequestMember Member member) {
+		Long memberId = member.getId();
 		MemberResponseDto.MemberInfo data = memberService.getMyProfile(memberId);
 		return ApiResponse.onSuccess(data);
 	}
