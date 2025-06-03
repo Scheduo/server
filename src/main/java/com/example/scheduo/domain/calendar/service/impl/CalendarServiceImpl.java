@@ -72,6 +72,7 @@ public class CalendarServiceImpl implements CalendarService {
 
 		Participant participant = Participant.builder()
 			.calendar(calendar)
+			.nickname(invitee.getNickname())
 			.member(invitee)
 			.status(ParticipationStatus.PENDING)
 			.role(Role.VIEW)
