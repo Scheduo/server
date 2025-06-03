@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 public enum ResponseStatus {
 	//일반적인 응답
 	OK(HttpStatus.OK, "SUCCESS", "OK."),
-	CREATED(HttpStatus.CREATED, "CREATED", "OK."),
 
 	// 에러 응답
 	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_0001", "서버 에러가 발생했습니다."),

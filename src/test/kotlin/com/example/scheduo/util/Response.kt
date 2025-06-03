@@ -17,9 +17,21 @@ class Response(
 
     fun assertFailure(
         response: MockHttpServletResponse,
-        status: ResponseStatus
+        status: ResponseStatus,
     ) {
         assertCommon(response, status, expectedSuccess = false)
+    }
+
+    fun assertValidationFailure(
+        response: MockHttpServletResponse,
+        status: ResponseStatus,
+        message: String
+    ) {
+        val json = objectMapper.readTree(response.contentAsString)
+        response.status shouldBe status.httpStatus.value()
+        json["code"].asInt() shouldBe status.httpStatus.value()
+        json["message"].asText() shouldBe message
+        json["success"].asBoolean() shouldBe false
     }
 
     private fun assertCommon(

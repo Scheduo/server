@@ -12,7 +12,6 @@ import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
 import com.example.scheduo.domain.calendar.dto.CalendarResponseDto;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.global.response.ApiResponse;
-import com.example.scheduo.global.response.status.ResponseStatus;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,7 +33,7 @@ public class CalendarController {
 	) {
 		Long memberId = (Long)authentication.getPrincipal();
 		CalendarResponseDto.CalendarInfo calendarInfo = calendarService.createCalendar(request, memberId);
-		return ApiResponse.onSuccess(ResponseStatus.CREATED, calendarInfo);
+		return ApiResponse.onSuccess(calendarInfo);
 	}
 
 	@PostMapping("/{calendarId}/invite")
