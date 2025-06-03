@@ -18,6 +18,7 @@ import com.example.scheduo.global.config.security.filter.JwtFilter;
 import com.example.scheduo.global.config.security.handler.CustomOAuth2FailureHandler;
 import com.example.scheduo.global.config.security.handler.CustomOAuth2SuccessHandler;
 import com.example.scheduo.global.config.security.provider.JwtProvider;
+import com.example.scheduo.global.utils.AuthExcludedUris;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class SecurityConfig {
 			.sessionManagement((session) -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(request -> request
-				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/test/**").permitAll()
+				.requestMatchers(AuthExcludedUris.ALL).permitAll()
 				.anyRequest().authenticated())
 			.oauth2Login(oauth2 -> oauth2
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
