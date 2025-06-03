@@ -39,8 +39,6 @@ public class Calendar extends BaseEntity {
 
 	private String name;
 
-	private boolean isShared;
-
 	@OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Participant> participants = new ArrayList<>();
 

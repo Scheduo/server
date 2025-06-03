@@ -29,6 +29,10 @@ public class ApiResponse<T> {
 		return new ApiResponse<>(ResponseStatus.OK.getHttpStatus().value(), true, message, result);
 	}
 
+	public static <T> ApiResponse<T> onSuccess(ResponseStatus status, T result) {
+		return new ApiResponse<>(status.getHttpStatus().value(), true, status.getMessage(), result);
+	}
+
 	// 실패 응답 생성
 	public static ErrorResponseDto onFailure(ResponseStatus status) {
 		return ErrorResponseDto.of(status.getHttpStatus().value(), status.getStatus(), status.getMessage());

@@ -1,6 +1,7 @@
 package com.example.scheduo.global.response.exception;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -37,5 +38,17 @@ public class GlobalExceptionHandler {
 		log.error("[UnhandledError] {} - {}", response.getStatus(), ex.getMessage());
 
 		return ResponseEntity.status(ResponseStatus.INTERNAL_SERVER_ERROR.getHttpStatus()).body(response);
+	}
+
+	// Validation 에러
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponseDto> handleValidationException(MethodArgumentNotValidException ex) {
+		String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+		ResponseStatus status = ResponseStatus.VALIDATION_ERROR;
+
+		ErrorResponseDto response = ApiResponse.onFailure(status.getHttpStatus().value(), status.getStatus(), message);
+		log.error("[ValidationError] {} - {}", response.getStatus(), message);
+
+		return ResponseEntity.status(ResponseStatus.VALIDATION_ERROR.getHttpStatus()).body(response);
 	}
 }
