@@ -10,7 +10,7 @@ import com.example.scheduo.domain.member.dto.MemberRequestDto;
 import com.example.scheduo.domain.member.dto.MemberResponseDto;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.service.MemberService;
-import com.example.scheduo.global.auth.RequestMember;
+import com.example.scheduo.global.auth.annotation.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;

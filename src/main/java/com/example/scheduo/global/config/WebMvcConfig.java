@@ -7,8 +7,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.example.scheduo.global.auth.AuthInterceptor;
-import com.example.scheduo.global.auth.RequestMemberArgumentResolver;
+import com.example.scheduo.global.auth.interceptor.AuthInterceptor;
+import com.example.scheduo.global.auth.resolver.RequestMemberArgumentResolver;
 import com.example.scheduo.global.utils.AuthExcludedUris;
 
 import lombok.RequiredArgsConstructor;

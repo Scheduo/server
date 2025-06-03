@@ -1,4 +1,4 @@
-package com.example.scheduo.global.auth;
+package com.example.scheduo.global.auth.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

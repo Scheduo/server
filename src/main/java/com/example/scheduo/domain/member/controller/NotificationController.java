@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.scheduo.domain.member.dto.NotificationResponseDto;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.service.NotificationService;
-import com.example.scheduo.global.auth.RequestMember;
+import com.example.scheduo.global.auth.annotation.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
