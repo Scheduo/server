@@ -42,8 +42,13 @@ public class CalendarServiceImpl implements CalendarService {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		//Todo 멤버 삭제에 따른 수정 필요
-		if (!calendar.getMember().getId().equals(inviterId)) {
+		//Todo : 추후에 AuthenticationContext에서 Member 가져와서 사용하도록 수정
+		Participant owner = calendar.getParticipants().stream()
+			.filter(p -> p.getRole() == Role.OWNER)
+			.findFirst()
+			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_OWNER));
+
+		if (!owner.getMember().getId().equals(inviterId)) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
@@ -62,7 +67,7 @@ public class CalendarServiceImpl implements CalendarService {
 								.calendarId(calendarId)
 								.calendarName(calendar.getName())
 								.invitee(invitee)
-								.inviterName(calendar.getMember().getNickname())
+								.inviterName(owner.getNickname())
 								.build());
 						return;
 					}
@@ -84,7 +89,7 @@ public class CalendarServiceImpl implements CalendarService {
 				.calendarId(calendarId)
 				.calendarName(calendar.getName())
 				.invitee(invitee)
-				.inviterName(calendar.getMember().getNickname())
+				.inviterName(owner.getNickname())
 				.build());
 	}
 

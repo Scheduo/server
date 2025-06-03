@@ -1,5 +1,6 @@
 package com.example.scheduo.domain.member.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.scheduo.domain.calendar.entity.Calendar;
+import com.example.scheduo.domain.calendar.entity.Participant;
+import com.example.scheduo.domain.calendar.entity.ParticipationStatus;
+import com.example.scheduo.domain.calendar.entity.Role;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.member.dto.MemberRequestDto;
 import com.example.scheduo.domain.member.dto.MemberResponseDto;
@@ -71,10 +75,18 @@ public class MemberServiceImpl implements MemberService {
 
 		//Todo 멤버 삭제에 따른 수정 필요
 		Calendar defaultCalendar = Calendar.builder()
-			.member(member)
-			.name("기본 캘린더")
+			.name("기본")
+			.participants(new ArrayList<>())
 			.build();
 		calendarRepository.save(defaultCalendar);
+		Participant participant = Participant.builder()
+			.role(Role.OWNER)
+			.member(member)
+			.calendar(defaultCalendar)
+			.nickname(member.getNickname())
+			.status(ParticipationStatus.ACCEPTED)
+			.build();
+		defaultCalendar.addParticipant(participant);
 
 		return member;
 
