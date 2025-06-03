@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.scheduo.domain.member.dto.MemberRequestDto;
 import com.example.scheduo.domain.member.dto.MemberResponseDto;
 import com.example.scheduo.domain.member.service.MemberService;
+import com.example.scheduo.global.auth.RequestMemberHolder;
 import com.example.scheduo.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MemberController {
 	private final MemberService memberService;
+	private final RequestMemberHolder requestMemberHolder;
 
-	// TODO: tempId 대신 SecurityContextHolder 이용하기
 	@GetMapping("/me")
-	public ApiResponse<MemberResponseDto.MemberInfo> retrieveMember(@RequestParam Long tempId) {
-		MemberResponseDto.MemberInfo data = memberService.getMyProfile(tempId);
+	public ApiResponse<MemberResponseDto.MemberInfo> retrieveMember() {
+		Long memberId = requestMemberHolder.getMember().getId();
+		MemberResponseDto.MemberInfo data = memberService.getMyProfile(memberId);
 		return ApiResponse.onSuccess(data);
 	}
 
