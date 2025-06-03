@@ -110,7 +110,8 @@ public class CalendarServiceImpl implements CalendarService {
 			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
 		}
 
-		applicationEventPublisher.publishEvent(new CalendarInvitationAcceptedEvent(calendarId, invitee));
+		applicationEventPublisher.publishEvent(
+			CalendarInvitationAcceptedEvent.builder().invitee(invitee).calendarId(calendarId).build());
 	}
 
 	@Override
