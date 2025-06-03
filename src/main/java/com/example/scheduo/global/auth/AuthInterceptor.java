@@ -27,13 +27,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		Long memberId = (Long)authentication.getPrincipal();
-		// log.info("Start interceptor");
 
 		Member member = memberService.findById(memberId);
 		if (member == null) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_FOUND);
 		}
-		// log.info("save member to memberHolder");
 
 		requestMemberHolder.setMember(member);
 		return true;
