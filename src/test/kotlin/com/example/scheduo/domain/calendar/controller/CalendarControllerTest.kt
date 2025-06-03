@@ -61,7 +61,16 @@ class CalendarControllerTest(
             it("200 OK를 반환한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val validToken = jwtFixture.createValidToken(owner.id)
                 val body = mapOf("memberId" to invitee.id)
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
@@ -83,7 +92,7 @@ class CalendarControllerTest(
 
                 res.assertSuccess(response)
 
-                await().atMost(2, TimeUnit.SECONDS).untilAsserted {
+                await().atMost(1, TimeUnit.SECONDS).untilAsserted {
                     val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee.id)
                     notifications.size shouldBe 1
                     notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION.createMessage(
@@ -127,7 +136,16 @@ class CalendarControllerTest(
             it("403 Forbidden을 반환한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val body = mapOf("memberId" to invitee.id)
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
@@ -154,7 +172,16 @@ class CalendarControllerTest(
         context("초대할 멤버가 존재하지 않는 경우") {
             it("404 Not Found를 반환한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val validToken = jwtFixture.createValidToken(owner.id)
                 val body = mapOf("memberId" to 999)
                 val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", body, validToken)
@@ -181,6 +208,16 @@ class CalendarControllerTest(
             it("409 Conflict를 반환한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val validToken = jwtFixture.createValidToken(owner.id)
                 val owner = memberRepository.save(createMember(nickname = "test1"))
@@ -214,6 +251,16 @@ class CalendarControllerTest(
             it("409 Conflict를 반환한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val validToken = jwtFixture.createValidToken(owner.id)
                 val owner = memberRepository.save(createMember(nickname = "test1"))
@@ -247,8 +294,17 @@ class CalendarControllerTest(
             it("200 OK를 반환하고 상태를 PENDING으로 변경한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(owner.id)
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
                 val calendar = calendarRepository.save(createCalendar())
@@ -297,6 +353,7 @@ class CalendarControllerTest(
             it("200 OK를 반환하고 참여 상태를 ACCEPTED로 변경한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
@@ -322,6 +379,7 @@ class CalendarControllerTest(
             it("404 Not Found를 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
@@ -338,7 +396,7 @@ class CalendarControllerTest(
             it("409 Conflict를 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
@@ -361,7 +419,7 @@ class CalendarControllerTest(
             it("409 Conflict를 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
@@ -386,7 +444,7 @@ class CalendarControllerTest(
             it("200 OK를 반환하고 참여 상태를 DECLINED로 변경한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
@@ -410,7 +468,7 @@ class CalendarControllerTest(
             it("404 Not Found를 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
@@ -425,6 +483,7 @@ class CalendarControllerTest(
             it("409 Conflict를 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
@@ -447,6 +506,7 @@ class CalendarControllerTest(
             it("409 Conflict를 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val invitee = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
                 val calendar = calendarRepository.save(createCalendar(member = owner))
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val calendar = calendarRepository.save(createCalendar())
