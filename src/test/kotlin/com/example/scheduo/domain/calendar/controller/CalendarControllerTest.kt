@@ -367,11 +367,22 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", request, validToken)
 
                 res.assertSuccess(response)
                 val updatedParticipant = participantRepository.findById(participant.id).get()
                 updatedParticipant.status shouldBe ParticipationStatus.ACCEPTED
+
+                await().atMost(2, TimeUnit.SECONDS).untilAsserted {
+                    val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(owner.id)
+                    notifications.size shouldBe 1
+                    notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION_ACCEPTED.createMessage(
+                        mapOf(
+                            "inviteeNickname" to invitee.nickname,
+                            "calendarName" to calendar.name,
+                        )
+                    )
+                }
             }
         }
 
@@ -386,7 +397,7 @@ class CalendarControllerTest(
                 val validToken = jwtFixture.createValidToken(invitee.id)
                 val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_NOT_FOUND)
             }
@@ -409,7 +420,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_ACCEPTED)
             }
@@ -432,7 +443,7 @@ class CalendarControllerTest(
                 )
                 val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", request, validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_DECLINED)
             }

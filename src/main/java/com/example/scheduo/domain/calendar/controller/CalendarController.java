@@ -50,8 +50,8 @@ public class CalendarController {
 	@PostMapping("/{calendarId}/invite/accept")
 	@Operation(summary = "캘린더 초대 수락", description = "캘린더 초대를 수락합니다.")
 	public ApiResponse<?> accept(@PathVariable("calendarId") Long calendarId,
-		@RequestParam("memberId") Long memberId) {
-		//Todo: 추후에 AuthenticationContext에서 memberId를 가져와서 사용하도록 수정
+		Authentication authentication) {
+		Long memberId = (Long)authentication.getPrincipal();
 		calendarService.acceptInvitation(calendarId, memberId);
 		return ApiResponse.onSuccess();
 	}
