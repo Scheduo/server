@@ -150,20 +150,22 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId) {
-		if (editInfo.getTitle() != null) {
-			Calendar calendar = calendarRepository.findById(calendarId)
-				.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+		Calendar calendar = calendarRepository.findById(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
-			if (!calendar.getMember().getId().equals(memberId)) {
+		if (editInfo.getTitle() != null) {
+			if (participant.getRole() != Role.OWNER) {
 				throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 			}
 			calendar.updateTitle(editInfo.getTitle());
 		}
 
 		if (editInfo.getNickname() != null) {
-			Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
-				.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
-
+			if (participant.getStatus() != ParticipationStatus.ACCEPTED) {
+				throw new ApiException(ResponseStatus.MEMBER_NOT_ACCEPT);
+			}
 			participant.updateNickname(editInfo.getNickname());
 		}
 	}

@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.calendar.controller;
 
 import com.example.scheduo.domain.calendar.entity.ParticipationStatus
+import com.example.scheduo.domain.calendar.entity.Role
 import com.example.scheduo.domain.calendar.repository.CalendarRepository
 import com.example.scheduo.domain.calendar.repository.ParticipantRepository
 import com.example.scheduo.domain.member.repository.MemberRepository
@@ -411,12 +412,19 @@ class CalendarControllerTest(
         context("정상 캘린더 수정 요청일 경우") {
             it("200 OK를 반환한다") {
                 val owner = memberRepository.save(createMember())
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        role = Role.OWNER,
+                        calendar = calendar,
+                        member = owner,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
 
                 val token = jwtFixture.createValidToken(owner.id)
 
-                //Todo owner pariticpant 문제 해결되면 nickname도 넣기
-                val request = mapOf("title" to "Edit Calendar")
+                val request = mapOf("title" to "Edit Calendar", "nickname" to "Edit Nickname")
                 val response = req.patch("/calendars/${calendar.id}", request, token)
 
                 res.assertSuccess(response)
@@ -439,12 +447,20 @@ class CalendarControllerTest(
             it("403 Forbidden을 반환한다") {
                 val owner = memberRepository.save(createMember())
                 val participant = memberRepository.save(createMember(email = "test2@gmail.com"))
-                val calendar = calendarRepository.save(createCalendar(member = owner))
-                participantRepository.save(
-                    createParticipant(
-                        calendar = calendar,
-                        member = participant,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.saveAll(
+                    listOf(
+                        createParticipant(
+                            role = Role.OWNER,
+                            calendar = calendar,
+                            member = owner,
+                            participationStatus = ParticipationStatus.ACCEPTED
+                        ),
+                        createParticipant(
+                            calendar = calendar,
+                            member = participant,
+                            participationStatus = ParticipationStatus.ACCEPTED
+                        )
                     )
                 )
 
@@ -460,22 +476,35 @@ class CalendarControllerTest(
         context("해당 캘린더의 참여자가 아닐경우") {
             it("403 Forbidden을 반환한다") {
                 val owner = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val request = mapOf("title" to "Test Calendar", "nickname" to "Edit Nickname")
+                val response = req.patch("/calendars/${calendar.id}", request, token)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+
+        context("참여자의 상태가 ACCEPT가 아닐경우") {
+            it("403 Forbidden을 반환한다") {
                 val participant = memberRepository.save(createMember(email = "test2@gmail.com"))
-                val calendar = calendarRepository.save(createCalendar(member = owner))
+                val calendar = calendarRepository.save(createCalendar())
                 participantRepository.save(
                     createParticipant(
                         calendar = calendar,
                         member = participant,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                        participationStatus = ParticipationStatus.PENDING
                     )
                 )
 
-                val token = jwtFixture.createValidToken(999)
+                val token = jwtFixture.createValidToken(participant.id)
 
                 val request = mapOf("nickname" to "Edit Nickname")
                 val response = req.patch("/calendars/${calendar.id}", request, token)
 
-                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_ACCEPT)
             }
         }
     }

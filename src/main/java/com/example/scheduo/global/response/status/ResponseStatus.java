@@ -35,7 +35,8 @@ public enum ResponseStatus {
 	INVITATION_NOT_FOUND(HttpStatus.NOT_FOUND, "CALENDAR_0005", "초대 정보를 찾을 수 없습니다."),
 	INVITATION_ALREADY_ACCEPTED(HttpStatus.CONFLICT, "CALENDAR_0006", "이미 수락된 초대입니다."),
 	INVITATION_ALREADY_DECLINED(HttpStatus.CONFLICT, "CALENDAR_0007", "이미 거절된 초대입니다."),
-	INVALID_CALENDAR_PARTICIPATION(HttpStatus.FORBIDDEN, "CALENDAR_0008", "참여 정보를 찾을 수 없습니다.");
+	INVALID_CALENDAR_PARTICIPATION(HttpStatus.FORBIDDEN, "CALENDAR_0008", "참여 정보를 찾을 수 없습니다."),
+	MEMBER_NOT_ACCEPT(HttpStatus.FORBIDDEN, "CALENDAR_0009", "해당 멤버의 참여 상태가 ACCEPT가 아닙니다.");
 
 	private final HttpStatus httpStatus;
 	private final String status;
