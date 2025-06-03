@@ -310,8 +310,9 @@ class CalendarControllerTest(
     describe("POST /calendars") {
         context("정상 캘린더 생성 요청일 경우") {
             it("생성된 캘린더 정보와 함께 200 OK를 반환한다") {
-                val owner = memberRepository.save(createMember())
+                val owner = createMember()
                 val members = listOf(
+                    owner,
                     createMember(email = "test2@gmail.com"),
                     createMember(email = "test3@gmail.com"),
                 )
@@ -340,8 +341,9 @@ class CalendarControllerTest(
 
         context("제목이 빈 스트링이거나 null 일경우") {
             it("400 Valid Error를 반환한다") {
-                val owner = memberRepository.save(createMember())
+                val owner = createMember()
                 val members = listOf(
+                    owner,
                     createMember(email = "test2@gmail.com"),
                     createMember(email = "test3@gmail.com"),
                 )

@@ -39,6 +39,7 @@ public class CalendarServiceImpl implements CalendarService {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
+		//Todo 멤버 삭제에 따른 수정 필요
 		if (!calendar.getMember().getId().equals(inviterId)) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
@@ -102,13 +103,21 @@ public class CalendarServiceImpl implements CalendarService {
 
 		Calendar calendar = Calendar.builder()
 			.name(request.getTitle())
-			.member(owner)
 			.participants(new ArrayList<>())
 			.build();
 
+		Participant ownerParticipant = Participant.builder()
+			.member(owner)
+			.nickname(owner.getNickname())
+			.role(Role.OWNER)
+			.status(ParticipationStatus.ACCEPTED)
+			.build();
+
+		calendar.addParticipant(ownerParticipant);
+
 		List<CalendarRequestDto.Participant> requestParticipants = request.getParticipants();
 
-		if (requestParticipants != null) {
+		if (requestParticipants != null && !requestParticipants.isEmpty()) {
 			List<Long> participantIds = requestParticipants.stream()
 				.map(CalendarRequestDto.Participant::getMemberId)
 				.toList();
