@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.scheduo.domain.member.dto.MemberRequestDto;
@@ -31,10 +30,10 @@ public class MemberController {
 		return ApiResponse.onSuccess(data);
 	}
 
-	// TODO: tempId 대신 SecurityContextHolder 이용하기
 	@PatchMapping("/me")
-	public ApiResponse<MemberResponseDto.MemberInfo> modifiedMember(@RequestParam Long tempId, @RequestBody MemberRequestDto.EditInfo body) {
-		MemberResponseDto.MemberInfo data = memberService.editMyProfile(tempId, body);
+	public ApiResponse<MemberResponseDto.MemberInfo> modifiedMember(@RequestMember Member member, @RequestBody MemberRequestDto.EditInfo body) {
+		Long memberId = member.getId();
+		MemberResponseDto.MemberInfo data = memberService.editMyProfile(memberId, body);
 		return ApiResponse.onSuccess(data);
 	}
 
