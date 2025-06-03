@@ -69,6 +69,7 @@ public class MemberServiceImpl implements MemberService {
 			.build();
 		memberRepository.save(member);
 
+		//Todo 멤버 삭제에 따른 수정 필요
 		Calendar defaultCalendar = Calendar.builder()
 			.member(member)
 			.name("기본 캘린더")
