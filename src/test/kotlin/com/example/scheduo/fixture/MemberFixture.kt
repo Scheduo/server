@@ -11,10 +11,10 @@ fun createMember(
     socialType: SocialType = SocialType.GOOGLE
 ): Member {
     return Member(
-            id,
-            email,
-            nickname,
-            socialType,
+        id,
+        email,
+        nickname,
+        socialType,
     )
 }
 

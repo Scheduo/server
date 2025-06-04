@@ -50,6 +50,8 @@ dependencies {
     testImplementation 'io.kotest:kotest-runner-junit5:5.5.4'
     testImplementation 'io.kotest:kotest-assertions-core:5.5.4'
     testImplementation 'io.kotest.extensions:kotest-extensions-spring:1.1.2'
+    testImplementation 'org.awaitility:awaitility-kotlin:4.2.2'
+
     // mockk
     testImplementation 'io.mockk:mockk:1.14.2'
     // swagger

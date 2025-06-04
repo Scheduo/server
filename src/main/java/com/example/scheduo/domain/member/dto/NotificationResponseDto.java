@@ -26,7 +26,7 @@ public class NotificationResponseDto {
 			return NoticeInfo.builder()
 				.id(notification.getId())
 				.type(notification.getNotificationType())
-				.title(notification.getTitle())
+				.title(notification.getMessage())
 				.data(notification.getData())
 				.isRead(false)
 				.createdAt(notification.getCreatedAt())

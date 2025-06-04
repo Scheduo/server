@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import com.example.scheduo.domain.calendar.repository.ParticipantRepository;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.repository.MemberRepository;
+import com.example.scheduo.global.event.CalendarInvitationEvent;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
@@ -32,6 +34,7 @@ public class CalendarServiceImpl implements CalendarService {
 	private final MemberRepository memberRepository;
 	private final CalendarRepository calendarRepository;
 	private final ParticipantRepository participantRepository;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Override
 	@Transactional
@@ -39,8 +42,13 @@ public class CalendarServiceImpl implements CalendarService {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		//Todo 멤버 삭제에 따른 수정 필요
-		if (!calendar.getMember().getId().equals(inviterId)) {
+		//Todo : 추후에 AuthenticationContext에서 Member 가져와서 사용하도록 수정
+		Participant owner = calendar.getParticipants().stream()
+			.filter(p -> p.getRole() == Role.OWNER)
+			.findFirst()
+			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_OWNER));
+
+		if (!owner.getMember().getId().equals(inviterId)) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
@@ -54,6 +62,13 @@ public class CalendarServiceImpl implements CalendarService {
 					case ACCEPTED -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_PARTICIPANT);
 					case DECLINED -> {
 						participant.setStatus(ParticipationStatus.PENDING);
+						applicationEventPublisher.publishEvent(
+							CalendarInvitationEvent.builder()
+								.calendarId(calendarId)
+								.calendarName(calendar.getName())
+								.invitee(invitee)
+								.inviterName(owner.getNickname())
+								.build());
 						return;
 					}
 				}
@@ -62,11 +77,20 @@ public class CalendarServiceImpl implements CalendarService {
 
 		Participant participant = Participant.builder()
 			.calendar(calendar)
+			.nickname(invitee.getNickname())
 			.member(invitee)
 			.status(ParticipationStatus.PENDING)
 			.role(Role.VIEW)
 			.build();
 		calendar.addParticipant(participant);
+		// TODO: 추후에 calendar.getMember().getId()를 AuthenticationContext에서 Member 가져와서 사용하도록 수정
+		applicationEventPublisher.publishEvent(
+			CalendarInvitationEvent.builder()
+				.calendarId(calendarId)
+				.calendarName(calendar.getName())
+				.invitee(invitee)
+				.inviterName(owner.getNickname())
+				.build());
 	}
 
 	@Override

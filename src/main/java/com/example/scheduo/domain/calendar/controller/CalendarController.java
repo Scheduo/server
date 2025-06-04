@@ -41,8 +41,8 @@ public class CalendarController {
 	@Operation(summary = "캘린더 초대", description = "캘린더에 사용자를 초대합니다.")
 	public ApiResponse<?> invite(@PathVariable("calendarId") Long calendarId,
 		@RequestBody CalendarRequestDto.Invite request,
-		@RequestParam("memberId") Long memberId) {
-		//Todo: 추후에 AuthenticationContext에서 memberId를 가져와서 사용하도록 수정
+		Authentication authentication) {
+		Long memberId = (Long)authentication.getPrincipal();
 		calendarService.inviteMember(calendarId, memberId, request.getMemberId());
 		return ApiResponse.onSuccess();
 	}
