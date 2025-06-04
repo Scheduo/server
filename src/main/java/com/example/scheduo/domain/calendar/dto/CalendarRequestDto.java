@@ -39,4 +39,12 @@ public class CalendarRequestDto {
 		private Long memberId;
 		private Role role;
 	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Edit {
+		private String title;
+		private String nickname;
+	}
 }
