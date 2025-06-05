@@ -626,4 +626,65 @@ class CalendarControllerTest(
             }
         }
     }
+
+    describe("DELETE /calendars/{calendarId}") {
+        context("정상 캘린더 삭제 요청일 경우") {
+            it("200 OK를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        role = Role.OWNER,
+                        calendar = calendar,
+                        member = owner,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/${calendar.id}", token)
+                res.assertSuccess(response)
+            }
+        }
+
+        context("캘린더가 존재하지 않는 경우") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/999", token)
+
+                res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
+            }
+        }
+
+        context("캘린더 소유자가 아닌 멤버가 캘린더 삭제를 요청할 경우") {
+            it("403 Forbidden을 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val participant = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.saveAll(
+                    listOf(
+                        createParticipant(
+                            role = Role.OWNER,
+                            calendar = calendar,
+                            member = owner,
+                            participationStatus = ParticipationStatus.ACCEPTED
+                        ),
+                        createParticipant(
+                            calendar = calendar,
+                            member = participant,
+                            participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(participant.id)
+
+                val response = req.delete("/calendars/${calendar.id}", token)
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
+            }
+        }
+    }
 })
