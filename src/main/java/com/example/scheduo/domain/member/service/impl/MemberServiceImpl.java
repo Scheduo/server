@@ -91,4 +91,11 @@ public class MemberServiceImpl implements MemberService {
 		return member;
 
 	}
+
+	@Override
+	public Member findById(Long memberId) {
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+		return member;
+	}
 }

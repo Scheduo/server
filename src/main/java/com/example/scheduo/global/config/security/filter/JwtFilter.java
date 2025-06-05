@@ -1,6 +1,7 @@
 package com.example.scheduo.global.config.security.filter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.scheduo.global.config.security.provider.JwtProvider;
 import com.example.scheduo.global.response.status.ResponseStatus;
+import com.example.scheduo.global.utils.AuthExcludedUris;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,9 +56,9 @@ public class JwtFilter extends OncePerRequestFilter {
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		// permitAll 경로 목록
 		String path = request.getServletPath();
-		return antPathMatcher.match("/v3/api-docs/**", path)
-			|| antPathMatcher.match("/swagger-ui/**", path)
-			|| antPathMatcher.match("/test/**", path);
+		AntPathMatcher matcher = new AntPathMatcher();
+		return Arrays.stream(AuthExcludedUris.ALL)
+			.anyMatch(pattern -> matcher.match(pattern, path));
 	}
 
 	private String resolveToken(HttpServletRequest request) {

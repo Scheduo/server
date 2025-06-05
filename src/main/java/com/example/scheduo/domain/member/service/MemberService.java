@@ -13,4 +13,6 @@ public interface MemberService {
 	MemberResponseDto.MemberList searchByEmail(String email);
 
 	Member findOrCreateMember(String email, String nickname, SocialType socialType);
+
+	Member findById(Long memberId);
 }
