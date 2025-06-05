@@ -2,8 +2,11 @@ package com.example.scheduo.domain.calendar.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.example.scheduo.domain.common.BaseEntity;
+import com.example.scheduo.global.response.exception.ApiException;
+import com.example.scheduo.global.response.status.ResponseStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -42,5 +45,22 @@ public class Calendar extends BaseEntity {
 
 	public void updateTitle(String title) {
 		this.name = title;
+	}
+
+	public boolean isOwner(Long memberId) {
+		return participants.stream().anyMatch(p -> p.getMember().getId().equals(memberId) && p.getRole() == Role.OWNER);
+	}
+
+	public Participant getOwner() {
+		return participants.stream()
+			.filter(p -> p.getRole() == Role.OWNER)
+			.findFirst()
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_OWNER_NOT_FOUND));
+	}
+
+	public Optional<Participant> findParticipant(Long memberId) {
+		return participants.stream()
+			.filter(p -> p.getMember().getId().equals(memberId))
+			.findFirst();
 	}
 }
