@@ -13,4 +13,6 @@ public interface CalendarService {
 	CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create calendarInfo, Long memberId);
 
 	void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId);
+
+	void deleteCalendar(Long calendarId, Long memberId);
 }
