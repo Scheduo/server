@@ -1,5 +1,8 @@
 package com.example.scheduo.domain.calendar.dto;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.example.scheduo.domain.calendar.entity.Calendar;
 
 import lombok.AllArgsConstructor;
@@ -15,10 +18,30 @@ public class CalendarResponseDto {
 	@AllArgsConstructor
 	public static class CalendarInfo {
 		private Long calendarId;
-		private String calendarTitle;
+		private String title;
 
 		public static CalendarInfo from(Calendar calendar) {
-			return new CalendarInfo(calendar.getId(), calendar.getName());
+			return CalendarInfo.builder()
+				.calendarId(calendar.getId())
+				.title(calendar.getName())
+				.build();
+		}
+	}
+
+	@Builder
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class CalendarInfoList {
+		private List<CalendarInfo> calendars;
+
+		public static CalendarInfoList from(List<Calendar> calendars) {
+			List<CalendarInfo> calendarInfoList = calendars.stream()
+				.map(CalendarInfo::from)
+				.collect(Collectors.toList());
+			return CalendarInfoList.builder()
+				.calendars(calendarInfoList)
+				.build();
 		}
 	}
 }

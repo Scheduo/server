@@ -1,10 +1,13 @@
 package com.example.scheduo.domain.calendar.repository.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.entity.Participant;
+import com.example.scheduo.domain.calendar.entity.ParticipationStatus;
 import com.example.scheduo.domain.calendar.entity.Role;
 import com.example.scheduo.domain.calendar.repository.ParticipantJpqlRepository;
 
@@ -28,5 +31,17 @@ public class ParticipantJpqlRepositoryImpl implements ParticipantJpqlRepository 
 			.setParameter("role", Role.OWNER)
 			.getResultStream()
 			.findFirst();
+	}
+
+	@Override
+	public List<Calendar> findCalendarsByMemberId(Long memberId) {
+		String jpql = """
+				SELECT p.calendar FROM Participant p
+				WHERE p.member.id = :memberId AND p.status = :status
+			""";
+		return entityManager.createQuery(jpql, Calendar.class)
+			.setParameter("memberId", memberId)
+			.setParameter("status", ParticipationStatus.ACCEPTED)
+			.getResultList();
 	}
 }

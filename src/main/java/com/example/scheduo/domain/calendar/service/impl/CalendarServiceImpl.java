@@ -207,11 +207,19 @@ public class CalendarServiceImpl implements CalendarService {
 	public void deleteCalendar(Long calendarId, Long memberId) {
 		Participant owner = participantRepository.findOwnerByCalendarId(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
-		
+
 		if (!owner.getMember().getId().equals(memberId)) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
 		calendarRepository.deleteById(calendarId);
+	}
+
+	@Override
+	@Transactional
+	public CalendarResponseDto.CalendarInfoList getCalendars(Long memberId) {
+		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(memberId);
+
+		return CalendarResponseDto.CalendarInfoList.from(calendars);
 	}
 }

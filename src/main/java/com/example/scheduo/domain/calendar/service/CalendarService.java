@@ -15,4 +15,6 @@ public interface CalendarService {
 	void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId);
 
 	void deleteCalendar(Long calendarId, Long memberId);
+
+	CalendarResponseDto.CalendarInfoList getCalendars(Long memberId);
 }
