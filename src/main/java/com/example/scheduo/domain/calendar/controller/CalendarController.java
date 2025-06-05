@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.calendar.controller;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,6 +72,14 @@ public class CalendarController {
 		Authentication authentication) {
 		Long memberId = (Long)authentication.getPrincipal();
 		calendarService.editCalendar(editInfo, calendarId, memberId);
+		return ApiResponse.onSuccess();
+	}
+
+	@DeleteMapping("/{calendarId}")
+	public ApiResponse<?> delete(@PathVariable("calendarId") Long calendarId,
+		Authentication authentication) {
+		Long memberId = (Long)authentication.getPrincipal();
+		calendarService.deleteCalendar(calendarId, memberId);
 		return ApiResponse.onSuccess();
 	}
 }
