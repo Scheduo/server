@@ -60,7 +60,6 @@ public class CalendarController {
 	@Operation(summary = "캘린더 초대 거절", description = "캘린더 초대를 거절합니다.")
 	public ApiResponse<?> reject(@PathVariable("calendarId") Long calendarId,
 		@RequestMember Member member) {
-		//Todo: 추후에 AuthenticationContext에서 memberId를 가져와서 사용하도록 수정
 		calendarService.rejectInvitation(calendarId, member);
 		return ApiResponse.onSuccess();
 	}
