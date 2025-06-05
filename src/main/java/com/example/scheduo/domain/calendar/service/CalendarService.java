@@ -11,4 +11,6 @@ public interface CalendarService {
 	void rejectInvitation(Long calendarId, Long memberId);
 
 	CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create calendarInfo, Long memberId);
+
+	void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId);
 }

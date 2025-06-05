@@ -21,6 +21,7 @@ import com.example.scheduo.domain.calendar.repository.ParticipantRepository;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.repository.MemberRepository;
+import com.example.scheduo.global.event.CalendarInvitationAcceptedEvent;
 import com.example.scheduo.global.event.CalendarInvitationEvent;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
@@ -96,6 +97,10 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void acceptInvitation(Long calendarId, Long memberId) {
+		//ToDo: 추후에 AuthenticationContext에서 Member 가져와서 사용하도록 수정
+		Member invitee = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+
 		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
 
@@ -104,6 +109,9 @@ public class CalendarServiceImpl implements CalendarService {
 			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
 			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
 		}
+
+		applicationEventPublisher.publishEvent(
+			CalendarInvitationAcceptedEvent.builder().invitee(invitee).calendarId(calendarId).build());
 	}
 
 	@Override
@@ -169,5 +177,28 @@ public class CalendarServiceImpl implements CalendarService {
 		calendarRepository.save(calendar);
 
 		return CalendarResponseDto.CalendarInfo.from(calendar);
+	}
+
+	@Override
+	@Transactional
+	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId) {
+		Calendar calendar = calendarRepository.findById(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		if (editInfo.getTitle() != null) {
+			if (participant.getRole() != Role.OWNER) {
+				throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
+			}
+			calendar.updateTitle(editInfo.getTitle());
+		}
+
+		if (editInfo.getNickname() != null) {
+			if (participant.getStatus() != ParticipationStatus.ACCEPTED) {
+				throw new ApiException(ResponseStatus.MEMBER_NOT_ACCEPT);
+			}
+			participant.updateNickname(editInfo.getNickname());
+		}
 	}
 }

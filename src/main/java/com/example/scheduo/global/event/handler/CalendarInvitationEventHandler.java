@@ -20,7 +20,7 @@ public class CalendarInvitationEventHandler {
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handle(CalendarInvitationEvent event) throws InterruptedException {
+	public void handle(CalendarInvitationEvent event) {
 		notificationService.createNotification(
 			event.getInvitee(),
 			NotificationType.CALENDAR_INVITATION,
