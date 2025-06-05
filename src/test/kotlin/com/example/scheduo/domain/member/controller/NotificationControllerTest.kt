@@ -75,11 +75,9 @@ class NotificationControllerTest(
 
     describe("GET /notifications 요청 시") {
         context("인증된 사용자가 요청할 때") {
-            val validToken = jwtFixture.createValidToken(memberId!!)
-
-            // TODO: 인증 연동 시 memberId 대신 인증 헤더로 테스트 가능하도록 수정
             it("200 OK와 알림 목록이 반환된다") {
-                val response = req.get("/notifications?memberId=$memberId", validToken)
+                val validToken = jwtFixture.createValidToken(memberId!!)
+                val response = req.get("/notifications", validToken)
 
                 res.assertSuccess(response)
 

@@ -35,10 +35,9 @@ class JwtAuthenticationTest(
 
     describe("인증이 필요한 API 요청 시") {
         context("유효한 토큰이 Authorization 헤더에 있을 경우") {
-            val validToken = jwtFixture.createValidToken(testMember!!.id!!)
-
             it("200 OK와 정상 응답이 반환된다") {
-                val response = mockMvc.get("/members/me?tempId=${testMember!!.id!!}") {
+                val validToken = jwtFixture.createValidToken(testMember!!.id!!)
+                val response = mockMvc.get("/members/me") {
                     header("Authorization", "Bearer $validToken")
                 }
                         .andReturn().response
@@ -63,10 +62,9 @@ class JwtAuthenticationTest(
         }
 
         context("유효하지 않은 토큰이 Authorization 헤더에 있을 경우") {
-            val invalidToken = jwtFixture.createInvalidToken()
-
             it("401 Unauthorized와 에러 메시지가 반환된다") {
-                val response = mockMvc.get("/members/me?tempId=${testMember!!.id!!}") {
+                val invalidToken = jwtFixture.createInvalidToken()
+                val response = mockMvc.get("/members/me") {
                     header("Authorization", "Bearer $invalidToken")
                 }
                         .andReturn().response
