@@ -16,6 +16,7 @@ import com.example.scheduo.util.Request
 import com.example.scheduo.util.Response
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.awaitility.Awaitility.await
@@ -684,6 +685,72 @@ class CalendarControllerTest(
 
                 val response = req.delete("/calendars/${calendar.id}", token)
                 res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
+            }
+        }
+    }
+
+    describe("GET /calendars") {
+        context("정상 모든 캘린더 조회 요청일 경우") {
+            it("200 OK를 반환하고 모든 캘린더 정보를 반환한다.") {
+                val member = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendars"].size() shouldBeGreaterThan 0
+
+                json["data"]["calendars"][0]["calendarId"].asLong() shouldBeGreaterThan 0
+                json["data"]["calendars"][0]["title"].asText() shouldBe calendar.name
+            }
+        }
+
+        context("아직 캘린더 참여 수락을 하지 않았을 경우") {
+            it("200 OK를 반환하나, 빈 calendar 리스트를 반환한다.") {
+                val member = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendars"].size() shouldBe 0
+            }
+        }
+
+        context("아무 캘린더에도 참여하지 않은 경우") {
+            it("200 OK를 반환하나, 빈 calendar 리스트를 반환한다.") {
+                val member = memberRepository.save(createMember())
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendars"].size() shouldBe 0
             }
         }
     }
