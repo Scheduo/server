@@ -2,6 +2,8 @@ package com.example.scheduo.domain.calendar.entity;
 
 import com.example.scheduo.domain.common.BaseEntity;
 import com.example.scheduo.domain.member.entity.Member;
+import com.example.scheduo.global.response.exception.ApiException;
+import com.example.scheduo.global.response.status.ResponseStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,4 +56,29 @@ public class Participant extends BaseEntity {
 	public void updateNickname(String nickname) {
 		this.nickname = nickname;
 	}
+
+	public void reinvite() {
+		switch (this.status) {
+			case DECLINED -> this.status = ParticipationStatus.PENDING;
+			case PENDING -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_INVITED);
+			case ACCEPTED -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_PARTICIPANT);
+		}
+	}
+
+	public void accept() {
+		switch (this.status) {
+			case PENDING -> this.status = ParticipationStatus.ACCEPTED;
+			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
+			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
+		}
+	}
+
+	public void decline() {
+		switch (this.status) {
+			case PENDING -> this.status = ParticipationStatus.DECLINED;
+			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
+			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
+		}
+	}
+
 }
