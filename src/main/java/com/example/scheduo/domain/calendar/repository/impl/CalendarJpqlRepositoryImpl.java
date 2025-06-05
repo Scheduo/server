@@ -9,13 +9,11 @@ import com.example.scheduo.domain.calendar.repository.CalendarJpqlRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
 
 @Repository
-@RequiredArgsConstructor
 public class CalendarJpqlRepositoryImpl implements CalendarJpqlRepository {
 	@PersistenceContext
-	private final EntityManager entityManager;
+	private EntityManager entityManager;
 
 	@Override
 	public Optional<Calendar> findByIdWithParticipants(Long calendarId) {
