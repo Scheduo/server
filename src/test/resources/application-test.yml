@@ -3,7 +3,7 @@ spring:
     name: scheduo
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/scheduo_test?useUnicode=true&characterEncoding=utf8
+    url: ${DB_URL:jdbc:mysql://host.docker.internal:3306/scheduo_test?useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true}
     username: root
     password:
     hikari:
@@ -13,7 +13,7 @@ spring:
       naming:
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       hibernate:
         show-sql: true
