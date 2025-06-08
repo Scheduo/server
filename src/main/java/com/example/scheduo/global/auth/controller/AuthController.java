@@ -29,6 +29,6 @@ public class AuthController {
 	@PostMapping("/token")
 	public ApiResponse<AuthResponseDto.Token> rotateToken(@RequestMember Member member, @RequestBody AuthRequestDto.RefreshToken request) {
 		AuthResponseDto.Token tokenDto = authService.rotateToken(member.getId(), request.getRefreshToken());
-		return ApiResponse.onSuccess("유저 조회 성공", tokenDto);
+		return ApiResponse.onSuccess(tokenDto);
 	}
 }

@@ -9,5 +9,12 @@ public class AuthResponseDto {
 	public static class Token {
 		private final String accessToken;
 		private final String refreshToken;
+
+		public static Token of(String accessToken, String refreshToken) {
+			return Token.builder()
+				.accessToken(accessToken)
+				.refreshToken(refreshToken)
+				.build();
+		}
 	}
 }

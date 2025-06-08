@@ -61,9 +61,6 @@ public class AuthServiceImpl implements AuthService {
 
 		refreshTokenService.saveRefreshToken(memberIdByRT, deviceUUID, newRefreshToken, JwtProvider.EXPIRE_REFRESH_MS);
 
-		return AuthResponseDto.Token.builder()
-			.accessToken(newAccessToken)
-			.refreshToken(newRefreshToken)
-			.build();
+		return AuthResponseDto.Token.of(newAccessToken, newRefreshToken);
 	}
 }
