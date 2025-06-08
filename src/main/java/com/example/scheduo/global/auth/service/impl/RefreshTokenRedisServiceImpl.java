@@ -35,7 +35,7 @@ public class RefreshTokenRedisServiceImpl implements RefreshTokenService {
 		String key = "refresh:" + memberId + ":" + deviceUUID;
 		String value = redisTemplate.opsForValue().get(key);
 		if (value == null)
-			throw new ApiException(ResponseStatus.ALREADY_LOGGED_OUT_REFRESH_TOKEN);
+			throw new ApiException(ResponseStatus.EXPIRED_REFRESH_TOKEN);
 
 		if (!value.equals(refreshToken))
 			throw new ApiException(ResponseStatus.EXPIRED_REFRESH_TOKEN);
