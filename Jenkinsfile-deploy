@@ -20,14 +20,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/Feat/48']],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/Scheduo/server',
-                        credentialsId: 'scheduo-git'
-                    ]]
-                ])
+                checkout scm
             }
         }
         stage('Build Jar') {
