@@ -52,6 +52,10 @@ spring:
     jwt:
       token:
         secret: ${JWT_TOKEN_SECRET}
+    data:
+      redis:
+        host: ${REDIS_HOST}
+        port: ${REDIS_PORT}
 
 logging:
   level:

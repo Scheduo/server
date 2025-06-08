@@ -19,6 +19,11 @@ spring:
         show-sql: true
         format_sql: true
         use_sql_comments: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1
 jwt:
   token:
     secret: testjwtsecrettestjwtsecrettestjwtsecrettestjwtsecrettestjwtsecrettestjwtsecrettestjwtsecrettestjwtsecrettestjwtsecrettestjwtsecret
