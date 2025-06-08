@@ -40,6 +40,10 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public AuthResponseDto.Token rotateToken(Long memberIdByAT, String refreshToken) {
+		// Refresh Token 검증
+		if (!jwtProvider.validateToken(refreshToken))
+			throw new ApiException(ResponseStatus.REFRESH_TOKEN_INVALID);
+
 		Long memberIdByRT = jwtProvider.getMemberIdFromToken(refreshToken);
 		String deviceUUID = jwtProvider.getDeviceUUIDFromToken(refreshToken);
 

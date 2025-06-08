@@ -23,7 +23,7 @@ public class AuthController {
 	@PostMapping("/logout")
 	public ApiResponse<?> logout(@RequestMember Member member, @RequestBody AuthRequestDto.RefreshToken request) {
 		authService.logout(member.getId(), request.getRefreshToken());
-		return ApiResponse.onSuccess("로그아웃 되었습니다.", null);
+		return ApiResponse.onSuccess();
 	}
 
 	@PostMapping("/token")
