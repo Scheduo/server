@@ -19,9 +19,9 @@ public class RefreshTokenRedisServiceImpl implements RefreshTokenService {
 	private final RedisTemplate<String, String> redisTemplate;
 
 	@Override
-	public void saveRefreshToken(Long memberId, String deviceUUID, String refreshToken, long ttlMilli) {
+	public void saveRefreshToken(Long memberId, String deviceUUID, String refreshToken, long ttlMs) {
 		String key = "refresh:" + memberId + ":" + deviceUUID;
-		redisTemplate.opsForValue().set(key, refreshToken, ttlMilli, TimeUnit.MILLISECONDS);
+		redisTemplate.opsForValue().set(key, refreshToken, ttlMs, TimeUnit.MILLISECONDS);
 	}
 
 	@Override

@@ -75,21 +75,19 @@ public class JwtProvider implements InitializingBean {
 	}
 
 	public Long getMemberIdFromToken(String token) {
-		Claims claims = Jwts.parserBuilder()
-			.setSigningKey(secretKey)
-			.build()
-			.parseClaimsJws(token)
-			.getBody();
-		return claims.get("memberId", Long.class);
+		return getAllClaimsFromToken(token).get("memberId", Long.class);
 	}
 
 	public String getDeviceUUIDFromToken(String token) {
-		Claims claims = Jwts.parserBuilder()
+		return getAllClaimsFromToken(token).get("deviceUUID", String.class);
+	}
+
+	private Claims getAllClaimsFromToken(String token) {
+		return Jwts.parserBuilder()
 			.setSigningKey(secretKey)
 			.build()
 			.parseClaimsJws(token)
 			.getBody();
-		return claims.get("deviceUUID", String.class);
 	}
 
 }
