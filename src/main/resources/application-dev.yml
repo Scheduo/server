@@ -6,7 +6,7 @@ spring:
     name: scheduo
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/scheduo?useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
@@ -52,10 +52,6 @@ spring:
     jwt:
       token:
         secret: ${JWT_TOKEN_SECRET}
-    data:
-      redis:
-        host: ${REDIS_HOST}
-        port: ${REDIS_PORT}
 
 logging:
   level:
