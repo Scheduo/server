@@ -1,4 +1,4 @@
-package com.example.scheduo.global.auth;
+package com.example.scheduo.global.auth.dto;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;

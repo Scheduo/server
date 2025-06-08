@@ -7,7 +7,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.service.MemberService;
-import com.example.scheduo.global.auth.RequestMemberHolder;
+import com.example.scheduo.global.auth.dto.RequestMemberHolder;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
