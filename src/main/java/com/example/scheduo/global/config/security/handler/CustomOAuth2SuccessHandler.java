@@ -1,12 +1,14 @@
 package com.example.scheduo.global.config.security.handler;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.example.scheduo.global.auth.service.RefreshTokenService;
 import com.example.scheduo.global.config.security.provider.JwtProvider;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 	private final JwtProvider jwtProvider;
+	private final RefreshTokenService refreshTokenService;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request,
@@ -28,12 +31,18 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 		OAuth2User user = (OAuth2User)authentication.getPrincipal();
 		Long memberId = (Long)user.getAttributes().get("memberId");
 
+		String deviceUUID = generateDeviceUUID();
 		String accessToken = jwtProvider.createAccessToken(memberId);
-		String refreshToken = jwtProvider.createRefreshToken(memberId);
+		String refreshToken = jwtProvider.createRefreshToken(memberId, deviceUUID);
+
+		refreshTokenService.saveRefreshToken(memberId, deviceUUID, refreshToken, JwtProvider.EXPIRE_REFRESH_MS);
 
 		String redirectUrl =
 			"http://localhost:3000/oauth2/redirect?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
 		response.sendRedirect(redirectUrl);
 	}
 
+	private String generateDeviceUUID() {
+		return UUID.randomUUID().toString();
+	}
 }

@@ -22,6 +22,14 @@ public enum ResponseStatus {
 	NOT_EXIST_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0001", "토큰이 없습니다."),
 	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0002", "토큰이 유효하지 않습니다."),
 	DEFAULT_TOKEN_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_0003", "인증에 실패하였습니다."),
+	REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "TOKEN_0004","Refresh Token이 유효하지 않습니다."),
+	ALREADY_LOGGED_OUT_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0005","이미 로그아웃 처리 된 Refresh Token입니다."),
+	REFRESH_TOKEN_MEMBER_MISMATCH(HttpStatus.UNAUTHORIZED, "TOKEN_0006", "해당 Refresh Token에 대한 권한이 없습니다."),
+	EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0007", "Refresh Token이 유효하지 않거나 이미 만료되었습니다."),
+
+	// 레디스 관련 에러 응답
+	REDIS_SERIALIZE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_0001", "리프레시 토큰 직렬화에 실패했습니다."),
+	REDIS_DESERIALIZE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_0002", "리프레시 토큰 역직렬화에 실패했습니다."),
 
 	// 멤버 관련 에러 응답
 	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_0001", "멤버를 찾을 수 없습니다."),
