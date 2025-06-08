@@ -21,6 +21,7 @@ import com.example.scheduo.domain.calendar.repository.ParticipantRepository;
 import com.example.scheduo.domain.calendar.service.CalendarService;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.member.repository.MemberRepository;
+import com.example.scheduo.global.event.CalendarInvitationAcceptedEvent;
 import com.example.scheduo.global.event.CalendarInvitationEvent;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
@@ -96,6 +97,10 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void acceptInvitation(Long calendarId, Long memberId) {
+		//ToDo: 추후에 AuthenticationContext에서 Member 가져와서 사용하도록 수정
+		Member invitee = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+
 		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
 
@@ -104,6 +109,9 @@ public class CalendarServiceImpl implements CalendarService {
 			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
 			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
 		}
+
+		applicationEventPublisher.publishEvent(
+			CalendarInvitationAcceptedEvent.builder().invitee(invitee).calendarId(calendarId).build());
 	}
 
 	@Override
@@ -192,5 +200,26 @@ public class CalendarServiceImpl implements CalendarService {
 			}
 			participant.updateNickname(editInfo.getNickname());
 		}
+	}
+
+	@Override
+	@Transactional
+	public void deleteCalendar(Long calendarId, Long memberId) {
+		Participant owner = participantRepository.findOwnerByCalendarId(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		if (!owner.getMember().getId().equals(memberId)) {
+			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
+		}
+
+		calendarRepository.deleteById(calendarId);
+	}
+
+	@Override
+	@Transactional
+	public CalendarResponseDto.CalendarInfoList getCalendars(Long memberId) {
+		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(memberId);
+
+		return CalendarResponseDto.CalendarInfoList.from(calendars);
 	}
 }

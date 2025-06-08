@@ -16,6 +16,7 @@ import com.example.scheduo.util.Request
 import com.example.scheduo.util.Response
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.awaitility.Awaitility.await
@@ -158,7 +159,7 @@ class CalendarControllerTest(
                         calendar = calendar,
                         role = Role.OWNER,
                         nickname = owner.nickname,
-                        participationStatus = ParticipationStatus.PENDING
+                        participationStatus = ParticipationStatus.ACCEPTED
                     )
                 )
                 val validToken = jwtFixture.createValidToken(owner.id)
@@ -187,7 +188,7 @@ class CalendarControllerTest(
                         calendar = calendar,
                         role = Role.OWNER,
                         nickname = owner.nickname,
-                        participationStatus = ParticipationStatus.PENDING
+                        participationStatus = ParticipationStatus.ACCEPTED
                     )
                 )
                 val validToken = jwtFixture.createValidToken(owner.id)
@@ -253,24 +254,44 @@ class CalendarControllerTest(
     describe("POST /calendars/{calendarId}/invite/accept") {
         context("정상적으로 초대를 수락하는 경우") {
             it("200 OK를 반환하고 참여 상태를 ACCEPTED로 변경한다") {
-                val owner = memberRepository.save(createMember())
-                val invitee = memberRepository.save(createMember())
+                val owner = memberRepository.save(createMember(nickname = "test1"))
+                val invitee = memberRepository.save(createMember(nickname = "test2"))
                 val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
+                participantRepository.save(
+                    createParticipant(
+                        member = owner,
+                        calendar = calendar,
+                        role = Role.OWNER,
+                        nickname = owner.nickname,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
                 val participant = participantRepository.save(
                     createParticipant(
                         calendar = calendar,
                         member = invitee,
+                        nickname = invitee.nickname,
                         participationStatus = ParticipationStatus.PENDING
                     )
                 )
-                val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", token = validToken)
 
                 res.assertSuccess(response)
                 val updatedParticipant = participantRepository.findById(participant.id).get()
                 updatedParticipant.status shouldBe ParticipationStatus.ACCEPTED
+
+                await().atMost(2, TimeUnit.SECONDS).untilAsserted {
+                    val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(owner.id)
+                    notifications.size shouldBe 1
+                    notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION_ACCEPTED.createMessage(
+                        mapOf(
+                            "inviteeNickname" to invitee.nickname,
+                            "calendarName" to calendar.name,
+                        )
+                    )
+                }
             }
         }
 
@@ -280,9 +301,8 @@ class CalendarControllerTest(
                 val invitee = memberRepository.save(createMember())
                 val calendar = calendarRepository.save(createCalendar())
                 val validToken = jwtFixture.createValidToken(invitee.id)
-                val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", token = validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_NOT_FOUND)
             }
@@ -301,9 +321,8 @@ class CalendarControllerTest(
                         participationStatus = ParticipationStatus.ACCEPTED
                     )
                 )
-                val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", token = validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_ACCEPTED)
             }
@@ -322,9 +341,8 @@ class CalendarControllerTest(
                         participationStatus = ParticipationStatus.DECLINED
                     )
                 )
-                val request = mapOf("memberId" to invitee.id)
                 val response =
-                    req.post("/calendars/${calendar.id}/invite/accept?memberId=${invitee.id}", request, validToken)
+                    req.post("/calendars/${calendar.id}/invite/accept", token = validToken)
 
                 res.assertFailure(response, ResponseStatus.INVITATION_ALREADY_DECLINED)
             }
@@ -606,6 +624,133 @@ class CalendarControllerTest(
                 val response = req.patch("/calendars/${calendar.id}", request, token)
 
                 res.assertFailure(response, ResponseStatus.MEMBER_NOT_ACCEPT)
+            }
+        }
+    }
+
+    describe("DELETE /calendars/{calendarId}") {
+        context("정상 캘린더 삭제 요청일 경우") {
+            it("200 OK를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        role = Role.OWNER,
+                        calendar = calendar,
+                        member = owner,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/${calendar.id}", token)
+                res.assertSuccess(response)
+            }
+        }
+
+        context("캘린더가 존재하지 않는 경우") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val token = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/999", token)
+
+                res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
+            }
+        }
+
+        context("캘린더 소유자가 아닌 멤버가 캘린더 삭제를 요청할 경우") {
+            it("403 Forbidden을 반환한다") {
+                val owner = memberRepository.save(createMember())
+                val participant = memberRepository.save(createMember(email = "test2@gmail.com"))
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.saveAll(
+                    listOf(
+                        createParticipant(
+                            role = Role.OWNER,
+                            calendar = calendar,
+                            member = owner,
+                            participationStatus = ParticipationStatus.ACCEPTED
+                        ),
+                        createParticipant(
+                            calendar = calendar,
+                            member = participant,
+                            participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(participant.id)
+
+                val response = req.delete("/calendars/${calendar.id}", token)
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
+            }
+        }
+    }
+
+    describe("GET /calendars") {
+        context("정상 모든 캘린더 조회 요청일 경우") {
+            it("200 OK를 반환하고 모든 캘린더 정보를 반환한다.") {
+                val member = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendars"].size() shouldBeGreaterThan 0
+
+                json["data"]["calendars"][0]["calendarId"].asLong() shouldBeGreaterThan 0
+                json["data"]["calendars"][0]["title"].asText() shouldBe calendar.name
+            }
+        }
+
+        context("아직 캘린더 참여 수락을 하지 않았을 경우") {
+            it("200 OK를 반환하나, 빈 calendar 리스트를 반환한다.") {
+                val member = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member,
+                        participationStatus = ParticipationStatus.PENDING
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendars"].size() shouldBe 0
+            }
+        }
+
+        context("아무 캘린더에도 참여하지 않은 경우") {
+            it("200 OK를 반환하나, 빈 calendar 리스트를 반환한다.") {
+                val member = memberRepository.save(createMember())
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                json["data"]["calendars"].size() shouldBe 0
             }
         }
     }
