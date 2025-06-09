@@ -27,8 +27,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/token")
-	public ApiResponse<AuthResponseDto.Token> rotateToken(@RequestMember Member member, @RequestBody AuthRequestDto.RefreshToken request) {
-		AuthResponseDto.Token tokenDto = authService.rotateToken(member.getId(), request.getRefreshToken());
+	public ApiResponse<AuthResponseDto.Token> rotateToken(@RequestBody AuthRequestDto.RefreshToken request) {
+		AuthResponseDto.Token tokenDto = authService.rotateToken(request.getRefreshToken());
 		return ApiResponse.onSuccess(tokenDto);
 	}
 }
