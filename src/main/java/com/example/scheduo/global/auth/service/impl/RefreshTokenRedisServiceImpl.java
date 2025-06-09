@@ -20,19 +20,19 @@ public class RefreshTokenRedisServiceImpl implements RefreshTokenService {
 
 	@Override
 	public void saveRefreshToken(Long memberId, String deviceUUID, String refreshToken, long ttlMs) {
-		String key = "refresh:" + memberId + ":" + deviceUUID;
+		String key = createRedisKey(memberId, deviceUUID);
 		redisTemplate.opsForValue().set(key, refreshToken, ttlMs, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public Optional<String> getRefreshToken(Long memberId, String deviceUUID) {
-		String key = "refresh:" + memberId + ":" + deviceUUID;
+		String key = createRedisKey(memberId, deviceUUID);
 		return Optional.ofNullable(redisTemplate.opsForValue().get(key));
 	}
 
 	@Override
 	public void deleteRefreshToken(Long memberId, String deviceUUID, String refreshToken) {
-		String key = "refresh:" + memberId + ":" + deviceUUID;
+		String key = createRedisKey(memberId, deviceUUID);
 		String value = redisTemplate.opsForValue().get(key);
 		if (value == null)
 			throw new ApiException(ResponseStatus.EXPIRED_REFRESH_TOKEN);
@@ -41,5 +41,9 @@ public class RefreshTokenRedisServiceImpl implements RefreshTokenService {
 			throw new ApiException(ResponseStatus.EXPIRED_REFRESH_TOKEN);
 
 		redisTemplate.delete(key);
+	}
+
+	private String createRedisKey(Long memberId, String deviceUUID) {
+		return "refresh:" + memberId + ":" + deviceUUID;
 	}
 }
