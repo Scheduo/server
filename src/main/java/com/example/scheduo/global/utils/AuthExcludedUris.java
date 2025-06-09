@@ -4,6 +4,7 @@ public class AuthExcludedUris {
 	public static final String[] ALL = {
 		"/swagger-ui/**",
 		"/v3/api-docs/**",
-		"/test/**"
+		"/test/**",
+		"/auth/token"
 	};
 }

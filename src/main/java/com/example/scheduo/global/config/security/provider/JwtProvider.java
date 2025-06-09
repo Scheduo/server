@@ -24,8 +24,8 @@ public class JwtProvider implements InitializingBean {
 	@Value("${jwt.token.secret}")
 	private String secret;
 	private static SecretKey secretKey;
-	private static final Long expireAccessMs = 1000L * 60 * 15; // 15분
-	private static final Long expireRefreshMs = 1000L * 60 * 60 * 24 * 7; // 7일
+	private static final Long EXPIRE_ACCESS_MS = 1000L * 60 * 15; // 15분
+	public static final Long EXPIRE_REFRESH_MS = 1000L * 60 * 60 * 24 * 7; // 7일
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -37,16 +37,21 @@ public class JwtProvider implements InitializingBean {
 		return Jwts.builder()
 			.claim("memberId", memberId)
 			.setIssuedAt(new Date(System.currentTimeMillis()))
-			.setExpiration(new Date(System.currentTimeMillis() + expireAccessMs))
+			.setExpiration(new Date(System.currentTimeMillis() + EXPIRE_ACCESS_MS))
 			.signWith(secretKey)
 			.compact();
 	}
 
-	public String createRefreshToken(Long memberId) {
+	public String createRefreshToken(Long memberId, String deviceUUID) {
+		long now = System.currentTimeMillis();
+		Date issuedAt = new Date(now);
+		Date expiresAt = new Date(now + EXPIRE_REFRESH_MS);
+
 		return Jwts.builder()
 			.claim("memberId", memberId)
-			.setIssuedAt(new Date(System.currentTimeMillis()))
-			.setExpiration(new Date(System.currentTimeMillis() + expireRefreshMs))
+			.claim("deviceUUID", deviceUUID)
+			.setIssuedAt(issuedAt)
+			.setExpiration(expiresAt)
 			.signWith(secretKey)
 			.compact();
 	}
@@ -65,14 +70,24 @@ public class JwtProvider implements InitializingBean {
 	}
 
 	public Authentication getAuthentication(String token) {
-		Claims claims = Jwts.parserBuilder()
+		Long memberId = getMemberIdFromToken(token);
+		return new UsernamePasswordAuthenticationToken(memberId, "", List.of());
+	}
+
+	public Long getMemberIdFromToken(String token) {
+		return getAllClaimsFromToken(token).get("memberId", Long.class);
+	}
+
+	public String getDeviceUUIDFromToken(String token) {
+		return getAllClaimsFromToken(token).get("deviceUUID", String.class);
+	}
+
+	private Claims getAllClaimsFromToken(String token) {
+		return Jwts.parserBuilder()
 			.setSigningKey(secretKey)
 			.build()
 			.parseClaimsJws(token)
 			.getBody();
-		Long memberId = claims.get("memberId", Long.class);
-
-		return new UsernamePasswordAuthenticationToken(memberId, "", List.of());
 	}
 
 }

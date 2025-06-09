@@ -455,7 +455,7 @@ class CalendarControllerTest(
 
                 val json = objectMapper.readTree(response.contentAsString)
                 json["data"]["calendarId"].asLong() shouldBeGreaterThan 0
-                json["data"]["calendarTitle"].asText() shouldBe "Test Calendar"
+                json["data"]["title"].asText() shouldBe "Test Calendar"
             }
         }
 
