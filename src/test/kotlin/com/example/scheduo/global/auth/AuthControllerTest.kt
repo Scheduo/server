@@ -153,11 +153,15 @@ class AuthControllerTest @Autowired constructor(
                 val firstResult = req.post("/auth/token", mapOf("refreshToken" to refreshToken), jwtProvider.createAccessToken(member.id))
                 res.assertSuccess(firstResult)
 
-                val response = objectMapper.readTree(firstResult.contentAsString)
-                val newRefreshToken = response["data"]["refreshToken"].asText()
+                val response1 = objectMapper.readTree(firstResult.contentAsString)
+                val newRefreshToken1 = response1["data"]["refreshToken"].asText()
+
                 // 2차: 이전 refreshToken으로 재요청
                 val secondResult = req.post("/auth/token", mapOf("refreshToken" to refreshToken), jwtProvider.createAccessToken(member.id))
-                res.assertFailure(secondResult, ResponseStatus.EXPIRED_REFRESH_TOKEN)
+                val response2 = objectMapper.readTree(firstResult.contentAsString)
+                val newRefreshToken2 = response2["data"]["refreshToken"].asText()
+
+                res.assertFailure(secondResult, ResponseStatus.OUTDATED_REFRESH_TOKEN)
             }
         }
 

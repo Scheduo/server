@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
 
 		// 실제 DB 값과 요청 RefreshToken 값 비교
 		if (!storedRefreshToken.equals(refreshToken)) {
-			throw new ApiException(ResponseStatus.EXPIRED_REFRESH_TOKEN);
+			throw new ApiException(ResponseStatus.OUTDATED_REFRESH_TOKEN);
 		}
 
 		String newAccessToken = jwtProvider.createAccessToken(memberId);
