@@ -5,22 +5,20 @@ import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.test.context.ActiveProfiles
 
 
 @SpringBootTest
+@ActiveProfiles("test")
 class RedisConnectionTest @Autowired constructor(
         private val redisTemplate: StringRedisTemplate
 ) : DescribeSpec({
     describe("Redis 연결 테스트") {
-        context("Redis에 값을 set/get 하면") {
-            it("정상 동작해야 한다") {
-                val key = "scheduo"
-                val value = "proj"
-
-                redisTemplate.opsForValue().set(key, value)
-                val result = redisTemplate.opsForValue().get(key)
-
-                result shouldBe value
+        context("PING 명령을 보내면") {
+            it("PONG을 받아야 한다") {
+                // RedisConnection을 통해 ping 명령 실행
+                val pong = redisTemplate.connectionFactory!!.connection.ping()
+                pong shouldBe "PONG"
             }
         }
     }
