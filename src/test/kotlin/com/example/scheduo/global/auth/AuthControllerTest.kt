@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class AuthTest @Autowired constructor(
+class AuthControllerTest @Autowired constructor(
         val mockMvc: MockMvc,
         val objectMapper: ObjectMapper,
         val jwtProvider: JwtProvider,
@@ -161,14 +161,30 @@ class AuthTest @Autowired constructor(
             }
         }
 
-        context("refreshToken의 memberId와 accessToken의 memberId가 불일치한 경우") {
-            it("401 에러를 반환한다") {
-                val anotherMember = memberRepository.save(createMember(nickname = "다른멤버"))
+        context("accessToken 없이 요청해도 refreshToken이 유효하면") {
+            it("새로운 accessToken과 refreshToken이 정상적으로 발급된다") {
+                // given: 유효한 refreshToken만 준비
                 val refreshToken = jwtProvider.createRefreshToken(member.id, deviceUUID)
                 redisTemplate.opsForValue().set(refreshTokenKey, refreshToken, 1, TimeUnit.MINUTES)
-                val result = req.post("/auth/token", mapOf("refreshToken" to refreshToken), jwtProvider.createAccessToken(anotherMember.id))
-                res.assertFailure(result, ResponseStatus.REFRESH_TOKEN_MEMBER_MISMATCH)
-                memberRepository.delete(anotherMember)
+                Thread.sleep(1000)
+
+                // when: accessToken 없이 요청
+                val result = req.post(
+                        "/auth/token",
+                        mapOf("refreshToken" to refreshToken)
+                        // Authorization 헤더 없이 요청
+                )
+
+                // then: 새로운 accessToken, refreshToken이 잘 발급되고 redis에 저장되어야 함
+                val response = objectMapper.readTree(result.contentAsString)
+                val newAccessToken = response["data"]["accessToken"].asText()
+                val newRefreshToken = response["data"]["refreshToken"].asText()
+                val stored = redisTemplate.opsForValue().get(refreshTokenKey)
+
+                res.assertSuccess(result)
+                newAccessToken shouldNotBe null
+                newRefreshToken shouldNotBe refreshToken
+                stored shouldBe newRefreshToken
             }
         }
 
