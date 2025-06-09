@@ -3,6 +3,7 @@ package com.example.scheduo.domain.calendar.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -39,41 +40,29 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public void inviteMember(Long calendarId, Long inviterId, Long inviteeId) {
+	public void inviteMember(Long calendarId, Member inviter, Long inviteeId) {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		//Todo : 추후에 AuthenticationContext에서 Member 가져와서 사용하도록 수정
-		Participant owner = calendar.getParticipants().stream()
-			.filter(p -> p.getRole() == Role.OWNER)
-			.findFirst()
-			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_OWNER));
-
-		if (!owner.getMember().getId().equals(inviterId)) {
+		if (!calendar.isOwner(inviter.getId())) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
 		Member invitee = memberRepository.findById(inviteeId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
 
-		for (Participant participant : calendar.getParticipants()) {
-			if (participant.getMember().getId().equals(inviteeId)) {
-				switch (participant.getStatus()) {
-					case PENDING -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_INVITED);
-					case ACCEPTED -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_PARTICIPANT);
-					case DECLINED -> {
-						participant.setStatus(ParticipationStatus.PENDING);
-						applicationEventPublisher.publishEvent(
-							CalendarInvitationEvent.builder()
-								.calendarId(calendarId)
-								.calendarName(calendar.getName())
-								.invitee(invitee)
-								.inviterName(owner.getNickname())
-								.build());
-						return;
-					}
-				}
-			}
+		Optional<Participant> existingParticipant = calendar.findParticipant(inviteeId);
+
+		if (existingParticipant.isPresent()) {
+			existingParticipant.get().reinvite();
+			applicationEventPublisher.publishEvent(
+				CalendarInvitationEvent.builder()
+					.calendarId(calendarId)
+					.calendarName(calendar.getName())
+					.invitee(invitee)
+					.inviterName(calendar.getOwner().getNickname())
+					.build());
+			return;
 		}
 
 		Participant participant = Participant.builder()
@@ -83,48 +72,37 @@ public class CalendarServiceImpl implements CalendarService {
 			.status(ParticipationStatus.PENDING)
 			.role(Role.VIEW)
 			.build();
+
 		calendar.addParticipant(participant);
-		// TODO: 추후에 calendar.getMember().getId()를 AuthenticationContext에서 Member 가져와서 사용하도록 수정
+
 		applicationEventPublisher.publishEvent(
 			CalendarInvitationEvent.builder()
 				.calendarId(calendarId)
 				.calendarName(calendar.getName())
 				.invitee(invitee)
-				.inviterName(owner.getNickname())
+				.inviterName(calendar.getOwner().getNickname())
 				.build());
 	}
 
 	@Override
 	@Transactional
-	public void acceptInvitation(Long calendarId, Long memberId) {
-		//ToDo: 추후에 AuthenticationContext에서 Member 가져와서 사용하도록 수정
-		Member invitee = memberRepository.findById(memberId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
-
-		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+	public void acceptInvitation(Long calendarId, Member member) {
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
 
-		switch (participant.getStatus()) {
-			case PENDING -> participant.setStatus(ParticipationStatus.ACCEPTED);
-			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
-			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
-		}
+		participant.accept();
 
 		applicationEventPublisher.publishEvent(
-			CalendarInvitationAcceptedEvent.builder().invitee(invitee).calendarId(calendarId).build());
+			CalendarInvitationAcceptedEvent.builder().invitee(member).calendarId(calendarId).build());
 	}
 
 	@Override
 	@Transactional
-	public void rejectInvitation(Long calendarId, Long memberId) {
-		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+	public void rejectInvitation(Long calendarId, Member member) {
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
-
-		switch (participant.getStatus()) {
-			case PENDING -> participant.setStatus(ParticipationStatus.DECLINED);
-			case ACCEPTED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_ACCEPTED);
-			case DECLINED -> throw new ApiException(ResponseStatus.INVITATION_ALREADY_DECLINED);
-		}
+		
+		participant.decline();
 	}
 
 	@Override

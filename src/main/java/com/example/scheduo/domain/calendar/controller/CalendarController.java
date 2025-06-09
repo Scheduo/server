@@ -8,12 +8,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
 import com.example.scheduo.domain.calendar.dto.CalendarResponseDto;
 import com.example.scheduo.domain.calendar.service.CalendarService;
+import com.example.scheduo.domain.member.entity.Member;
+import com.example.scheduo.global.auth.annotation.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,27 +44,24 @@ public class CalendarController {
 	@Operation(summary = "캘린더 초대", description = "캘린더에 사용자를 초대합니다.")
 	public ApiResponse<?> invite(@PathVariable("calendarId") Long calendarId,
 		@RequestBody CalendarRequestDto.Invite request,
-		Authentication authentication) {
-		Long memberId = (Long)authentication.getPrincipal();
-		calendarService.inviteMember(calendarId, memberId, request.getMemberId());
+		@RequestMember Member member) {
+		calendarService.inviteMember(calendarId, member, request.getMemberId());
 		return ApiResponse.onSuccess();
 	}
 
 	@PostMapping("/{calendarId}/invite/accept")
 	@Operation(summary = "캘린더 초대 수락", description = "캘린더 초대를 수락합니다.")
 	public ApiResponse<?> accept(@PathVariable("calendarId") Long calendarId,
-		Authentication authentication) {
-		Long memberId = (Long)authentication.getPrincipal();
-		calendarService.acceptInvitation(calendarId, memberId);
+		@RequestMember Member member) {
+		calendarService.acceptInvitation(calendarId, member);
 		return ApiResponse.onSuccess();
 	}
 
 	@PostMapping("/{calendarId}/invite/decline")
 	@Operation(summary = "캘린더 초대 거절", description = "캘린더 초대를 거절합니다.")
 	public ApiResponse<?> reject(@PathVariable("calendarId") Long calendarId,
-		@RequestParam("memberId") Long memberId) {
-		//Todo: 추후에 AuthenticationContext에서 memberId를 가져와서 사용하도록 수정
-		calendarService.rejectInvitation(calendarId, memberId);
+		@RequestMember Member member) {
+		calendarService.rejectInvitation(calendarId, member);
 		return ApiResponse.onSuccess();
 	}
 
