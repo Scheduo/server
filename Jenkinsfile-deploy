@@ -23,15 +23,6 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Build Jar') {
-            steps {
-                sh '''
-                chmod +x ./gradlew
-                ./gradlew clean build -x test
-                '''
-            }
-        }
-
         stage('Clean Old Docker Image') {
             steps {
                 sh '''
