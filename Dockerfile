@@ -1,32 +1,14 @@
-#FROM gradle:8.1.1-jdk17 AS builder
-#
-#WORKDIR /build
-#
-#COPY build.gradle settings.gradle ./
-#COPY gradle gradle
-#RUN gradle dependencies || true
-#
-#COPY src src
-#RUN gradle clean build -x test --no-daemon --stacktrace
-#
-#FROM openjdk:17-jdk AS runner
-#
-#WORKDIR /app
-#
-#COPY --from=builder /build/build/libs/*.jar app.jar
-#
-#ENTRYPOINT ["java", "-jar", "app.jar"]
-
 FROM bellsoft/liberica-openjdk-alpine:17 AS builder
 
 WORKDIR /app
 
+COPY build.gradle settings.gradle gradle/ ./
+
+RUN ./gradlew dependencies || true
+
 COPY . .
 
-RUN ./gradlew clean build -x test
-
-
-# Run stage
+RUN ./gradlew build -x test --no-daemon
 
 FROM bellsoft/liberica-openjdk-alpine:17
 
