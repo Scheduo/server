@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.member.dto;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,18 +18,21 @@ public class NotificationResponseDto {
 	public static class NoticeInfo {
 		private Long id;
 		private NotificationType type;
-		private String title;
+		private String message;
 		private Map<String, Object> data;
 		private Boolean isRead;
 		private LocalDateTime createdAt;
 
 		public static NoticeInfo from(Notification notification) {
+			Map<String, Object> data = new HashMap<>();
+			switch (notification.getNotificationType()) {
+				case CALENDAR_INVITATION -> data.put("calendarId", notification.getData().get("calendarId"));
+			}
 			return NoticeInfo.builder()
 				.id(notification.getId())
 				.type(notification.getNotificationType())
-				.title(notification.getMessage())
-				.data(notification.getData())
-				.isRead(false)
+				.message(notification.getMessage())
+				.data(data)
 				.createdAt(notification.getCreatedAt())
 				.build();
 		}
