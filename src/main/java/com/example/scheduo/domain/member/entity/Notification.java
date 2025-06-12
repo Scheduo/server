@@ -2,7 +2,6 @@ package com.example.scheduo.domain.member.entity;
 
 import java.util.Map;
 
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -46,9 +45,6 @@ public class Notification extends BaseEntity {
 
 	@Column(length = 200)
 	private String message;
-
-	@ColumnDefault("false")
-	private boolean isRead;
 
 	// private long data;
 	@JdbcTypeCode(SqlTypes.JSON)

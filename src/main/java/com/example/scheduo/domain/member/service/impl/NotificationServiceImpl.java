@@ -23,7 +23,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public NotificationResponseDto.NoticeList findAllByMemberId(Long memberId) {
-		List<Notification> notifications = notificationRepository.findAllByMemberIdAndIsReadFalse(memberId);
+		List<Notification> notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId);
 		return NotificationResponseDto.NoticeList.from(notifications);
 	}
 

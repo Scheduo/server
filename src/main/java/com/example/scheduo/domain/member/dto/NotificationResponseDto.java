@@ -27,6 +27,7 @@ public class NotificationResponseDto {
 			Map<String, Object> data = new HashMap<>();
 			switch (notification.getNotificationType()) {
 				case CALENDAR_INVITATION -> data.put("calendarId", notification.getData().get("calendarId"));
+				case SCHEDULE_NOTIFICATION -> data.put("scheduleId", notification.getData().get("scheduleId"));
 			}
 			return NoticeInfo.builder()
 				.id(notification.getId())
