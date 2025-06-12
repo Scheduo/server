@@ -210,9 +210,7 @@ public class CalendarServiceImpl implements CalendarService {
 		Participant myParticipant = calendar.findParticipant(member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
-		if (!myParticipant.isAccepted()) {
-			throw new ApiException(ResponseStatus.MEMBER_NOT_ACCEPT);
-		}
+		myParticipant.validateAccessible();
 
 		return CalendarResponseDto.CalendarDetailInfo.from(calendar, myParticipant);
 	}
