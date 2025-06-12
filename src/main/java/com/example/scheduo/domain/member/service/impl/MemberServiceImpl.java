@@ -77,6 +77,7 @@ public class MemberServiceImpl implements MemberService {
 		Calendar defaultCalendar = Calendar.builder()
 			.name("기본")
 			.participants(new ArrayList<>())
+			.schedules(new ArrayList<>())
 			.build();
 		calendarRepository.save(defaultCalendar);
 		Participant participant = Participant.builder()
