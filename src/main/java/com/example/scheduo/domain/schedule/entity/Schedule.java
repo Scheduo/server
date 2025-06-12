@@ -3,10 +3,14 @@ package com.example.scheduo.domain.schedule.entity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.common.BaseEntity;
 import com.example.scheduo.domain.member.entity.Member;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -73,10 +77,11 @@ public class Schedule extends BaseEntity {
 	private Member member;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JoinColumn(name = "calendarId")
 	private Calendar calendar;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "recurrenceId")
 	private Recurrence recurrence;
 }
