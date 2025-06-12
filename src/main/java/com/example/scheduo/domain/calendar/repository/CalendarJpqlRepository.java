@@ -7,4 +7,5 @@ import com.example.scheduo.domain.calendar.entity.Calendar;
 public interface CalendarJpqlRepository {
 	Optional<Calendar> findByIdWithParticipants(Long calendarId);
 
+	Optional<Calendar> findByIdWithParticipantsAndMembers(Long calendarId);
 }
