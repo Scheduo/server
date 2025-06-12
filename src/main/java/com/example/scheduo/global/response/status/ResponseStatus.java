@@ -49,7 +49,8 @@ public enum ResponseStatus {
 
 	// 참여자 관련 에러 응답
 	PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPANT4001", "참여자를 찾을 수 없습니다."),
-	PARTICIPANT_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "PARTICIPANT4002", "초대를 수락한 참여자만 권한을 수정할 수 있습니다.")
+	PARTICIPANT_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "PARTICIPANT4002", "초대를 수락한 참여자만 권한을 수정할 수 있습니다."),
+	CANNOT_REMOVE_OWNER(HttpStatus.BAD_REQUEST, "PARTICIPANT4003", "오너는 캘린더에서 내보낼 수 없습니다."),
 	;
 
 	private final HttpStatus httpStatus;
