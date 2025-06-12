@@ -200,4 +200,42 @@ public class CalendarServiceImpl implements CalendarService {
 
 		return CalendarResponseDto.CalendarInfoList.from(calendars);
 	}
+
+	@Override
+	@Transactional
+	public void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId) {
+		// 캘린더 존재 확인
+		Calendar calendar = calendarRepository.findById(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		Participant requester = participantRepository.findByCalendarIdAndMemberId(calendarId, requesterId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		// 요청자가 오너인지 확인
+		if (requester.getRole() != Role.OWNER) {
+			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
+		}
+
+		// 대상 참여자 확인
+		Participant targetParticipant = participantRepository.findById(participantId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND));
+
+		// 참여자가 해당 캘린더에 속하는지 확인
+		if (!targetParticipant.getCalendar().getId().equals(calendarId)) {
+			throw new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION);
+		}
+
+		// 대상 참여자가 ACCEPTED 상태인지 확인
+		if (targetParticipant.getStatus() != ParticipationStatus.ACCEPTED) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_NOT_ACCEPTED);
+		}
+
+		// OWNER 권한 이전 처리
+		if (request.getRole() == Role.OWNER) {
+			requester.transferOwnership();
+		}
+
+		// 권한 업데이트
+		targetParticipant.updateRole(request.getRole());
+	}
 }

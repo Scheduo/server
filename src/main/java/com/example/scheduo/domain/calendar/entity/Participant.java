@@ -81,4 +81,11 @@ public class Participant extends BaseEntity {
 		}
 	}
 
+	public void transferOwnership() {
+		this.role = Role.EDIT;
+	}
+
+	public void updateRole(Role newRole) {
+		this.role = newRole;
+	}
 }
