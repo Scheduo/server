@@ -88,4 +88,16 @@ public class CalendarController {
 		CalendarResponseDto.CalendarInfoList calendars = calendarService.getCalendars(memberId);
 		return ApiResponse.onSuccess(calendars);
 	}
+
+	@PatchMapping("/{calendarId}/participants/{participantId}")
+	@Operation(summary = "참여자 권한 수정", description = "캘린더 참여자의 권한을 수정합니다. (오너만 가능)")
+	public ApiResponse<?> updateParticipantRole(
+		@PathVariable("calendarId") Long calendarId,
+		@PathVariable("participantId") Long participantId,
+		@Valid @RequestBody CalendarRequestDto.UpdateParticipantRole request,
+		@RequestMember Member member
+	) {
+		calendarService.updateParticipantRole(calendarId, participantId, request, member.getId());
+		return ApiResponse.onSuccess();
+	}
 }
