@@ -111,7 +111,6 @@ public class CalendarServiceImpl implements CalendarService {
 		Calendar calendar = Calendar.builder()
 			.name(request.getTitle())
 			.participants(new ArrayList<>())
-			.schedules(new ArrayList<>())
 			.build();
 
 		Participant ownerParticipant = Participant.builder()

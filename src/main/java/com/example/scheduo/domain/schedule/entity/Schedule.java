@@ -3,6 +3,9 @@ package com.example.scheduo.domain.schedule.entity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.common.BaseEntity;
 import com.example.scheduo.domain.member.entity.Member;
@@ -24,7 +27,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -74,8 +76,8 @@ public class Schedule extends BaseEntity {
 	@JoinColumn(name = "memberId")
 	private Member member;
 
-	@Setter
 	@ManyToOne(fetch = FetchType.LAZY)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JoinColumn(name = "calendarId")
 	private Calendar calendar;
 

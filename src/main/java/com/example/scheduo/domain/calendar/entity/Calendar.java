@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.example.scheduo.domain.common.BaseEntity;
-import com.example.scheduo.domain.schedule.entity.Schedule;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
@@ -39,17 +38,9 @@ public class Calendar extends BaseEntity {
 	@OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Participant> participants = new ArrayList<>();
 
-	@OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Schedule> schedules = new ArrayList<>();
-
 	public void addParticipant(Participant participant) {
 		this.participants.add(participant);
 		participant.setCalendar(this);
-	}
-
-	public void addSchedule(Schedule schedule) {
-		this.schedules.add(schedule);
-		schedule.setCalendar(this);
 	}
 
 	public void updateTitle(String title) {
