@@ -1094,4 +1094,213 @@ class CalendarControllerTest(
             }
         }
     }
+
+    describe("DELETE /calendars/{calendarId}/participants/{participantId}") {
+        context("오너가 일반 참여자를 내보내면") {
+            it("200 OK를 반환하고 참여자가 제거된다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.EDIT,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/${calendar.id}/participants/${targetParticipant.id}", validToken)
+
+                res.assertSuccess(response)
+                participantRepository.findById(targetParticipant.id).orElse(null) shouldBe null
+            }
+        }
+
+        context("오너가 아닌 사용자가 참여자를 내보내려고 하면") {
+            it("403 Forbidden을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val editor = memberRepository.save(createMember(email = "editor@gmail.com", nickname = "editor"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                participantRepository.save(
+                        createParticipant(
+                                member = editor,
+                                calendar = calendar,
+                                role = Role.EDIT,
+                                nickname = editor.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(editor.id)
+
+                val response = req.delete("/calendars/${calendar.id}/participants/${targetParticipant.id}", validToken)
+
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
+            }
+        }
+
+        context("오너가 자신을 내보내려고 하면") {
+            it("400 Bad Request를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                val ownerParticipant = participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/${calendar.id}/participants/${ownerParticipant.id}", validToken)
+
+                res.assertFailure(response, ResponseStatus.CANNOT_REMOVE_OWNER)
+            }
+        }
+
+        context("존재하지 않는 캘린더에서 참여자를 내보내려고 하면") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val validToken = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/999/participants/1", validToken)
+
+                res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
+            }
+        }
+
+        context("존재하지 않는 참여자를 내보내려고 하면") {
+            it("403 FORBIDDEN을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/${calendar.id}/participants/999", validToken)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+
+        context("다른 캘린더의 참여자를 내보내려고 하면") {
+            it("403 FORBIDDEN을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar1 = calendarRepository.save(createCalendar(name = "Calendar 1"))
+                val calendar2 = calendarRepository.save(createCalendar(name = "Calendar 2"))
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar1,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val otherCalendarParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar2,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+
+                val response = req.delete("/calendars/${calendar1.id}/participants/${otherCalendarParticipant.id}", validToken)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+
+        context("요청자가 해당 캘린더의 참여자가 아닌 경우") {
+            it("403 FORBIDDEN을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val outsider = memberRepository.save(createMember(email = "outsider@gmail.com", nickname = "outsider"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(outsider.id)
+
+                val response = req.delete("/calendars/${calendar.id}/participants/${targetParticipant.id}", validToken)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+    }
 })
