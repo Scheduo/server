@@ -83,9 +83,16 @@ public class CalendarController {
 	}
 
 	@GetMapping()
-	public ApiResponse<CalendarResponseDto.CalendarInfoList> get(Authentication authentication) {
+	public ApiResponse<CalendarResponseDto.CalendarInfoList> getAll(Authentication authentication) {
 		Long memberId = (Long)authentication.getPrincipal();
 		CalendarResponseDto.CalendarInfoList calendars = calendarService.getCalendars(memberId);
 		return ApiResponse.onSuccess(calendars);
+	}
+
+	@GetMapping("/{calendarId}")
+	public ApiResponse<CalendarResponseDto.CalendarDetailInfo> get(@PathVariable("calendarId") Long calendarId,
+		@RequestMember Member member) {
+		CalendarResponseDto.CalendarDetailInfo calendar = calendarService.getCalendar(calendarId, member);
+		return ApiResponse.onSuccess(calendar);
 	}
 }

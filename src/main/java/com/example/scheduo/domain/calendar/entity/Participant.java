@@ -81,4 +81,10 @@ public class Participant extends BaseEntity {
 		}
 	}
 
+	public void validateAccessible() {
+		if (this.status == ParticipationStatus.ACCEPTED) {
+			throw new ApiException(ResponseStatus.MEMBER_NOT_ACCEPT);
+		}
+	}
+
 }

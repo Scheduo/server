@@ -101,7 +101,7 @@ public class CalendarServiceImpl implements CalendarService {
 	public void rejectInvitation(Long calendarId, Member member) {
 		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
-		
+
 		participant.decline();
 	}
 
@@ -199,5 +199,19 @@ public class CalendarServiceImpl implements CalendarService {
 		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(memberId);
 
 		return CalendarResponseDto.CalendarInfoList.from(calendars);
+	}
+
+	@Override
+	@Transactional
+	public CalendarResponseDto.CalendarDetailInfo getCalendar(Long calendarId, Member member) {
+		Calendar calendar = calendarRepository.findByIdWithParticipantsAndMembers(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		Participant myParticipant = calendar.findParticipant(member.getId())
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		myParticipant.validateAccessible();
+
+		return CalendarResponseDto.CalendarDetailInfo.from(calendar, myParticipant);
 	}
 }
