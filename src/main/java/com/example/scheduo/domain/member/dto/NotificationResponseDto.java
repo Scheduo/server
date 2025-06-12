@@ -20,7 +20,6 @@ public class NotificationResponseDto {
 		private NotificationType type;
 		private String message;
 		private Map<String, Object> data;
-		private Boolean isRead;
 		private LocalDateTime createdAt;
 
 		public static NoticeInfo from(Notification notification) {
