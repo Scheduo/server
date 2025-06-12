@@ -754,4 +754,344 @@ class CalendarControllerTest(
             }
         }
     }
+
+    describe("PATCH /calendars/{calendarId}/participants/{participantId}") {
+        context("오너가 참여자 권한을 EDITOR에서 VIEW로 수정하면") {
+            it("200 OK를 반환하고 권한이 변경된다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.EDIT,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf("role" to "VIEW")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                res.assertSuccess(response)
+                val updatedParticipant = participantRepository.findById(targetParticipant.id).get()
+                updatedParticipant.role shouldBe Role.VIEW
+            }
+        }
+
+        context("오너가 참여자 권한을 EDITOR에서 OWNER로 수정하면") {
+            it("200 OK를 반환하고 기존 오너는 EDITOR로, 대상은 OWNER로 변경된다") {
+                val currentOwner = memberRepository.save(createMember(nickname = "currentOwner"))
+                val newOwner = memberRepository.save(createMember(email = "newowner@gmail.com", nickname = "newOwner"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                val currentOwnerParticipant = participantRepository.save(
+                        createParticipant(
+                                member = currentOwner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = currentOwner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = newOwner,
+                                calendar = calendar,
+                                role = Role.EDIT,
+                                nickname = newOwner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(currentOwner.id)
+                val request = mapOf("role" to "OWNER")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                res.assertSuccess(response)
+                val updatedTargetParticipant = participantRepository.findById(targetParticipant.id).get()
+                val updatedCurrentOwner = participantRepository.findById(currentOwnerParticipant.id).get()
+
+                updatedTargetParticipant.role shouldBe Role.OWNER
+                updatedCurrentOwner.role shouldBe Role.EDIT
+            }
+        }
+
+        context("오너가 아닌 사용자가 권한 수정을 시도하면") {
+            it("403 Forbidden을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val editor = memberRepository.save(createMember(email = "editor@gmail.com", nickname = "editor"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                participantRepository.save(
+                        createParticipant(
+                                member = editor,
+                                calendar = calendar,
+                                role = Role.EDIT,
+                                nickname = editor.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(editor.id)
+                val request = mapOf("role" to "EDIT")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                println("Response status: ${response.status}")
+                println("Response body: ${response.contentAsString}")
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
+            }
+        }
+
+        context("존재하지 않는 캘린더에 대해 요청하면") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf("role" to "VIEW")
+
+                val response = req.patch("/calendars/999/participants/1", request, validToken)
+
+                res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
+            }
+        }
+
+        context("캘린더에 존재하지 않는 participant에 대해 권한 수정을 시도하면") {
+            it("404 Not Found를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf("role" to "VIEW")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/999", request, validToken)
+
+                res.assertFailure(response, ResponseStatus.PARTICIPANT_NOT_FOUND)
+            }
+        }
+
+        context("요청자가 해당 캘린더의 참여자가 아닌 경우") {
+            it("403 FORBIDDEN을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val outsider = memberRepository.save(createMember(email = "outsider@gmail.com", nickname = "outsider"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(outsider.id)
+                val request = mapOf("role" to "EDIT")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+
+        context("대상 참여자가 다른 캘린더의 참여자인 경우") {
+            it("403 FORBIDDEN을 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar1 = calendarRepository.save(createCalendar(name = "Calendar 1"))
+                val calendar2 = calendarRepository.save(createCalendar(name = "Calendar 2"))
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar1,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val otherCalendarParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar2,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf("role" to "EDIT")
+
+                val response = req.patch("/calendars/${calendar1.id}/participants/${otherCalendarParticipant.id}", request, validToken)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+
+        context("role 필드가 누락된 경우") {
+            it("400 Validation Error를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val participant = memberRepository.save(createMember(email = "participant@gmail.com", nickname = "participant"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = participant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = participant.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf<String, Any>() // role 필드 누락
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                res.assertValidationFailure(response, ResponseStatus.VALIDATION_ERROR, "역할은 필수입니다.")
+            }
+        }
+
+        context("PENDING 상태인 참여자의 권한을 수정하려고 하면") {
+            it("400 Bad Request를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val pendingParticipant = memberRepository.save(createMember(email = "pending@gmail.com", nickname = "pending"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = pendingParticipant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = pendingParticipant.nickname,
+                                participationStatus = ParticipationStatus.PENDING // PENDING 상태
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf("role" to "EDIT")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                res.assertFailure(response, ResponseStatus.PARTICIPANT_NOT_ACCEPTED)
+            }
+        }
+
+        context("DECLINED 상태인 참여자의 권한을 수정하려고 하면") {
+            it("400 Bad Request를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val declinedParticipant = memberRepository.save(createMember(email = "declined@gmail.com", nickname = "declined"))
+                val calendar = calendarRepository.save(createCalendar())
+
+                participantRepository.save(
+                        createParticipant(
+                                member = owner,
+                                calendar = calendar,
+                                role = Role.OWNER,
+                                nickname = owner.nickname,
+                                participationStatus = ParticipationStatus.ACCEPTED
+                        )
+                )
+
+                val targetParticipant = participantRepository.save(
+                        createParticipant(
+                                member = declinedParticipant,
+                                calendar = calendar,
+                                role = Role.VIEW,
+                                nickname = declinedParticipant.nickname,
+                                participationStatus = ParticipationStatus.DECLINED // DECLINED 상태
+                        )
+                )
+
+                val validToken = jwtFixture.createValidToken(owner.id)
+                val request = mapOf("role" to "EDIT")
+
+                val response = req.patch("/calendars/${calendar.id}/participants/${targetParticipant.id}", request, validToken)
+
+                res.assertFailure(response, ResponseStatus.PARTICIPANT_NOT_ACCEPTED)
+            }
+        }
+    }
 })
