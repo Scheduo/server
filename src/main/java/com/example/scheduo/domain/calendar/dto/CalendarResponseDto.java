@@ -79,7 +79,7 @@ public class CalendarResponseDto {
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	private static class ParticipantInfo {
+	public static class ParticipantInfo {
 		private Long participantId;
 		private String nickname;
 		private Role role;
