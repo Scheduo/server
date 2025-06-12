@@ -81,4 +81,8 @@ public class Participant extends BaseEntity {
 		}
 	}
 
+	public boolean isAccepted() {
+		return this.status == ParticipationStatus.ACCEPTED;
+	}
+
 }
