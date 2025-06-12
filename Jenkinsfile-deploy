@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout() // 중복 체크아웃 방지
+    }
+
+    environment {
+        DB_URL = credentials('DB_URL')
+        DB_USERNAME = credentials('DB_USERNAME')
+        DB_PASSWORD = credentials('DB_PASSWORD')
+        JWT_TOKEN_SECRET = credentials('JWT_TOKEN_SECRET')
+        GOOGLE_CLIENT_ID = credentials('GOOGLE_CLIENT_ID')
+        GOOGLE_CLIENT_SECRET = credentials('GOOGLE_CLIENT_SECRET')
+        KAKAO_CLIENT_ID = credentials('KAKAO_CLIENT_ID')
+        KAKAO_CLIENT_SECRET = credentials('KAKAO_CLIENT_SECRET')
+        REDIS_HOST = credentials('REDIS_HOST')
+        REDIS_PORT = credentials('REDIS_PORT')
+        REDIS_DATABASE = credentials('REDIS_DATABASE')
+        DOCKER_IMAGE = 'scheduo-backend'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Clean Old Docker Image') {
+            steps {
+                sh '''
+                echo "Removing old Docker image if exists..."
+                docker rmi -f $DOCKER_IMAGE || true
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+          steps {
+            sh '''
+            docker buildx build \
+              --platform linux/arm64 \
+              -t $DOCKER_IMAGE --load .
+            '''
+          }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh script: '''#!/bin/bash
+                docker stop $DOCKER_IMAGE || true
+                docker rm $DOCKER_IMAGE || true
+                docker run -d --name $DOCKER_IMAGE -p 8080:8080 \\
+                  --add-host=host.docker.internal:host-gateway \
+                  -e SPRING_PROFILES_ACTIVE=dev \\
+                  -e DB_URL="$DB_URL" \\
+                  -e DB_USERNAME="$DB_USERNAME" \\
+                  -e DB_PASSWORD="$DB_PASSWORD" \\
+                  -e JWT_TOKEN_SECRET="$JWT_TOKEN_SECRET" \\
+                  -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \\
+                  -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET" \\
+                  -e KAKAO_CLIENT_ID="$KAKAO_CLIENT_ID" \\
+                  -e KAKAO_CLIENT_SECRET="$KAKAO_CLIENT_SECRET" \\
+                  -e REDIS_HOST="$REDIS_HOST" \\
+                  -e REDIS_PORT="$REDIS_PORT" \\
+                  -e REDIS_DATABASE="$REDIS_DATABASE" \\
+                  $DOCKER_IMAGE
+                '''
+            }
+        }
+
+
+    }
+}
