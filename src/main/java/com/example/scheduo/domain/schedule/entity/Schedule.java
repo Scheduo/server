@@ -7,6 +7,7 @@ import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.common.BaseEntity;
 import com.example.scheduo.domain.member.entity.Member;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -72,11 +74,12 @@ public class Schedule extends BaseEntity {
 	@JoinColumn(name = "memberId")
 	private Member member;
 
+	@Setter
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "calendarId")
 	private Calendar calendar;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "recurrenceId")
 	private Recurrence recurrence;
 }
