@@ -101,7 +101,7 @@ public class CalendarServiceImpl implements CalendarService {
 	public void rejectInvitation(Long calendarId, Member member) {
 		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
-		
+
 		participant.decline();
 	}
 
@@ -183,10 +183,10 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void deleteCalendar(Long calendarId, Long memberId) {
-		Participant owner = participantRepository.findOwnerByCalendarId(calendarId)
+		Calendar calendar = calendarRepository.findById(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		if (!owner.getMember().getId().equals(memberId)) {
+		if (!calendar.isOwner(memberId)) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
