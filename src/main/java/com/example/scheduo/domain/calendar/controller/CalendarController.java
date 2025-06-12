@@ -110,4 +110,11 @@ public class CalendarController {
 		calendarService.removeParticipant(calendarId, participantId, member.getId());
 		return ApiResponse.onSuccess();
 	}
+
+	@GetMapping("/{calendarId}")
+	public ApiResponse<CalendarResponseDto.CalendarDetailInfo> get(@PathVariable("calendarId") Long calendarId,
+		@RequestMember Member member) {
+		CalendarResponseDto.CalendarDetailInfo calendar = calendarService.getCalendar(calendarId, member);
+		return ApiResponse.onSuccess(calendar);
+	}
 }

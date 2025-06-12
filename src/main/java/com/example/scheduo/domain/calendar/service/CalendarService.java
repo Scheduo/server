@@ -22,4 +22,6 @@ public interface CalendarService {
 	void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId);
 
 	void removeParticipant(Long calendarId, Long participantId, Long requesterId);
+
+	CalendarResponseDto.CalendarDetailInfo getCalendar(Long calendarId, Member member);
 }
