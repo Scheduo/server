@@ -86,7 +86,6 @@ class NotificationControllerTest(
                 val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(inviter.id)
                 notifications.size shouldBe 1
                 notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION_ACCEPTED.createMessage(data)
-                print(notifications[0].message)
             }
         }
     }
@@ -135,7 +134,7 @@ class NotificationControllerTest(
 
                 val validToken = jwtFixture.createValidToken(member1.id)
                 val response = req.post("/notifications/${notification.id}/read", token = validToken)
-                res.assertFailure(response, ResponseStatus.NOTIFICATION_NOW_OWNER)
+                res.assertFailure(response, ResponseStatus.NOTIFICATION_NOT_OWNER)
             }
         }
 

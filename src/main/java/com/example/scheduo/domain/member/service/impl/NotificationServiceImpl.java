@@ -47,10 +47,8 @@ public class NotificationServiceImpl implements NotificationService {
 	public void readNotification(Long notificationId, Long memberId) {
 		Notification notification = notificationRepository.findById(notificationId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.NOTIFICATION_NOT_FOUND));
-		System.out.println(notification.getMember().getId());
-		System.out.println(memberId);
 		if (!notification.validateOwner(memberId)) {
-			throw new ApiException(ResponseStatus.NOTIFICATION_NOW_OWNER);
+			throw new ApiException(ResponseStatus.NOTIFICATION_NOT_OWNER);
 		}
 
 		notificationRepository.delete(notification);
