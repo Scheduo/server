@@ -33,6 +33,7 @@ public class NotificationController {
 	}
 
 	@PostMapping("/{notificationId}/read")
+	@Operation(summary = "알림 읽음 처리", description = "특정 알림을 읽음 처리합니다.")
 	public ApiResponse<?> readNotification(@PathVariable("notificationId") Long notificationId,
 		@RequestMember Member member) {
 		Long memberId = member.getId();
