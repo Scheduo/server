@@ -22,7 +22,7 @@ public enum ResponseStatus {
 	NOT_EXIST_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0001", "토큰이 없습니다."),
 	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0002", "토큰이 유효하지 않습니다."),
 	DEFAULT_TOKEN_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_0003", "인증에 실패하였습니다."),
-	REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "TOKEN_0004","Refresh Token이 유효하지 않습니다."),
+	REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "TOKEN_0004", "Refresh Token이 유효하지 않습니다."),
 	REFRESH_TOKEN_MEMBER_MISMATCH(HttpStatus.UNAUTHORIZED, "TOKEN_0005", "해당 Refresh Token에 대한 권한이 없습니다."),
 	EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0006", "Refresh Token이 유효하지 않거나 이미 만료되었습니다."),
 	OUTDATED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_0007", "이전 버전의 Refresh Token입니다."),
@@ -46,7 +46,10 @@ public enum ResponseStatus {
 	INVALID_CALENDAR_PARTICIPATION(HttpStatus.FORBIDDEN, "CALENDAR_0008", "참여 정보를 찾을 수 없습니다."),
 	MEMBER_NOT_ACCEPT(HttpStatus.FORBIDDEN, "CALENDAR_0009", "해당 멤버의 참여 상태가 ACCEPT가 아닙니다."),
 	CALENDAR_OWNER_NOT_FOUND(HttpStatus.NOT_FOUND, "CALENDAR_0010", "캘린더 소유자를 찾을 수 없습니다."),
-	;
+
+	// 알림 관련 에러 응답
+	NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION_0001", "알림을 찾을 수 없습니다."),
+	NOTIFICATION_NOW_OWNER(HttpStatus.FORBIDDEN, "NOTIFICATION_0002", "해당 알림의 소유자가 아닙니다.");
 
 	private final HttpStatus httpStatus;
 	private final String status;

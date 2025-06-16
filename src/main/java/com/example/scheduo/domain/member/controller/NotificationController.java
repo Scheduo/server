@@ -1,6 +1,8 @@
 package com.example.scheduo.domain.member.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,4 +31,13 @@ public class NotificationController {
 		NotificationResponseDto.NoticeList notifications = notificationService.findAllByMemberId(memberId);
 		return ApiResponse.onSuccess(notifications);
 	}
+
+	@PostMapping("/{notificationId}/read")
+	public ApiResponse<?> readNotification(@PathVariable("notificationId") Long notificationId,
+		@RequestMember Member member) {
+		Long memberId = member.getId();
+		notificationService.readNotification(notificationId, memberId);
+		return ApiResponse.onSuccess();
+	}
+
 }
