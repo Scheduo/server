@@ -28,10 +28,12 @@ import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CalendarServiceImpl implements CalendarService {
 	private final MemberRepository memberRepository;
 	private final CalendarRepository calendarRepository;
@@ -202,11 +204,12 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId) {
-		// 캘린더 존재 확인
-		Calendar calendar = calendarRepository.findById(calendarId)
+		// 캘린더와 모든 참여자 조회
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		Participant requester = participantRepository.findByCalendarIdAndMemberId(calendarId, requesterId)
+		// 요청자 찾기
+		Participant requester = calendar.findParticipant(requesterId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
 		// 요청자가 오너인지 확인
@@ -215,13 +218,8 @@ public class CalendarServiceImpl implements CalendarService {
 		}
 
 		// 대상 참여자 확인
-		Participant targetParticipant = participantRepository.findById(participantId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND));
-
-		// 참여자가 해당 캘린더에 속하는지 확인
-		if (!targetParticipant.getCalendar().getId().equals(calendarId)) {
-			throw new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION);
-		}
+		Participant targetParticipant = calendar.findParticipantById(participantId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
 		// 대상 참여자가 ACCEPTED 상태인지 확인
 		if (targetParticipant.getStatus() != ParticipationStatus.ACCEPTED) {

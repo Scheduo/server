@@ -63,4 +63,10 @@ public class Calendar extends BaseEntity {
 			.filter(p -> p.getMember().getId().equals(memberId))
 			.findFirst();
 	}
+
+	public Optional<Participant> findParticipantById(Long participantId) {
+		return this.participants.stream()
+			.filter(p -> p.getId().equals(participantId))
+			.findFirst();
+	}
 }

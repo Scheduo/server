@@ -913,7 +913,7 @@ class CalendarControllerTest(
 
                 val response = req.patch("/calendars/${calendar.id}/participants/999", request, validToken)
 
-                res.assertFailure(response, ResponseStatus.PARTICIPANT_NOT_FOUND)
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
             }
         }
 
