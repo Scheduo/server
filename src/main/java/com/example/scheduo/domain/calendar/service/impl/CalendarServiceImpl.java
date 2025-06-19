@@ -238,26 +238,22 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void removeParticipant(Long calendarId, Long participantId, Long requesterId) {
-		// 캘린더 존재 확인
-		Calendar calendar = calendarRepository.findById(calendarId)
+		// 캘린더와 모든 참여자 조회
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		// 요청자 권한 확인
-		Participant requester = participantRepository.findByCalendarIdAndMemberId(calendarId, requesterId)
+		// 요청자 찾기
+		Participant requester = calendar.findParticipant(requesterId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
+		// 요청자가 오너인지 확인
 		if (requester.getRole() != Role.OWNER) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
 		// 대상 참여자 확인
-		Participant targetParticipant = participantRepository.findById(participantId)
+		Participant targetParticipant = calendar.findParticipantById(participantId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
-
-		// 참여자가 해당 캘린더에 속하는지 확인
-		if (!targetParticipant.getCalendar().getId().equals(calendarId)) {
-			throw new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION);
-		}
 
 		// 오너는 자신을 내보낼 수 없음
 		if (targetParticipant.getRole() == Role.OWNER) {
