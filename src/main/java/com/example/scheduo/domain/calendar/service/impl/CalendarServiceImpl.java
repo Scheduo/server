@@ -101,16 +101,13 @@ public class CalendarServiceImpl implements CalendarService {
 	public void rejectInvitation(Long calendarId, Member member) {
 		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
-		
+
 		participant.decline();
 	}
 
 	@Override
 	@Transactional
-	public CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create request, Long memberId) {
-		Member owner = memberRepository.findById(memberId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
-
+	public CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create request, Member owner) {
 		Calendar calendar = Calendar.builder()
 			.name(request.getTitle())
 			.participants(new ArrayList<>())
@@ -159,10 +156,11 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId) {
+	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Member member) {
 		Calendar calendar = calendarRepository.findById(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
-		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
 		if (editInfo.getTitle() != null) {
@@ -182,11 +180,11 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public void deleteCalendar(Long calendarId, Long memberId) {
-		Participant owner = participantRepository.findOwnerByCalendarId(calendarId)
+	public void deleteCalendar(Long calendarId, Member owner) {
+		Calendar calendar = calendarRepository.findById(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		if (!owner.getMember().getId().equals(memberId)) {
+		if (!calendar.isOwner(owner.getId())) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
@@ -195,8 +193,8 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public CalendarResponseDto.CalendarInfoList getCalendars(Long memberId) {
-		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(memberId);
+	public CalendarResponseDto.CalendarInfoList getCalendars(Member member) {
+		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(member.getId());
 
 		return CalendarResponseDto.CalendarInfoList.from(calendars);
 	}

@@ -11,13 +11,13 @@ public interface CalendarService {
 
 	void rejectInvitation(Long calendarId, Member member);
 
-	CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create calendarInfo, Long memberId);
+	CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create calendarInfo, Member member);
 
-	void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId);
+	void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Member member);
 
-	void deleteCalendar(Long calendarId, Long memberId);
+	void deleteCalendar(Long calendarId, Member member);
 
-	CalendarResponseDto.CalendarInfoList getCalendars(Long memberId);
+	CalendarResponseDto.CalendarInfoList getCalendars(Member member);
 
 	void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId);
 }
