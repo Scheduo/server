@@ -1,6 +1,5 @@
 package com.example.scheduo.domain.calendar.controller;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -32,11 +31,10 @@ public class CalendarController {
 
 	@PostMapping()
 	public ApiResponse<CalendarResponseDto.CalendarInfo> create(
-		Authentication authentication,
+		@RequestMember Member member,
 		@Valid @RequestBody CalendarRequestDto.Create request
 	) {
-		Long memberId = (Long)authentication.getPrincipal();
-		CalendarResponseDto.CalendarInfo calendarInfo = calendarService.createCalendar(request, memberId);
+		CalendarResponseDto.CalendarInfo calendarInfo = calendarService.createCalendar(request, member);
 		return ApiResponse.onSuccess(calendarInfo);
 	}
 
@@ -68,24 +66,21 @@ public class CalendarController {
 	@PatchMapping("/{calendarId}")
 	public ApiResponse<?> edit(@PathVariable("calendarId") Long calendarId,
 		@RequestBody CalendarRequestDto.Edit editInfo,
-		Authentication authentication) {
-		Long memberId = (Long)authentication.getPrincipal();
-		calendarService.editCalendar(editInfo, calendarId, memberId);
+		@RequestMember Member member) {
+		calendarService.editCalendar(editInfo, calendarId, member);
 		return ApiResponse.onSuccess();
 	}
 
 	@DeleteMapping("/{calendarId}")
 	public ApiResponse<?> delete(@PathVariable("calendarId") Long calendarId,
-		Authentication authentication) {
-		Long memberId = (Long)authentication.getPrincipal();
-		calendarService.deleteCalendar(calendarId, memberId);
+		@RequestMember Member member) {
+		calendarService.deleteCalendar(calendarId, member);
 		return ApiResponse.onSuccess();
 	}
 
 	@GetMapping()
-	public ApiResponse<CalendarResponseDto.CalendarInfoList> get(Authentication authentication) {
-		Long memberId = (Long)authentication.getPrincipal();
-		CalendarResponseDto.CalendarInfoList calendars = calendarService.getCalendars(memberId);
+	public ApiResponse<CalendarResponseDto.CalendarInfoList> get(@RequestMember Member member) {
+		CalendarResponseDto.CalendarInfoList calendars = calendarService.getCalendars(member);
 		return ApiResponse.onSuccess(calendars);
 	}
 

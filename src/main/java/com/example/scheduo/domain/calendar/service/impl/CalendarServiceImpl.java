@@ -28,10 +28,12 @@ import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CalendarServiceImpl implements CalendarService {
 	private final MemberRepository memberRepository;
 	private final CalendarRepository calendarRepository;
@@ -101,16 +103,13 @@ public class CalendarServiceImpl implements CalendarService {
 	public void rejectInvitation(Long calendarId, Member member) {
 		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVITATION_NOT_FOUND));
-		
+
 		participant.decline();
 	}
 
 	@Override
 	@Transactional
-	public CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create request, Long memberId) {
-		Member owner = memberRepository.findById(memberId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
-
+	public CalendarResponseDto.CalendarInfo createCalendar(CalendarRequestDto.Create request, Member owner) {
 		Calendar calendar = Calendar.builder()
 			.name(request.getTitle())
 			.participants(new ArrayList<>())
@@ -159,10 +158,11 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Long memberId) {
+	public void editCalendar(CalendarRequestDto.Edit editInfo, Long calendarId, Member member) {
 		Calendar calendar = calendarRepository.findById(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
-		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, memberId)
+
+		Participant participant = participantRepository.findByCalendarIdAndMemberId(calendarId, member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
 		if (editInfo.getTitle() != null) {
@@ -182,11 +182,11 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public void deleteCalendar(Long calendarId, Long memberId) {
-		Participant owner = participantRepository.findOwnerByCalendarId(calendarId)
+	public void deleteCalendar(Long calendarId, Member owner) {
+		Calendar calendar = calendarRepository.findById(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		if (!owner.getMember().getId().equals(memberId)) {
+		if (!calendar.isOwner(owner.getId())) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
@@ -195,8 +195,8 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public CalendarResponseDto.CalendarInfoList getCalendars(Long memberId) {
-		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(memberId);
+	public CalendarResponseDto.CalendarInfoList getCalendars(Member member) {
+		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(member.getId());
 
 		return CalendarResponseDto.CalendarInfoList.from(calendars);
 	}
@@ -204,26 +204,22 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	@Transactional
 	public void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId) {
-		// 캘린더 존재 확인
-		Calendar calendar = calendarRepository.findById(calendarId)
+		// 캘린더와 모든 참여자 조회
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		// 요청자 권한 확인
-		Participant requester = participantRepository.findByCalendarIdAndMemberId(calendarId, requesterId)
+		// 요청자 찾기
+		Participant requester = calendar.findParticipant(requesterId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
+		// 요청자가 오너인지 확인
 		if (requester.getRole() != Role.OWNER) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
 		// 대상 참여자 확인
-		Participant targetParticipant = participantRepository.findById(participantId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND));
-
-		// 참여자가 해당 캘린더에 속하는지 확인
-		if (!targetParticipant.getCalendar().getId().equals(calendarId)) {
-			throw new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION);
-		}
+		Participant targetParticipant = calendar.findParticipantById(participantId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
 		// 대상 참여자가 ACCEPTED 상태인지 확인
 		if (targetParticipant.getStatus() != ParticipationStatus.ACCEPTED) {
