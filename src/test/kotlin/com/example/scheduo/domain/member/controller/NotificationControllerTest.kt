@@ -104,11 +104,14 @@ class NotificationControllerTest(
                     )
                 )
 
-                val validToken = jwtFixture.createValidToken(member.id)
-                val response = req.post("/notifications/${notification.id}/read", token = validToken)
+                val validToken = jwtFixture.createValidToken(inviter.id)
+                val response = req.get("/notifications", token = validToken)
                 res.assertSuccess(response)
 
-                notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(member.id).size shouldBe 0
+                val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(inviter.id)
+                notifications.size shouldBe 1
+                notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION_ACCEPTED.createMessage(data)
+                print(notifications[0].message)
             }
         }
         context("알림이 존재하지 않거나 이미 읽은 경우") {
