@@ -10,4 +10,6 @@ public interface NotificationService {
 	NotificationResponseDto.NoticeList findAllByMemberId(Long memberId);
 
 	void createNotification(Member member, NotificationType notificationType, Map<String, Object> data);
+
+	void readNotification(Long notificationId, Long memberId);
 }

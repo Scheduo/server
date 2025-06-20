@@ -27,6 +27,8 @@ public class NotificationResponseDto {
 			switch (notification.getNotificationType()) {
 				case CALENDAR_INVITATION -> data.put("calendarId", notification.getData().get("calendarId"));
 				case SCHEDULE_NOTIFICATION -> data.put("scheduleId", notification.getData().get("scheduleId"));
+				case CALENDAR_INVITATION_ACCEPTED -> {
+				}
 			}
 			return NoticeInfo.builder()
 				.id(notification.getId())
