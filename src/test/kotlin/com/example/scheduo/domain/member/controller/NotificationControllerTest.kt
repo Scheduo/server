@@ -90,7 +90,7 @@ class NotificationControllerTest(
         }
     }
 
-    describe("POST /notifications/{notificationId}/read") {
+    describe("DELETE /notifications/{notificationId}/read") {
         context("알림이 존재하고 읽지 않은 상태인 경우") {
             it("200 OK와 알림이 읽음 상태로 변경된다") {
                 val member = memberRepository.save(createMember(nickname = "test1"))
@@ -104,21 +104,19 @@ class NotificationControllerTest(
                     )
                 )
 
-                val validToken = jwtFixture.createValidToken(inviter.id)
-                val response = req.get("/notifications", token = validToken)
+                val validToken = jwtFixture.createValidToken(member.id)
+                val response = req.delete("/notifications/${notification.id}/read", token = validToken)
                 res.assertSuccess(response)
 
-                val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(inviter.id)
-                notifications.size shouldBe 1
-                notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION_ACCEPTED.createMessage(data)
-                print(notifications[0].message)
+                val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(member.id)
+                notifications.size shouldBe 0
             }
         }
         context("알림이 존재하지 않거나 이미 읽은 경우") {
             it("404 NOT FOUND가 반환된다") {
                 val member = memberRepository.save(createMember(nickname = "test1"))
                 val validToken = jwtFixture.createValidToken(member.id)
-                val response = req.post("/notifications/999/read", token = validToken)
+                val response = req.delete("/notifications/999/read", token = validToken)
                 res.assertFailure(response, ResponseStatus.NOTIFICATION_NOT_FOUND)
             }
         }
@@ -136,7 +134,7 @@ class NotificationControllerTest(
                 )
 
                 val validToken = jwtFixture.createValidToken(member1.id)
-                val response = req.post("/notifications/${notification.id}/read", token = validToken)
+                val response = req.delete("/notifications/${notification.id}/read", token = validToken)
                 res.assertFailure(response, ResponseStatus.NOTIFICATION_NOT_OWNER)
             }
         }
