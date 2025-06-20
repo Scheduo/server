@@ -1,8 +1,8 @@
 package com.example.scheduo.domain.member.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,7 +32,7 @@ public class NotificationController {
 		return ApiResponse.onSuccess(notifications);
 	}
 
-	@PostMapping("/{notificationId}/read")
+	@DeleteMapping("/{notificationId}/read")
 	@Operation(summary = "알림 읽음 처리", description = "특정 알림을 읽음 처리합니다.")
 	public ApiResponse<?> readNotification(@PathVariable("notificationId") Long notificationId,
 		@RequestMember Member member) {
