@@ -1,6 +1,10 @@
 package com.example.scheduo.domain.schedule.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
+
+import net.fortuna.ical4j.model.Recur;
+import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.transform.recurrence.Frequency;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,5 +32,27 @@ public class Recurrence {
 	@Column(columnDefinition = "TEXT")
 	private String recurrenceRule;
 
-	private Date recurrenceEndDate;
+	private LocalDate recurrenceEndDate;
+
+	public static Recurrence create(String recurrenceRule, String recurrenceEndDate) {
+		LocalDate recurrenceEndLocalDate = LocalDate.parse(recurrenceEndDate);
+		RRule<LocalDate> rRule = createRRule(recurrenceRule, recurrenceEndLocalDate);
+		return Recurrence.builder()
+			.recurrenceRule(rRule.toString())
+			.recurrenceEndDate(recurrenceEndLocalDate)
+			.build();
+	}
+
+	private static RRule<LocalDate> createRRule(String recurrenceRule, LocalDate recurrenceEndDate) {
+		Recur.Builder<LocalDate> builder = new Recur.Builder<>();
+		Frequency frequency = Frequency.valueOf(recurrenceRule.toUpperCase());
+		Recur<LocalDate> recur = builder
+			.frequency(frequency)
+			.interval(1)
+			.until(recurrenceEndDate)
+			.build();
+
+		return new RRule<>(recur);
+	}
+
 }
