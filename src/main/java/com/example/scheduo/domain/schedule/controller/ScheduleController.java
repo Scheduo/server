@@ -12,6 +12,7 @@ import com.example.scheduo.global.auth.annotation.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,7 +25,7 @@ public class ScheduleController {
 	public ApiResponse<?> createSchedule(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,
-		@RequestBody ScheduleRequestDto.Create request
+		@Valid @RequestBody ScheduleRequestDto.Create request
 	) {
 		scheduleService.createSchedule(request, member, calendarId);
 		return ApiResponse.onSuccess();
