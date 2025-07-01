@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
@@ -19,12 +20,14 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ScheduleServiceImpl implements ScheduleService {
 	private final ScheduleRepository scheduleRepository;
 	private final CategoryRepository categoryRepository;
 	private final CalendarRepository calendarRepository;
-	
+
 	@Override
+	@Transactional
 	public void createSchedule(ScheduleRequestDto.Create request, Member member, Long calendarId) {
 		Calendar calendar = calendarRepository.findById(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
