@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- 색상 정의 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+
+    <!-- 공통 패턴 정의 -->
+    <property name="CONSOLE_LOG_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%15.15t]){faint} %clr(%-5level){highlight} %clr([%logger{36}]){cyan} %clr([TraceId:%X{traceId:-N/A}]){magenta} %clr([MemberId:%X{memberId:-anonymous}]){blue} %clr(-){faint} %m%n%wEx"/>
+    <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] [TraceId:%X{traceId:-N/A}] [MemberId:%X{memberId:-anonymous}] - %msg%n"/>
+
+    <!-- 개발환경 (default, local, dev) -->
     <springProfile name="!prod">
+        <!-- 콘솔 appender - 개발환경용 (색상 적용) -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- 운영환경 (prod) -->
+    <springProfile name="prod">
+        <!-- JSON 형식 콘솔 appender - 운영환경용 -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
                 <providers>
@@ -9,17 +35,27 @@
                     <mdc/>
                     <message/>
                     <arguments/>
+                    <pattern>
+                        <pattern>
+                            {
+                            "thread": "%thread"
+                            }
+                        </pattern>
+                    </pattern>
                 </providers>
             </encoder>
         </appender>
-    </springProfile>
 
-    <springProfile name="prod">
+        <!-- JSON 형식 파일 appender - 운영환경용 -->
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>logs/scheduo.log</file>
+            <file>logs/scheduo-prod.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>logs/scheduo.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <fileNamePattern>logs/scheduo-prod.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>500MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
                 <maxHistory>30</maxHistory>
+                <totalSizeCap>10GB</totalSizeCap>
             </rollingPolicy>
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
                 <providers>
@@ -28,17 +64,20 @@
                     <mdc/>
                     <message/>
                     <arguments/>
+                    <pattern>
+                        <pattern>
+                            {
+                            "thread": "%thread"
+                            }
+                        </pattern>
+                    </pattern>
                 </providers>
             </encoder>
         </appender>
-    </springProfile>
 
-    <root level="INFO">
-        <springProfile name="!prod">
+        <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-        </springProfile>
-        <springProfile name="prod">
             <appender-ref ref="FILE"/>
-        </springProfile>
-    </root>
+        </root>
+    </springProfile>
 </configuration>
