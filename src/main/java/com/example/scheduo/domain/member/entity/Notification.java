@@ -50,4 +50,8 @@ public class Notification extends BaseEntity {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "json")
 	private Map<String, Object> data;
+
+	public boolean validateOwner(Long memberId) {
+		return this.member.getId().equals(memberId);
+	}
 }
