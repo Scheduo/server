@@ -1,0 +1,16 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Test') {
+            steps {
+                sh '''
+                chmod +x ./gradlew
+                ./gradlew clean test
+                '''
+            }
+        }
+    }
+}

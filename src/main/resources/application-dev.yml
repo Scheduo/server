@@ -6,7 +6,7 @@ spring:
     name: scheduo
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/scheduo?useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
@@ -48,10 +48,12 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      database: ${REDIS_DATABASE:0}
 
 logging:
   level:
