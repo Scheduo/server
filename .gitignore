@@ -38,3 +38,8 @@ out/
 
 # Spring Boot profile properties
 application-*.properties
+
+# logs
+logs/
+*.log
+*.log.*
