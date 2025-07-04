@@ -12,32 +12,39 @@ import com.example.scheduo.global.logger.service.LoggingService;
 public class LoggingServiceImpl implements LoggingService {
 
 	@Override
-	public void logRequest(HttpServletRequest request, Long memberId) {
+	public void logRequest(HttpServletRequest request) {
 		String method = request.getMethod();
 		String path = request.getRequestURI();
 
-		log.info("Request started - method: {}, path: {}, memberId: {}",
-			method, path, memberId);
+		log.info("🚀 REQUEST START | {} {}",
+			method, path);
 	}
 
 	@Override
-	public void logResponse(HttpServletRequest request, HttpServletResponse response,
-		Long memberId, long responseTime) {
+	public void logResponse(HttpServletRequest request, HttpServletResponse response, long responseTime) {
 		String method = request.getMethod();
 		String path = request.getRequestURI();
 		int status = response.getStatus();
+		String emoji = getStatusEmoji(status);
 
-		log.info("Request completed - method: {}, path: {}, memberId: {}, status: {}, responseTime: {}ms",
-			method, path, memberId, status, responseTime);
+		log.info("{} REQUEST COMPLETE | {} {} | Status: {} | ResponseTime: {}ms",
+			emoji, method, path, status, responseTime);
 	}
 
 	@Override
-	public void logError(HttpServletRequest request, Long memberId,
-		String errorCode, String errorMessage) {
+	public void logError(HttpServletRequest request, String errorCode, String errorMessage) {
 		String method = request.getMethod();
 		String path = request.getRequestURI();
 
-		log.error("Request failed - method: {}, path: {}, memberId: {}, errorCode: {}, errorMessage: {}",
-			method, path, memberId, errorCode, errorMessage);
+		log.error("❌ REQUEST FAILED | {} {} | Error: {} - {}",
+			method, path, errorCode, errorMessage);
+	}
+
+	private String getStatusEmoji(int status) {
+		if (status >= 200 && status < 300) return "✅";
+		if (status >= 300 && status < 400) return "🔄";
+		if (status >= 400 && status < 500) return "⚠️";
+		if (status >= 500) return "💥";
+		return "❓";
 	}
 }

@@ -4,9 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface LoggingService {
-	void logRequest(HttpServletRequest request, Long memberId);
-	void logResponse(HttpServletRequest request, HttpServletResponse response,
-		Long memberId, long responseTime);
-	void logError(HttpServletRequest request, Long memberId,
-		String errorCode, String errorMessage);
+	void logRequest(HttpServletRequest request);
+	void logResponse(HttpServletRequest request, HttpServletResponse response, long responseTime);
+	void logError(HttpServletRequest request, String errorCode, String errorMessage);
 }
