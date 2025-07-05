@@ -106,4 +106,8 @@ public class Participant extends BaseEntity {
 			throw new ApiException(ResponseStatus.CANNOT_REMOVE_OWNER);
 		}
 	}
+
+	public boolean isAccepted() {
+		return this.status == ParticipationStatus.ACCEPTED;
+	}
 }

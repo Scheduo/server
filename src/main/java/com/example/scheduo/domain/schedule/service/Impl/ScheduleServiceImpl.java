@@ -1,5 +1,7 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -7,6 +9,7 @@ import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.schedule.dto.ScheduleRequestDto;
+import com.example.scheduo.domain.schedule.dto.ScheduleResponseDto;
 import com.example.scheduo.domain.schedule.entity.Category;
 import com.example.scheduo.domain.schedule.entity.Recurrence;
 import com.example.scheduo.domain.schedule.entity.Schedule;
@@ -60,5 +63,30 @@ public class ScheduleServiceImpl implements ScheduleService {
 		);
 
 		scheduleRepository.save(schedule);
+	}
+
+	@Override
+	public ScheduleResponseDto.SchedulesByMonthly getScheduleByMonthly(Member member, Long calendarId, String date) {
+		/**
+		 * 로직 => 월별조회
+		 * 1. 캘린더에 멤버가 속해있는지 검증
+		 * 2. month에 대한 schedule db 쿼리 날리기
+		 * 3. 단일 일정 조회
+		 * 4. 반복 일저 조회 -> 직접 일정을 생성
+		 */
+		// 캘린더 조회
+		Calendar calendar = calendarRepository.findById(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		// 멤버가 캘린더에 속해있는지 검증
+		if(calendar.validateParticipant(member.getId()))
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+
+		// DATE to MONTH 파싱 로직
+		// 1. start || end를 기준으로 가져옴, 여러날 일정을 만듬, 만약 그 달에 속하지 않는다면 거름..?
+
+		List<Schedule> schedules = scheduleRepository.findSchedulesByStartMonthAndEndMonth(date);
+
+		return null;
 	}
 }
