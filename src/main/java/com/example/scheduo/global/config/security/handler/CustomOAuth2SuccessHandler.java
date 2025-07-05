@@ -34,36 +34,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 		// OAuth2 인증 성공 후 처리 로직을 여기에 작성합니다.
 		// 예를 들어, JWT 토큰을 생성하고 클라이언트에게 전달하는 등의 작업을 수행할 수 있습니다.
 
-		// OAuth2User user = (OAuth2User)authentication.getPrincipal();
-		// Long memberId = (Long)user.getAttributes().get("memberId");
-		//
-		// String deviceUUID = generateDeviceUUID();
-		// String accessToken = jwtProvider.createAccessToken(memberId);
-		// String refreshToken = jwtProvider.createRefreshToken(memberId, deviceUUID);
-
-		// refreshTokenService.saveRefreshToken(memberId, deviceUUID, refreshToken, JwtProvider.EXPIRE_REFRESH_MS);
-
-		// String redirectUrl =
-		// 	"http://localhost:3000/oauth2/redirect?accessToken=" + accessToken + "&refreshToken=" + refreshToken;
-		// response.sendRedirect(redirectUrl);
-		String targetUrl = determineTargetUrl(request, response, authentication);
-		clearAuthenticationAttributes(request, response);
-		getRedirectStrategy().sendRedirect(request, response, targetUrl);
-	}
-
-	@Override
-	public String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
-		Authentication authentication) {
-		// OAuth2 인증 성공 후 리다이렉트할 URL을 결정하는 로직을 여기에 작성합니다.
-		// 예를 들어, 클라이언트의 요청에 따라 다른 URL로 리다이렉트할 수 있습니다.
-		Optional<String> redirectUri = CookieUtils.getCookies(request,
-			HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_COOKIE_NAME).map(
-			Cookie::getValue);
-		String targetUrl = redirectUri.orElse("http://localhost:3000");
-
-		String finalTargetUrl = UriComponentsBuilder.fromUriString(targetUrl)
-			.path("/auth/callback")
-			.build().toUriString();
+		String targetUrl = determineTargetUrl(request, response);
 
 		OAuth2User user = (OAuth2User)authentication.getPrincipal();
 		Long memberId = (Long)user.getAttributes().get("memberId");
@@ -74,15 +45,25 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 
 		refreshTokenService.saveRefreshToken(memberId, deviceUUID, refreshToken, JwtProvider.EXPIRE_REFRESH_MS);
 
-		return UriComponentsBuilder.fromUriString(finalTargetUrl)
+		String redirectUri = UriComponentsBuilder.fromUriString(targetUrl)
+			.path("/oauth2/redirect")
 			.queryParam("accessToken", accessToken)
 			.queryParam("refreshToken", refreshToken)
-			.build().toUriString();
+			.build().toString();
+		clearAuthenticationAttributes(request, response);
+		getRedirectStrategy().sendRedirect(request, response, redirectUri);
+	}
+
+	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
+		Optional<String> redirectUri = CookieUtils.getCookies(request,
+			HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI).map(Cookie::getValue);
+
+		return redirectUri.orElse(getDefaultTargetUrl());
 	}
 
 	protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
 		super.clearAuthenticationAttributes(request);
-		httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+		httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequest(request, response);
 	}
 
 	private String generateDeviceUUID() {

@@ -64,6 +64,4 @@ jwt:
 
 app:
   oauth2:
-    authorized-redirect-uris:
-      - http://localhost:3000
-      - https://scheduo.store
+    authorized-redirect-uris: http://localhost:3000, https://scheduo.store
