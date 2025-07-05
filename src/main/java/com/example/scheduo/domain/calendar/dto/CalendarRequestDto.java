@@ -47,4 +47,12 @@ public class CalendarRequestDto {
 		private String title;
 		private String nickname;
 	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class UpdateParticipantRole {
+		@NotNull(message = "역할은 필수입니다.")
+		private Role role;
+	}
 }
