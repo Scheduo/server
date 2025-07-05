@@ -28,10 +28,12 @@ import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CalendarServiceImpl implements CalendarService {
 	private final MemberRepository memberRepository;
 	private final CalendarRepository calendarRepository;
@@ -197,5 +199,25 @@ public class CalendarServiceImpl implements CalendarService {
 		List<Calendar> calendars = participantRepository.findCalendarsByMemberId(member.getId());
 
 		return CalendarResponseDto.CalendarInfoList.from(calendars);
+	}
+
+	@Override
+	@Transactional
+	public void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId) {
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		calendar.updateParticipantRole(participantId, request.getRole(), requesterId);
+	}
+
+	@Override
+	@Transactional
+	public void removeParticipant(Long calendarId, Long participantId, Long requesterId) {
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		Participant removedParticipant = calendar.removeParticipant(participantId, requesterId);
+
+		participantRepository.delete(removedParticipant);
 	}
 }

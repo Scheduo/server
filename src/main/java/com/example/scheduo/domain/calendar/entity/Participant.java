@@ -81,4 +81,29 @@ public class Participant extends BaseEntity {
 		}
 	}
 
+	public void transferOwnership() {
+		this.role = Role.EDIT;
+	}
+
+	public void updateRole(Role newRole) {
+		this.role = newRole;
+	}
+
+	public void validateOwnerPermission() {
+		if (this.role != Role.OWNER) {
+			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
+		}
+	}
+
+	public void validateForRoleUpdate() {
+		if (this.status != ParticipationStatus.ACCEPTED) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_NOT_ACCEPTED);
+		}
+	}
+
+	public void validateForRemoval() {
+		if (this.role == Role.OWNER) {
+			throw new ApiException(ResponseStatus.CANNOT_REMOVE_OWNER);
+		}
+	}
 }
