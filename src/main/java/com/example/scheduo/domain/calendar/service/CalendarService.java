@@ -18,4 +18,6 @@ public interface CalendarService {
 	void deleteCalendar(Long calendarId, Member member);
 
 	CalendarResponseDto.CalendarInfoList getCalendars(Member member);
+
+	void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId);
 }

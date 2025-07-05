@@ -49,7 +49,12 @@ public enum ResponseStatus {
 
 	// 알림 관련 에러 응답
 	NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION_0001", "알림을 찾을 수 없습니다."),
-	NOTIFICATION_NOT_OWNER(HttpStatus.FORBIDDEN, "NOTIFICATION_0002", "해당 알림의 소유자가 아닙니다.");
+	NOTIFICATION_NOT_OWNER(HttpStatus.FORBIDDEN, "NOTIFICATION_0002", "해당 알림의 소유자가 아닙니다."),
+
+	// 참여자 관련 에러 응답
+	PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "PARTICIPANT4001", "참여자를 찾을 수 없습니다."),
+	PARTICIPANT_NOT_ACCEPTED(HttpStatus.BAD_REQUEST, "PARTICIPANT4002", "초대를 수락한 참여자만 권한을 수정할 수 있습니다."),
+	;
 
 	private final HttpStatus httpStatus;
 	private final String status;

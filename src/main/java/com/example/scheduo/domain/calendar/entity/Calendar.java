@@ -63,4 +63,31 @@ public class Calendar extends BaseEntity {
 			.filter(p -> p.getMember().getId().equals(memberId))
 			.findFirst();
 	}
+
+	public Optional<Participant> findParticipantById(Long participantId) {
+		return this.participants.stream()
+			.filter(p -> p.getId().equals(participantId))
+			.findFirst();
+	}
+
+	public void updateParticipantRole(Long participantId, Role newRole, Long requesterId) {
+		// 요청자 권한 검증
+		Participant requester = this.findParticipant(requesterId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		requester.validateOwnerPermission();
+
+		// 대상 참여자 검증 및 권한 변경
+		Participant targetParticipant = this.findParticipantById(participantId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		targetParticipant.validateForRoleUpdate();
+
+		// OWNER 권한 이전 처리
+		if (newRole == Role.OWNER) {
+			requester.transferOwnership();
+		}
+
+		targetParticipant.updateRole(newRole);
+	}
 }
