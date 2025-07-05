@@ -2,6 +2,7 @@ package com.example.scheduo.global.config.security.entry;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.AuthenticationException;
@@ -12,12 +13,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.scheduo.global.logger.service.LoggingService;
 import com.example.scheduo.global.response.status.ResponseStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+	private final LoggingService loggingService;
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException authException) throws IOException {
@@ -34,6 +38,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 				message = ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();
 				break;
 		}
+
+		loggingService.logError(request, exception.getStatus(), message);
 
 		Map<String, Object> result = new HashMap<>();
 		result.put("code", 401);
