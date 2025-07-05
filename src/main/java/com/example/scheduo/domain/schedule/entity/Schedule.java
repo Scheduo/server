@@ -84,4 +84,37 @@ public class Schedule extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "recurrenceId")
 	private Recurrence recurrence;
+
+	public static Schedule create(
+		String title,
+		boolean isAllDay,
+		String startDate,
+		String endDate,
+		String startTime,
+		String endTime,
+		String location,
+		String memo,
+		NotificationTime notificationTime,
+		Category category,
+		Member member,
+		Calendar calendar,
+		Recurrence recurrence
+	) {
+
+		return Schedule.builder()
+			.title(title)
+			.isAllDay(isAllDay)
+			.startDate(LocalDate.parse(startDate))
+			.endDate(LocalDate.parse(endDate))
+			.startTime(LocalTime.parse(isAllDay ? "00:00" : startTime))
+			.endTime(LocalTime.parse(isAllDay ? "23:59" : endTime))
+			.location(location)
+			.memo(memo)
+			.notificationTime(notificationTime)
+			.category(category)
+			.member(member)
+			.calendar(calendar)
+			.recurrence(recurrence)
+			.build();
+	}
 }

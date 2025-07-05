@@ -41,6 +41,7 @@ public class SecurityConfig {
 				public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 					CorsConfiguration config = new CorsConfiguration();
 					config.addAllowedOrigin("http://localhost:3000");
+					config.addAllowedOrigin("https://scheduo.store");
 					config.addAllowedMethod("*");
 					config.addAllowedHeader("*");
 					config.setAllowCredentials(true);
@@ -59,7 +60,8 @@ public class SecurityConfig {
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 				.successHandler(customOAuth2SuccessHandler)
 				.failureHandler(customOAuth2FailureHandler))
-			.addFilterBefore(new JwtFilter(jwtProvider, new AntPathMatcher()), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new JwtFilter(jwtProvider, new AntPathMatcher()),
+				UsernamePasswordAuthenticationFilter.class)
 			.exceptionHandling(exception -> exception
 				.authenticationEntryPoint(customAuthenticationEntryPoint)
 			);

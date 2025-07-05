@@ -7,7 +7,7 @@ import com.example.scheduo.domain.calendar.entity.Participant
 fun createCalendar(
     id: Long? = null,
     name: String = "캘린더 이름",
-    participants: List<Participant> = emptyList()
+    participants: MutableList<Participant> = mutableListOf()
 ): Calendar {
     return Calendar(
         id,

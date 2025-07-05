@@ -61,6 +61,10 @@ dependencies {
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // ical4j 뭘로해?
+    implementation 'org.mnode.ical4j:ical4j:4.1.1'
+
 }
 
 tasks.named('test') {
