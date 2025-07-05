@@ -100,4 +100,10 @@ public class Participant extends BaseEntity {
 			throw new ApiException(ResponseStatus.PARTICIPANT_NOT_ACCEPTED);
 		}
 	}
+
+	public void validateForRemoval() {
+		if (this.role == Role.OWNER) {
+			throw new ApiException(ResponseStatus.CANNOT_REMOVE_OWNER);
+		}
+	}
 }

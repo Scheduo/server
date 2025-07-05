@@ -209,4 +209,15 @@ public class CalendarServiceImpl implements CalendarService {
 
 		calendar.updateParticipantRole(participantId, request.getRole(), requesterId);
 	}
+
+	@Override
+	@Transactional
+	public void removeParticipant(Long calendarId, Long participantId, Long requesterId) {
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		Participant removedParticipant = calendar.removeParticipant(participantId, requesterId);
+
+		participantRepository.delete(removedParticipant);
+	}
 }

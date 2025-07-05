@@ -90,4 +90,23 @@ public class Calendar extends BaseEntity {
 
 		targetParticipant.updateRole(newRole);
 	}
+
+	public Participant removeParticipant(Long participantId, Long requesterId) {
+		// 요청자 권한 검증
+		Participant requester = this.findParticipant(requesterId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		requester.validateOwnerPermission();
+
+		// 대상 참여자 검증
+		Participant targetParticipant = this.findParticipantById(participantId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		targetParticipant.validateForRemoval();
+
+		// 참여자 제거
+		this.participants.remove(targetParticipant);
+
+		return targetParticipant; // 삭제를 위해 반환
+	}
 }

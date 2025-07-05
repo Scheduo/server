@@ -95,4 +95,15 @@ public class CalendarController {
 		calendarService.updateParticipantRole(calendarId, participantId, request, member.getId());
 		return ApiResponse.onSuccess();
 	}
+
+	@DeleteMapping("/{calendarId}/participants/{participantId}")
+	@Operation(summary = "참여자 내보내기", description = "캘린더에서 참여자를 내보냅니다. (오너만 가능)")
+	public ApiResponse<?> removeParticipant(
+		@PathVariable("calendarId") Long calendarId,
+		@PathVariable("participantId") Long participantId,
+		@RequestMember Member member
+	) {
+		calendarService.removeParticipant(calendarId, participantId, member.getId());
+		return ApiResponse.onSuccess();
+	}
 }
