@@ -30,6 +30,7 @@ public class CalendarController {
 	private final CalendarService calendarService;
 
 	@PostMapping()
+	@Operation(summary = "캘린더 생성", description = "사용자의 캘린더를 생성합니다.")
 	public ApiResponse<CalendarResponseDto.CalendarInfo> create(
 		@RequestMember Member member,
 		@Valid @RequestBody CalendarRequestDto.Create request
@@ -64,6 +65,7 @@ public class CalendarController {
 	}
 
 	@PatchMapping("/{calendarId}")
+	@Operation(summary = "캘린더 편집", description = "사용자의 캘린더 정보를 수정합니다. (캘린더 제목은 오너만 가능) (닉네임은 참여자만 가능)")
 	public ApiResponse<?> edit(@PathVariable("calendarId") Long calendarId,
 		@RequestBody CalendarRequestDto.Edit editInfo,
 		@RequestMember Member member) {
@@ -72,6 +74,7 @@ public class CalendarController {
 	}
 
 	@DeleteMapping("/{calendarId}")
+	@Operation(summary = "캘린더 삭제", description = "사용자의 캘린더를 삭제합니다. (오너만 가능)")
 	public ApiResponse<?> delete(@PathVariable("calendarId") Long calendarId,
 		@RequestMember Member member) {
 		calendarService.deleteCalendar(calendarId, member);
@@ -79,6 +82,7 @@ public class CalendarController {
 	}
 
 	@GetMapping()
+	@Operation(summary = "모든 캘린더 조회", description = "사용자의 모든 캘린더를 조회합니다.")
 	public ApiResponse<CalendarResponseDto.CalendarInfoList> get(@RequestMember Member member) {
 		CalendarResponseDto.CalendarInfoList calendars = calendarService.getCalendars(member);
 		return ApiResponse.onSuccess(calendars);
