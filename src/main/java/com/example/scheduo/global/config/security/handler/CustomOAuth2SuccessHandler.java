@@ -57,9 +57,13 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 		// OAuth2 인증 성공 후 리다이렉트할 URL을 결정하는 로직을 여기에 작성합니다.
 		// 예를 들어, 클라이언트의 요청에 따라 다른 URL로 리다이렉트할 수 있습니다.
 		Optional<String> redirectUri = CookieUtils.getCookies(request,
-			HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME).map(
+			HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_COOKIE_NAME).map(
 			Cookie::getValue);
-		String targetUrl = redirectUri.orElse("http://localhost:3000/oauth2/redirect");
+		String targetUrl = redirectUri.orElse("http://localhost:3000");
+
+		String finalTargetUrl = UriComponentsBuilder.fromUriString(targetUrl)
+			.path("/auth/callback")
+			.build().toUriString();
 
 		OAuth2User user = (OAuth2User)authentication.getPrincipal();
 		Long memberId = (Long)user.getAttributes().get("memberId");
@@ -70,7 +74,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 
 		refreshTokenService.saveRefreshToken(memberId, deviceUUID, refreshToken, JwtProvider.EXPIRE_REFRESH_MS);
 
-		return UriComponentsBuilder.fromUriString(targetUrl)
+		return UriComponentsBuilder.fromUriString(finalTargetUrl)
 			.queryParam("accessToken", accessToken)
 			.queryParam("refreshToken", refreshToken)
 			.build().toUriString();
