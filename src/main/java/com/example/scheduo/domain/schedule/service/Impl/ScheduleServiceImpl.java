@@ -1,5 +1,6 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -65,6 +66,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 		scheduleRepository.save(schedule);
 	}
 
+	// TODO: 월별 조회 일정 로직 구현 필요
 	@Override
 	public ScheduleResponseDto.SchedulesByMonthly getScheduleByMonthly(Member member, Long calendarId, String date) {
 		/**
@@ -84,8 +86,14 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		// DATE to MONTH 파싱 로직
 		// 1. start || end를 기준으로 가져옴, 여러날 일정을 만듬, 만약 그 달에 속하지 않는다면 거름..?
+		int month = LocalDate.parse(date).getMonthValue();
+		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByStartMonthAndEndMonth(month);
 
-		List<Schedule> schedules = scheduleRepository.findSchedulesByStartMonthAndEndMonth(date);
+		// recurrence에서 enddate를 기준으로 지나지 않은 일정 조회
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrence(month);
+
+		// recurrence 인스턴스 일정 생성
+		// schedule.XXX(schedulesWithRecurrence);
 
 		return null;
 	}

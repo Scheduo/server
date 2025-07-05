@@ -2,6 +2,7 @@ package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -116,5 +117,11 @@ public class Schedule extends BaseEntity {
 			.calendar(calendar)
 			.recurrence(recurrence)
 			.build();
+	}
+
+	// TODO: 각각 스케쥴 별로 create recurrence 함수 호출
+	public static List<Schedule> createSchedulesFromRecurrence(List<Schedule> schedulesWithRecurrence) {
+		// 다 돌면서 일정 생성 해줘야함
+		return null;
 	}
 }

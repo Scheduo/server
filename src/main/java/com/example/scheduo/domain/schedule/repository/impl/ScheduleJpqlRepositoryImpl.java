@@ -17,13 +17,29 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 	private EntityManager entityManager;
 
 	@Override
-	public List<Schedule> findSchedulesByStartMonthAndEndMonth(String month){
+	public List<Schedule> findSchedulesByStartMonthAndEndMonth(int month){
 		String jpql = """
 			SELECT s FROM Schedule s
 			WHERE MONTH(s.startDate) = :month OR MONTH(s.endDate) = :date
+			AND s.recurrence is null
 			""";
 		return entityManager.createQuery(jpql, Schedule.class)
 			.setParameter("month", month)
 			.getResultList();
 	}
+
+	@Override
+	public List<Schedule> findSchedulesWithRecurrence(int month) {
+		String jpql = """
+   			SELECT s FROM Schedule s
+   			JOIN FETCH s.recurrence r
+   			WHERE MONTH(r.recurrenceEndDate) >= :month
+   			AND MONTH(s.startDate) <= :month
+			""";
+
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("month", month)
+			.getResultList();
+	}
+
 }
