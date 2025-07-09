@@ -1,8 +1,14 @@
 package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.Temporal;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.cglib.core.Local;
+
+import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.transform.recurrence.Frequency;
@@ -38,7 +44,6 @@ public class Recurrence {
 	public static Recurrence create(String recurrenceRule, String recurrenceEndDate) {
 		LocalDate recurrenceEndLocalDate = LocalDate.parse(recurrenceEndDate);
 		RRule<LocalDate> rRule = createRRule(recurrenceRule, recurrenceEndLocalDate);
-		System.out.println("Recurrence Rule: " + rRule);
 		return Recurrence.builder()
 			.recurrenceRule(rRule.toString())
 			.recurrenceEndDate(recurrenceEndLocalDate)
@@ -57,10 +62,44 @@ public class Recurrence {
 		return new RRule<>(recur);
 	}
 
-	public List<LocalDate> createRecurDates(LocalDate startDate) {
-		String cleanedRecurrenceRule = this.recurrenceRule.replaceFirst("^RRULE:\\s*", "").trim();
-		RRule rRule = new RRule(cleanedRecurrenceRule);
-		Recur<LocalDate> recur = rRule.getRecur();
-		return recur.getDates(startDate, this.recurrenceEndDate).stream().toList();
+	/**
+	 * {
+	 *     [
+	 *     	{
+	 *     	   "startDate": ~~,
+	 *	    	"endDate": ~~
+	 *     	},
+	 *     	~~
+	 *     ]
+	 * }
+	 */
+	// TODO: 일정 생성 구현 필요
+	public List<RecurDate> createRecurDates(LocalDate startDate, LocalDate endDate) {
+		RRule<LocalDate> rrule = new RRule<>(this.recurrenceRule);
+		Recur<LocalDate> recur = rrule.getRecur();
+
+		// recur.getDates(
+		// 	startDate,
+		// 	startDate,
+		// 	endDate
+		// ).stream()
+		// 	.map(date -> ((Date)date)
+		// 		.toInstant()
+		// 		.atZone(ZoneId.systemDefault())
+		// 		.toLocalDate())
+		// 	.collect(Collectors.toList());
+
+		return null;
+	}
+
+	protected static class RecurDate {
+		private final LocalDate startDate;
+		private final LocalDate endDate;
+
+		public RecurDate(LocalDate startDate, LocalDate endDate) {
+			this.startDate = startDate;
+			this.endDate = endDate;
+		}
+
 	}
 }
