@@ -12,9 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class CookieUtils {
 	public static Optional<Cookie> getCookies(HttpServletRequest request, String name) {
 		Cookie[] cookies = request.getCookies();
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(name)) {
-				return Optional.of(cookie);
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equals(name)) {
+					return Optional.of(cookie);
+				}
 			}
 		}
 		return Optional.empty();
@@ -32,6 +34,9 @@ public class CookieUtils {
 
 	public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
 		Cookie[] cookies = request.getCookies();
+		if (cookies == null) {
+			return;
+		}
 		for (Cookie cookie : cookies) {
 			if (cookie.getName().equals(name)) {
 				cookie.setValue("");
