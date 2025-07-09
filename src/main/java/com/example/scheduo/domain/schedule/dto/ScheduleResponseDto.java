@@ -16,6 +16,20 @@ public class ScheduleResponseDto {
 	public static class SchedulesByMonthly {
 		private Long calendarId;
 		List<Schedule> schedules;
+
+		public static SchedulesByMonthly from(Long calendarId,
+			List<com.example.scheduo.domain.schedule.entity.Schedule> schedules) {
+			List<Schedule> scheduleList = schedules.stream()
+				.map(schedule -> new Schedule(
+					schedule.getId(),
+					schedule.getTitle(),
+					schedule.getStartDate(),
+					schedule.getEndDate(),
+					new Category(schedule.getCategory().getName(), schedule.getCategory().getColor())
+				))
+				.toList();
+			return new SchedulesByMonthly(calendarId, scheduleList);
+		}
 	}
 
 	@Getter

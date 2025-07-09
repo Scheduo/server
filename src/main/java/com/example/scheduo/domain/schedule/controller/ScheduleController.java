@@ -40,7 +40,7 @@ public class ScheduleController {
 		@PathVariable("calendarId") Long calendarId,
 		@RequestParam("date") String date
 	) {
-		ScheduleResponseDto.SchedulesByMonthly res = scheduleService.getScheduleByMonthly(member, calendarId, date);
+		ScheduleResponseDto.SchedulesByMonthly res = scheduleService.getSchedulesByMonth(member, calendarId, date);
 		return ApiResponse.onSuccess(res);
 	}
 

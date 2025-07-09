@@ -1,7 +1,9 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +70,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 	// TODO: 월별 조회 일정 로직 구현 필요
 	@Override
-	public ScheduleResponseDto.SchedulesByMonthly getScheduleByMonthly(Member member, Long calendarId, String date) {
+	public ScheduleResponseDto.SchedulesByMonthly getSchedulesByMonth(Member member, Long calendarId, String date) {
 		/**
 		 * 로직 => 월별조회
 		 * 1. 캘린더에 멤버가 속해있는지 검증
@@ -77,24 +79,41 @@ public class ScheduleServiceImpl implements ScheduleService {
 		 * 4. 반복 일저 조회 -> 직접 일정을 생성
 		 */
 		// 캘린더 조회
-		Calendar calendar = calendarRepository.findById(calendarId)
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
 		// 멤버가 캘린더에 속해있는지 검증
-		if(calendar.validateParticipant(member.getId()))
+		if (!calendar.validateParticipant(member.getId()))
 			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
 
 		// DATE to MONTH 파싱 로직
 		// 1. start || end를 기준으로 가져옴, 여러날 일정을 만듬, 만약 그 달에 속하지 않는다면 거름..?
 		int month = LocalDate.parse(date).getMonthValue();
-		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByStartMonthAndEndMonth(month);
+		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByStartMonthAndEndMonth(month, calendarId);
 
 		// recurrence에서 enddate를 기준으로 지나지 않은 일정 조회
-		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrence(month);
+		LocalDate firstDayOfMonth = LocalDate.parse(date).withDayOfMonth(1);
+		LocalDate lastDayOfMonth = firstDayOfMonth.withDayOfMonth(firstDayOfMonth.lengthOfMonth());
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrence(firstDayOfMonth,
+			lastDayOfMonth, calendarId);
 
 		// recurrence 인스턴스 일정 생성
-		// schedule.XXX(schedulesWithRecurrence);
+		List<Schedule> allSchedules = Stream.concat(
+			schedulesInSingle.stream(),
+			schedulesWithRecurrence.stream().flatMap(s -> s.createSchedulesFromRecurrence().stream())
+		).toList();
 
-		return null;
+		List<Schedule> filteredSchedules = new ArrayList<>(allSchedules.stream()
+			.filter(s -> s.getStartDate().getMonthValue() == month || s.getEndDate().getMonthValue() == month)
+			.toList());
+
+		filteredSchedules.sort((s1, s2) -> {
+			if (s1.getStartDate().equals(s2.getStartDate())) {
+				return s1.getStartTime().compareTo(s2.getStartTime());
+			}
+			return s1.getStartDate().compareTo(s2.getStartDate());
+		});
+
+		return ScheduleResponseDto.SchedulesByMonthly.from(calendarId, filteredSchedules);
 	}
 }

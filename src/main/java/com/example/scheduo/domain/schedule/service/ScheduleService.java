@@ -7,5 +7,5 @@ import com.example.scheduo.domain.schedule.dto.ScheduleResponseDto;
 public interface ScheduleService {
 	void createSchedule(ScheduleRequestDto.Create request, Member member, Long calendarId);
 
-	ScheduleResponseDto.SchedulesByMonthly getScheduleByMonthly(Member member, Long calendarId, String date);
+	ScheduleResponseDto.SchedulesByMonthly getSchedulesByMonth(Member member, Long calendarId, String date);
 }
