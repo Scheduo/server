@@ -1,14 +1,8 @@
 package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.Temporal;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.cglib.core.Local;
-
-import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.transform.recurrence.Frequency;
@@ -62,34 +56,12 @@ public class Recurrence {
 		return new RRule<>(recur);
 	}
 
-	/**
-	 * {
-	 *     [
-	 *     	{
-	 *     	   "startDate": ~~,
-	 *	    	"endDate": ~~
-	 *     	},
-	 *     	~~
-	 *     ]
-	 * }
-	 */
-	// TODO: 일정 생성 구현 필요
-	public List<RecurDate> createRecurDates(LocalDate startDate, LocalDate endDate) {
-		RRule<LocalDate> rrule = new RRule<>(this.recurrenceRule);
+	public List<LocalDate> createRecurDates(LocalDate startDate) {
+		String recurrenceRule = this.recurrenceRule.replaceFirst("^RRULE:\\s*", "").trim();
+		RRule<LocalDate> rrule = new RRule<>(recurrenceRule);
 		Recur<LocalDate> recur = rrule.getRecur();
 
-		// recur.getDates(
-		// 	startDate,
-		// 	startDate,
-		// 	endDate
-		// ).stream()
-		// 	.map(date -> ((Date)date)
-		// 		.toInstant()
-		// 		.atZone(ZoneId.systemDefault())
-		// 		.toLocalDate())
-		// 	.collect(Collectors.toList());
-
-		return null;
+		return recur.getDates(startDate, this.recurrenceEndDate);
 	}
 
 	protected static class RecurDate {

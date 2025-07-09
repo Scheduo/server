@@ -2,6 +2,7 @@ package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Period;
 import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
@@ -120,8 +121,29 @@ public class Schedule extends BaseEntity {
 	}
 
 	// TODO: 각각 스케쥴 별로 create recurrence 함수 호출
-	public static List<Schedule> createSchedulesFromRecurrence(List<Schedule> schedulesWithRecurrence) {
-		// 다 돌면서 일정 생성 해줘야함
-		return null;
+	public List<Schedule> createSchedulesFromRecurrence() {
+		if (recurrence == null) {
+			return List.of(this);
+		}
+		Period duration = Period.between(startDate, endDate);
+
+		return recurrence.createRecurDates(startDate).stream()
+			.map(date -> Schedule.builder()
+				.id(id)
+				.title(title)
+				.isAllDay(isAllDay)
+				.startDate(date)
+				.endDate(date.plus(duration))
+				.startTime(startTime)
+				.endTime(endTime)
+				.location(location)
+				.memo(memo)
+				.notificationTime(notificationTime)
+				.category(category)
+				.member(member)
+				.calendar(calendar)
+				.recurrence(recurrence)
+				.build())
+			.toList();
 	}
 }
