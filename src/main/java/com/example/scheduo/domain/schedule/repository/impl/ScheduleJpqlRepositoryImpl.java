@@ -20,7 +20,9 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 	public List<Schedule> findSchedulesByStartMonthAndEndMonth(int month, long calendarId) {
 		String jpql = """
 			SELECT s FROM Schedule s
-			WHERE (MONTH(s.startDate) = :month OR MONTH(s.endDate) = :month)
+			JOIN FETCH s.category c
+			WHERE c.id = s.category.id
+			AND (MONTH(s.startDate) = :month OR MONTH(s.endDate) = :month)
 			AND s.recurrence is null
 			AND s.calendar.id = :calendarId
 			""";
@@ -36,6 +38,7 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 		String jpql = """
 				SELECT DISTINCT s FROM Schedule s
 				JOIN FETCH s.recurrence r
+				JOIN FETCH s.category c
 				WHERE r.recurrenceEndDate >= :startOfMonth
 				AND s.startDate <= :endOfMonth
 				AND s.calendar.id = :calendarId

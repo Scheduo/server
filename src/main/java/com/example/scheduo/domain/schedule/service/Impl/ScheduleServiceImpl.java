@@ -76,7 +76,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 		 * 1. 캘린더에 멤버가 속해있는지 검증
 		 * 2. month에 대한 schedule db 쿼리 날리기
 		 * 3. 단일 일정 조회
-		 * 4. 반복 일저 조회 -> 직접 일정을 생성
+		 * 4. 반복 일정 조회 -> 직접 일정을 생성
+		 * 5. 예외 조건 추가
 		 */
 		// 캘린더 조회
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
@@ -107,12 +108,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 			.filter(s -> s.getStartDate().getMonthValue() == month || s.getEndDate().getMonthValue() == month)
 			.toList());
 
-		filteredSchedules.sort((s1, s2) -> {
-			if (s1.getStartDate().equals(s2.getStartDate())) {
-				return s1.getStartTime().compareTo(s2.getStartTime());
-			}
-			return s1.getStartDate().compareTo(s2.getStartDate());
-		});
+		// filteredSchedules.sort((s1, s2) -> {
+		// 	if (s1.getStartDate().equals(s2.getStartDate())) {
+		// 		return s1.getStartTime().compareTo(s2.getStartTime());
+		// 	}
+		// 	return s1.getStartDate().compareTo(s2.getStartDate());
+		// });
 
 		return ScheduleResponseDto.SchedulesByMonthly.from(calendarId, filteredSchedules);
 	}
