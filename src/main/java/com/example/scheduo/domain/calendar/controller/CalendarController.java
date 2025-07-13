@@ -112,6 +112,7 @@ public class CalendarController {
 	}
 
 	@GetMapping("/{calendarId}")
+	@Operation(summary = "캘린더 개별 조회", description = "특정 캘린더의 정보를 조회합니다.")
 	public ApiResponse<CalendarResponseDto.CalendarDetailInfo> get(@PathVariable("calendarId") Long calendarId,
 		@RequestMember Member member) {
 		CalendarResponseDto.CalendarDetailInfo calendar = calendarService.getCalendar(calendarId, member);

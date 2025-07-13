@@ -210,14 +210,15 @@ public class CalendarServiceImpl implements CalendarService {
 		Participant myParticipant = calendar.findParticipant(member.getId())
 			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
 
-		myParticipant.validateAccessible();
+		myParticipant.validateAccpetedParticipant();
 
-		return CalendarResponseDto.CalendarDetailInfo.from(calendar, myParticipant);
+		return CalendarResponseDto.CalendarDetailInfo.from(calendar, myParticipant, member);
 	}
 
 	@Override
 	@Transactional
-	public void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId) {
+	public void updateParticipantRole(Long calendarId, Long participantId,
+		CalendarRequestDto.UpdateParticipantRole request, Long requesterId) {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 

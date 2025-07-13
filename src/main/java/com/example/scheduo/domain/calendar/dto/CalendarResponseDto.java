@@ -7,6 +7,7 @@ import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.calendar.entity.Participant;
 import com.example.scheduo.domain.calendar.entity.ParticipationStatus;
 import com.example.scheduo.domain.calendar.entity.Role;
+import com.example.scheduo.domain.member.entity.Member;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,10 +60,10 @@ public class CalendarResponseDto {
 		private String memberNickname;
 		private List<ParticipantInfo> participants;
 
-		public static CalendarDetailInfo from(Calendar calendar, Participant myParticipant) {
+		public static CalendarDetailInfo from(Calendar calendar, Participant myParticipant, Member member) {
 			List<ParticipantInfo> participantInfoList = calendar.getParticipants().stream()
 				.filter(p -> p.getStatus().equals(ParticipationStatus.ACCEPTED))
-				.map(ParticipantInfo::from)
+				.map(p -> ParticipantInfo.from(p, member))
 				.collect(Collectors.toList());
 
 			return CalendarDetailInfo.builder()
@@ -84,13 +85,17 @@ public class CalendarResponseDto {
 		private String nickname;
 		private Role role;
 		private String email;
+		private boolean me;
 
-		public static ParticipantInfo from(Participant participant) {
+		public static ParticipantInfo from(Participant participant, Member member) {
+			boolean me = participant.getMember().getId().equals(member.getId());
+
 			return ParticipantInfo.builder()
 				.participantId(participant.getId())
 				.nickname(participant.getNickname())
 				.role(participant.getRole())
 				.email(participant.getMember().getEmail())
+				.me(me)
 				.build();
 		}
 	}

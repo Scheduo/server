@@ -1338,6 +1338,7 @@ class CalendarControllerTest(
                 resParticipant["email"].asText() shouldBe member.email
                 resParticipant["role"].asText() shouldBe participant.role.name
                 resParticipant["nickname"].asText() shouldBe participant.nickname
+                resParticipant["me"].asBoolean() shouldBe true
             }
         }
 
@@ -1355,7 +1356,15 @@ class CalendarControllerTest(
         context("캘린더 참여 정보가 없을 경우") {
             it("403 Forbidden을 반환한다") {
                 val member = memberRepository.save(createMember())
+                val member2 = memberRepository.save(createMember())
                 val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member2,
+                        participationStatus = ParticipationStatus.ACCEPTED,
+                    )
+                )
 
                 val token = jwtFixture.createValidToken(member.id)
 
