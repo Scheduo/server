@@ -33,13 +33,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		response.setContentType("application/json;charset=UTF-8");
 
+		loggingService.logError(request, exception.getStatus(), exception.getMessage());
+
 		String message = switch (exception) {
 			case INVALID_TOKEN, NOT_EXIST_TOKEN -> exception.getMessage();
 			default -> ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();
 		};
-
-		loggingService.logError(request, exception.getStatus(), message);
-
+		
 		Map<String, Object> result = new HashMap<>();
 		result.put("code", 401);
 		result.put("success", false);
