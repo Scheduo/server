@@ -26,24 +26,17 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException authException) throws IOException {
-		log.info("Authentication failed: {}", authException.getMessage());
 		ResponseStatus exception = (ResponseStatus)request.getAttribute("exception");
 		if (exception == null) {
-			log.warn("[EntryPoint] exception attribute가 존재하지 않음. 기본 에러 반환");
 			exception = ResponseStatus.DEFAULT_TOKEN_ERROR;
 		}
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		response.setContentType("application/json;charset=UTF-8");
 
-		String message;
-		switch (exception) {
-			case INVALID_TOKEN, NOT_EXIST_TOKEN:
-				message = exception.getMessage();
-				break;
-			default:
-				message = ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();
-				break;
-		}
+		String message = switch (exception) {
+			case INVALID_TOKEN, NOT_EXIST_TOKEN -> exception.getMessage();
+			default -> ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();
+		};
 
 		loggingService.logError(request, exception.getStatus(), message);
 
