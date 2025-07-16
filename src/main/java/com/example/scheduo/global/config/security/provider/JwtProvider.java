@@ -64,7 +64,6 @@ public class JwtProvider implements InitializingBean {
 				.parseClaimsJws(token);
 			return true;
 		} catch (Exception e) {
-			log.error("올바른 토큰이 아닙니다.");
 			return false;
 		}
 	}

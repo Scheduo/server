@@ -65,6 +65,9 @@ dependencies {
     // ical4j 뭘로해?
     implementation 'org.mnode.ical4j:ical4j:4.1.1'
 
+
+    // logging
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 }
 
 tasks.named('test') {

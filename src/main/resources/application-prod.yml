@@ -16,12 +16,12 @@ spring:
       naming:
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
-        show-sql: true
-        format_sql: true
-        use_sql_comments: true
+        show-sql: false
+        format_sql: false
+        use_sql_comments: false
   security:
     oauth2:
       client:
@@ -48,22 +48,16 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-      database: ${REDIS_DATABASE:0}
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
 jwt:
   token:
     secret: ${JWT_TOKEN_SECRET}
-
-app:
-  oauth2:
-    authorized-redirect-uris: http://localhost:3000, https://scheduo.store
