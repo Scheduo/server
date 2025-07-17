@@ -30,7 +30,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 		registry.addInterceptor(loggingInterceptor)
 			.addPathPatterns("/**")
-			.excludePathPatterns("/health", "/actuator/**")
+			.excludePathPatterns("/health", "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**",
+				"/swagger-resources/**")
 			.order(1);
 	}
 
