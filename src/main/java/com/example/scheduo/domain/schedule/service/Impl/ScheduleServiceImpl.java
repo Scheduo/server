@@ -69,6 +69,37 @@ public class ScheduleServiceImpl implements ScheduleService {
 	}
 
 	// TODO: 월별 조회 일정 로직 구현 필요
+
+	// TODO: prefetching(지난달(5) - 이번달(6) - 다음달(7))
+		// 캘린더 6월 -> 6.1(월) ~ 6.30(금) -> 5.30(일) ~ 7.1(일)
+		// 구현 방법 : """클라 쿼리 3번"""(선택) vs. 서버 3달치 전송
+		// 고려사항 : 요청 -> dirty check -> 클라(해시)
+	// TODO: 쿼리가 너무 늦음(캐싱, 쿼리 최적화)
+	// TODO: 예외 조건 추가(rrule - exception 테이블) (수정 api 선 작업 후 진행)
+
+
+	// 테스트코드
+
+	/**
+	 *
+	 *
+	 * 단일일정
+	 * 반복일정(매일)
+	 * 반복일정(매주)
+	 * 반복일정(매달)
+	 * 반복일정(매년)
+	 *
+	 * ----------------
+	 *
+	 * 단일일정(반복x) 조회
+	 * 단일일정(반복o) 조회
+	 * 기간일정(반복x) 조회
+	 * 기간일정(반복o) 조회
+	 * 기간일정(2달 걸쳐있는거) 조회
+	 *
+	 *
+	 */
+
 	@Override
 	public ScheduleResponseDto.SchedulesByMonthly getSchedulesByMonth(Member member, Long calendarId, String date) {
 		/**

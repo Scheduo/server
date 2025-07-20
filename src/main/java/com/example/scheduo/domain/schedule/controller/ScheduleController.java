@@ -14,6 +14,7 @@ import com.example.scheduo.domain.schedule.service.ScheduleService;
 import com.example.scheduo.global.auth.annotation.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class ScheduleController {
 	private final ScheduleService scheduleService;
 
 	@PostMapping("/calendars/{calendarId}/schedules")
+	@Operation(summary = "일정 생성", description = "해당 캘린더에 일정을 생성합니다.")
 	public ApiResponse<?> createSchedule(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,

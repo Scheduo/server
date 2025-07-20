@@ -711,7 +711,7 @@ class CalendarControllerTest(
                 val json = objectMapper.readTree(response.contentAsString)
                 json["data"]["calendars"].size() shouldBeGreaterThan 0
 
-                json["data"]["calendars"][0]["calendarId"].asLong() shouldBeGreaterThan 0
+                json["data"]["calendars"][0]["calendarId"].asLong() shouldBe calendar.id
                 json["data"]["calendars"][0]["title"].asText() shouldBe calendar.name
             }
         }
@@ -1300,6 +1300,98 @@ class CalendarControllerTest(
                 val response = req.delete("/calendars/${calendar.id}/participants/${targetParticipant.id}", validToken)
 
                 res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+    }
+
+    describe("GET /calendars/{calendarId}") {
+        context("정상 단일 캘린더 조회 요청일 경우") {
+            it("200 OK를 반환하고 캘린더 상세 정보를 반환한다.") {
+                val member = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                val participant = participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member,
+                        participationStatus = ParticipationStatus.ACCEPTED,
+                        nickname = "testNickname"
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars/${calendar.id}", token)
+
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                val data = json["data"]
+
+                data["calendarId"].asLong() shouldBe calendar.id
+                data["title"].asText() shouldBe calendar.name
+                data["memberRole"].asText() shouldBe participant.role.name
+                data["memberNickname"].asText() shouldBe participant.nickname
+                data["participants"].size() shouldBe 1
+
+                val resParticipant = data["participants"][0]
+                resParticipant["participantId"].asLong() shouldBe participant.id
+                resParticipant["email"].asText() shouldBe member.email
+                resParticipant["role"].asText() shouldBe participant.role.name
+                resParticipant["nickname"].asText() shouldBe participant.nickname
+                resParticipant["me"].asBoolean() shouldBe true
+            }
+        }
+
+        context("캘린더가 존재하지 않는 경우") {
+            it("404 Not Found를 반환한다") {
+                val member = memberRepository.save(createMember())
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.delete("/calendars/999", token)
+
+                res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
+            }
+        }
+
+        context("캘린더 참여 정보가 없을 경우") {
+            it("403 Forbidden을 반환한다") {
+                val member = memberRepository.save(createMember())
+                val member2 = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member2,
+                        participationStatus = ParticipationStatus.ACCEPTED,
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars/${calendar.id}", token)
+
+                res.assertFailure(response, ResponseStatus.INVALID_CALENDAR_PARTICIPATION)
+            }
+        }
+
+        context("캘린더 참여 수락을 하지 않았을 경우") {
+            it("403 Forbidden을 반환한다") {
+                val member = memberRepository.save(createMember())
+                val calendar = calendarRepository.save(createCalendar())
+                participantRepository.save(
+                    createParticipant(
+                        calendar = calendar,
+                        member = member,
+                        participationStatus = ParticipationStatus.PENDING,
+                        nickname = "testNickname"
+                    )
+                )
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                val response = req.get("/calendars/${calendar.id}", token)
+
+                res.assertFailure(response, ResponseStatus.MEMBER_NOT_ACCEPT)
             }
         }
     }

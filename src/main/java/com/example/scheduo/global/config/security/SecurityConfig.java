@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.scheduo.global.auth.CustomOAuth2UserService;
+import com.example.scheduo.global.auth.oauth.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.example.scheduo.global.config.security.entry.CustomAuthenticationEntryPoint;
 import com.example.scheduo.global.config.security.filter.JwtFilter;
 import com.example.scheduo.global.config.security.handler.CustomOAuth2FailureHandler;
@@ -32,6 +33,7 @@ public class SecurityConfig {
 	private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
 	private final JwtProvider jwtProvider;
 	private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+	private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -42,6 +44,7 @@ public class SecurityConfig {
 					CorsConfiguration config = new CorsConfiguration();
 					config.addAllowedOrigin("http://localhost:3000");
 					config.addAllowedOrigin("https://scheduo.store");
+					config.addAllowedOrigin("https://www.scheduo.store");
 					config.addAllowedMethod("*");
 					config.addAllowedHeader("*");
 					config.setAllowCredentials(true);
@@ -57,6 +60,8 @@ public class SecurityConfig {
 				.requestMatchers(AuthExcludedUris.ALL).permitAll()
 				.anyRequest().authenticated())
 			.oauth2Login(oauth2 -> oauth2
+				.authorizationEndpoint(authorization -> authorization
+					.authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository))
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 				.successHandler(customOAuth2SuccessHandler)
 				.failureHandler(customOAuth2FailureHandler))

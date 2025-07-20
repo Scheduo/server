@@ -27,4 +27,18 @@ public class CalendarJpqlRepositoryImpl implements CalendarJpqlRepository {
 			.getResultStream()
 			.findFirst();
 	}
+
+	@Override
+	public Optional<Calendar> findByIdWithParticipantsAndMembers(Long calendarId) {
+		String jpql = """
+				SELECT c FROM Calendar c
+				JOIN FETCH c.participants p
+				JOIN FETCH p.member
+				WHERE c.id = :calendarId
+			""";
+		return entityManager.createQuery(jpql, Calendar.class)
+			.setParameter("calendarId", calendarId)
+			.getResultStream()
+			.findFirst();
+	}
 }

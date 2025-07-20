@@ -61,3 +61,7 @@ logging:
 jwt:
   token:
     secret: ${JWT_TOKEN_SECRET}
+
+app:
+  oauth2:
+    authorized-redirect-uris: http://localhost:3000, https://scheduo.store
