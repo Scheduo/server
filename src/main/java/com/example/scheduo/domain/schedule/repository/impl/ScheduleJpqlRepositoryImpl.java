@@ -17,25 +17,23 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 	private EntityManager entityManager;
 
 	@Override
-	public List<Schedule> findSchedulesByStartMonthAndEndMonth(int year, int month, long calendarId) {
+	public List<Schedule> findSchedulesByDateRange(LocalDate startOfMonth, LocalDate endOfMonth, long calendarId) {
 		String jpql = """
 			SELECT s FROM Schedule s
 			JOIN FETCH s.category c
-			WHERE c.id = s.category.id
-			AND ((YEAR(s.startDate) = :year AND MONTH(s.startDate) = :month)
-			 OR (YEAR(s.endDate) = :year AND MONTH(s.endDate) = :month))
+			WHERE (s.startDate <= :endOfMonth AND s.endDate >= :startOfMonth)
 			AND s.recurrence is null
 			AND s.calendar.id = :calendarId
-			""";
+        	""";
 		return entityManager.createQuery(jpql, Schedule.class)
-			.setParameter("year", year)
-			.setParameter("month", month)
+			.setParameter("startOfMonth", startOfMonth)
+			.setParameter("endOfMonth", endOfMonth)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
 
 	@Override
-	public List<Schedule> findSchedulesWithRecurrence(LocalDate firstDayOfMonth, LocalDate lastDayOfMonth,
+	public List<Schedule> findSchedulesWithRecurrenceForRange(LocalDate firstDayOfMonth, LocalDate lastDayOfMonth,
 		long calendarId) {
 		String jpql = """
 				SELECT DISTINCT s FROM Schedule s
@@ -49,6 +47,38 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 		return entityManager.createQuery(jpql, Schedule.class)
 			.setParameter("startOfMonth", firstDayOfMonth)
 			.setParameter("endOfMonth", lastDayOfMonth)
+			.setParameter("calendarId", calendarId)
+			.getResultList();
+	}
+
+	@Override
+	public List<Schedule> findSchedulesByDate(LocalDate date, long calendarId) {
+		String jpql = """
+            SELECT s FROM Schedule s
+            JOIN FETCH s.category c
+            WHERE s.startDate <= :date 
+            AND s.endDate >= :date
+            AND s.recurrence is null
+            AND s.calendar.id = :calendarId
+            """;
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("date", date)
+			.setParameter("calendarId", calendarId)
+			.getResultList();
+	}
+
+	@Override
+	public List<Schedule> findSchedulesWithRecurrenceForDate(LocalDate date, long calendarId) {
+		String jpql = """
+            SELECT DISTINCT s FROM Schedule s
+            JOIN FETCH s.recurrence r
+            JOIN FETCH s.category c
+            WHERE s.startDate <= :date
+            AND (r.recurrenceEndDate IS NULL OR r.recurrenceEndDate >= :date)
+            AND s.calendar.id = :calendarId
+            """;
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("date", date)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
