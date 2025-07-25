@@ -2,6 +2,8 @@ package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Period;
+import java.util.List;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -81,7 +83,7 @@ public class Schedule extends BaseEntity {
 	@JoinColumn(name = "calendarId")
 	private Calendar calendar;
 
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "recurrenceId")
 	private Recurrence recurrence;
 
@@ -116,5 +118,32 @@ public class Schedule extends BaseEntity {
 			.calendar(calendar)
 			.recurrence(recurrence)
 			.build();
+	}
+
+	// TODO: 각각 스케쥴 별로 create recurrence 함수 호출
+	public List<Schedule> createSchedulesFromRecurrence() {
+		if (recurrence == null) {
+			return List.of(this);
+		}
+		Period duration = Period.between(startDate, endDate);
+
+		return recurrence.createRecurDates(startDate).stream()
+			.map(date -> Schedule.builder()
+				.id(id)
+				.title(title)
+				.isAllDay(isAllDay)
+				.startDate(date)
+				.endDate(date.plus(duration))
+				.startTime(startTime)
+				.endTime(endTime)
+				.location(location)
+				.memo(memo)
+				.notificationTime(notificationTime)
+				.category(category)
+				.member(member)
+				.calendar(calendar)
+				.recurrence(recurrence)
+				.build())
+			.toList();
 	}
 }

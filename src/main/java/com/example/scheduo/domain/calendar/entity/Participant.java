@@ -107,6 +107,10 @@ public class Participant extends BaseEntity {
 		}
 	}
 
+	public boolean isAccepted() {
+		return this.status == ParticipationStatus.ACCEPTED;
+	}
+
 	public void validateAccpetedParticipant() {
 		if (this.status != ParticipationStatus.ACCEPTED) {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_ACCEPT);

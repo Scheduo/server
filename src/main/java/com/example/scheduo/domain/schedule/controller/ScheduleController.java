@@ -1,12 +1,15 @@
 package com.example.scheduo.domain.schedule.controller;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.schedule.dto.ScheduleRequestDto;
+import com.example.scheduo.domain.schedule.dto.ScheduleResponseDto;
 import com.example.scheduo.domain.schedule.service.ScheduleService;
 import com.example.scheduo.global.auth.annotation.RequestMember;
 import com.example.scheduo.global.response.ApiResponse;
@@ -31,6 +34,16 @@ public class ScheduleController {
 	) {
 		scheduleService.createSchedule(request, member, calendarId);
 		return ApiResponse.onSuccess();
+	}
+
+	@GetMapping("/calendars/{calendarId}/schedules/monthly")
+	public ApiResponse<ScheduleResponseDto.SchedulesByMonthly> getScheduleByMonthly(
+		@RequestMember Member member,
+		@PathVariable("calendarId") Long calendarId,
+		@RequestParam("date") String date
+	) {
+		ScheduleResponseDto.SchedulesByMonthly res = scheduleService.getSchedulesByMonth(member, calendarId, date);
+		return ApiResponse.onSuccess(res);
 	}
 
 }

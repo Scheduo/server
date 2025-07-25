@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
@@ -55,4 +56,22 @@ public class Recurrence {
 		return new RRule<>(recur);
 	}
 
+	public List<LocalDate> createRecurDates(LocalDate startDate) {
+		String recurrenceRule = this.recurrenceRule.replaceFirst("^RRULE:\\s*", "").trim();
+		RRule<LocalDate> rrule = new RRule<>(recurrenceRule);
+		Recur<LocalDate> recur = rrule.getRecur();
+
+		return recur.getDates(startDate, this.recurrenceEndDate);
+	}
+
+	protected static class RecurDate {
+		private final LocalDate startDate;
+		private final LocalDate endDate;
+
+		public RecurDate(LocalDate startDate, LocalDate endDate) {
+			this.startDate = startDate;
+			this.endDate = endDate;
+		}
+
+	}
 }
