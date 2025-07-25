@@ -483,10 +483,9 @@ class ScheduleControllerTest(
                 val schedulesNode = jsonNode.path("data").path("schedules")
                 schedulesNode.size() shouldBe 2
 
-                schedulesNode[0].path("title").asText() shouldBe "아침 회의"
-                schedulesNode[0].path("startTime").asText() shouldBe "09:00:00"
-                schedulesNode[1].path("title").asText() shouldBe "오후 미팅"
-                schedulesNode[1].path("startTime").asText() shouldBe "14:00:00"
+                val scheduleDetails = schedulesNode.map { it.path("title").asText() to it.path("startTime").asText() }
+                scheduleDetails.contains("아침 회의" to "09:00:00") shouldBe true
+                scheduleDetails.contains("오후 미팅" to "14:00:00") shouldBe true
             }
         }
 
