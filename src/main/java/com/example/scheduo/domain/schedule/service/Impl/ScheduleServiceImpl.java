@@ -104,7 +104,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 	 */
 
 	@Override
-	public ScheduleResponseDto.SchedulesByMonthly getSchedulesByMonth(Member member, Long calendarId, String date) {
+	public ScheduleResponseDto.SchedulesOnMonth getSchedulesOnMonth(Member member, Long calendarId, String date) {
 		/**
 		 * 로직 => 월별조회
 		 * 1. 캘린더에 멤버가 속해있는지 검증
@@ -155,6 +155,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 		// 	return s1.getStartDate().compareTo(s2.getStartDate());
 		// });
 
-		return ScheduleResponseDto.SchedulesByMonthly.from(calendarId, filteredSchedules);
+		return ScheduleResponseDto.SchedulesOnMonth.from(calendarId, filteredSchedules);
 	}
 }
