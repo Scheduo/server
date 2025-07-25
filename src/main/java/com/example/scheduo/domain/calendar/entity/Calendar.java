@@ -44,6 +44,12 @@ public class Calendar extends BaseEntity {
 		participant.setCalendar(this);
 	}
 
+	public void addParticipants(List<Participant> participants) {
+		for (Participant participant : participants) {
+			this.addParticipant(participant);
+		}
+	}
+
 	public void updateTitle(String title) {
 		this.name = title;
 	}
