@@ -2,10 +2,7 @@ package com.example.scheduo.domain.calendar.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -127,31 +124,49 @@ public class CalendarServiceImpl implements CalendarService {
 		List<CalendarRequestDto.Participant> requestParticipants = request.getParticipants();
 
 		if (requestParticipants != null && !requestParticipants.isEmpty()) {
-			List<Long> participantIds = requestParticipants.stream()
+
+			List<Long> participantMemberIds = requestParticipants.stream()
 				.map(CalendarRequestDto.Participant::getMemberId)
 				.toList();
 
-			List<Member> members = memberRepository.findAllById(participantIds);
-			Map<Long, Member> memberMap = members.stream()
-				.collect(Collectors.toMap(Member::getId, Function.identity()));
+			List<Member> members = memberRepository.findAllById(participantMemberIds);
 
-			for (CalendarRequestDto.Participant p : requestParticipants) {
-				Member participantMember = memberMap.get(p.getMemberId());
-				if (participantMember == null) {
-					throw new ApiException(ResponseStatus.MEMBER_NOT_FOUND);
-				}
+			if (members.size() != participantMemberIds.size()) {
+				throw new ApiException(ResponseStatus.MEMBER_NOT_FOUND);
+			}
 
-				Participant participant = Participant.builder()
-					.member(participantMember)
-					.nickname(participantMember.getNickname())
-					.role(p.getRole())
+			List<Participant> participants = members.stream().map(member -> {
+				Role role = requestParticipants.stream()
+					.filter(p -> p.getMemberId().equals(member.getId()))
+					.map(CalendarRequestDto.Participant::getRole)
+					.findFirst()
+					.orElse(Role.VIEW);
+
+				return Participant.builder()
+					.member(member)
+					.nickname(member.getNickname())
+					.role(role)
 					.status(ParticipationStatus.PENDING)
 					.build();
+			}).toList();
 
-				calendar.addParticipant(participant);
-			}
+			calendar.addParticipants(participants);
 		}
 		calendarRepository.save(calendar);
+
+		for (Participant participant : calendar.getParticipants()) {
+			if (participant.getRole() == Role.OWNER) {
+				continue;
+			}
+			Member invitee = participant.getMember();
+			applicationEventPublisher.publishEvent(
+				CalendarInvitationEvent.builder()
+					.calendarId(calendar.getId())
+					.calendarName(calendar.getName())
+					.invitee(invitee)
+					.inviterName(owner.getNickname())
+					.build());
+		}
 
 		return CalendarResponseDto.CalendarInfo.from(calendar);
 	}
