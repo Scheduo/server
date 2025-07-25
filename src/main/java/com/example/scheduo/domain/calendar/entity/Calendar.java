@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.example.scheduo.domain.common.BaseEntity;
+import com.example.scheduo.global.response.ApiResponse;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
@@ -108,5 +109,11 @@ public class Calendar extends BaseEntity {
 		this.participants.remove(targetParticipant);
 
 		return targetParticipant; // 삭제를 위해 반환
+	}
+
+	public boolean validateParticipant(Long memberId) {
+		return this.findParticipant(memberId)
+			.orElseThrow(()-> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND))
+			.isAccepted();
 	}
 }

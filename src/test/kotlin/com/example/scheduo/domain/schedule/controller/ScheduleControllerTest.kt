@@ -1,5 +1,6 @@
 package com.example.scheduo.domain.schedule.controller
 
+import com.example.scheduo.domain.calendar.entity.ParticipationStatus
 import com.example.scheduo.domain.calendar.repository.CalendarRepository
 import com.example.scheduo.domain.member.repository.MemberRepository
 import com.example.scheduo.domain.schedule.entity.Recurrence
@@ -181,6 +182,238 @@ class ScheduleControllerTest(
 
                 val response = req.post("/calendars/${calendar.id}/schedules", scheduleData, token = token)
                 res.assertFailure(response, ResponseStatus.CATEGORY_NOT_FOUND)
+            }
+        }
+    }
+
+    describe("GET /calendars/{calendarId}/schedules/monthly 요청 시") {
+        context("단일 일정이 있는 경우") {
+            it("해당 월의 단일 일정만 반환한다") {
+                // Given
+                val member = memberRepository.save(createMember(nickname = "test"))
+                val calendar = createCalendar()
+                val participant = createParticipant(member = member, calendar = calendar, participationStatus = ParticipationStatus.ACCEPTED )
+                val category = categoryRepository.save(createCategory())
+                calendar.addParticipant(participant)
+                calendarRepository.save(calendar)
+
+                // 7월 일정 2개
+                val julySchedule1 = createSchedule(
+                        title = "7월 회의1",
+                        startDate = "2025-07-10",
+                        endDate = "2025-07-10",
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+                val julySchedule2 = createSchedule(
+                        title = "7월 회의2",
+                        startDate = "2025-07-25",
+                        endDate = "2025-07-25",
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+                // 6월 일정 (포함되면 안됨)
+                val juneSchedule = createSchedule(
+                        title = "6월 회의",
+                        startDate = "2025-06-15",
+                        endDate = "2025-06-15",
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                scheduleRepository.save(julySchedule1)
+                scheduleRepository.save(julySchedule2)
+                scheduleRepository.save(juneSchedule)
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                // When
+                val response = req.get("/calendars/${calendar.id}/schedules/monthly?date=2025-07-01", token = token)
+
+                // Then
+                res.assertSuccess(response)
+                val responseBody = response.contentAsString
+                val jsonNode = objectMapper.readTree(responseBody)
+
+                val schedulesNode = jsonNode.path("data").path("schedules")
+                schedulesNode.size() shouldBe 2
+            }
+        }
+
+        context("매일 반복 일정이 있는 경우") {
+            it("해당 월의 반복 일정 인스턴스들을 반환한다") {
+                // Given
+                val member = memberRepository.save(createMember(nickname = "test"))
+                val calendar = createCalendar()
+                val participant = createParticipant(member = member, calendar = calendar, participationStatus = ParticipationStatus.ACCEPTED)
+                val category = categoryRepository.save(createCategory())
+                calendar.addParticipant(participant)
+                calendarRepository.save(calendar)
+
+                // 매일 반복 일정 (7월 1일부터 7월 10일까지)
+                val dailyRecurrence = createRecurrence(
+                        frequency = "DAILY",
+                        recurrenceEndDate = "2025-07-10"
+                )
+                val savedRecurrence = recurrenceRepository.save(dailyRecurrence)
+
+                val dailySchedule = createSchedule(
+                        title = "매일 운동",
+                        startDate = "2025-07-01",
+                        endDate = "2025-07-01",
+                        member = member,
+                        calendar = calendar,
+                        category = category,
+                        recurrence = savedRecurrence
+                )
+                scheduleRepository.save(dailySchedule)
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                // When
+                val response = req.get("/calendars/${calendar.id}/schedules/monthly?date=2025-07-01", token = token)
+
+                // Then
+                res.assertSuccess(response)
+                val responseBody = response.contentAsString
+                val jsonNode = objectMapper.readTree(responseBody)
+
+                val schedulesNode = jsonNode.path("data").path("schedules")
+                schedulesNode.size() shouldBe 10 // 7월 1일부터 10일까지 매일 = 10개
+            }
+        }
+
+        context("매주 반복 일정이 있는 경우") {
+            it("해당 월의 주별 반복 일정 인스턴스들을 반환한다") {
+                // Given
+                val member = memberRepository.save(createMember(nickname = "test"))
+                val calendar = createCalendar()
+                val participant = createParticipant(member = member, calendar = calendar, participationStatus = ParticipationStatus.ACCEPTED)
+                val category = categoryRepository.save(createCategory())
+                calendar.addParticipant(participant)
+                calendarRepository.save(calendar)
+
+                // 매주 반복 일정 (7월 첫째 주 월요일부터 7월 말까지)
+                val weeklyRecurrence = createRecurrence(
+                        frequency = "WEEKLY",
+                        recurrenceEndDate = "2025-07-31"
+                )
+                recurrenceRepository.save(weeklyRecurrence)
+
+                val weeklySchedule = createSchedule(
+                        title = "주간 회의",
+                        startDate = "2025-07-07", // 7월 첫째 주 월요일
+                        endDate = "2025-07-07",
+                        member = member,
+                        calendar = calendar,
+                        category = category,
+                        recurrence = weeklyRecurrence
+                )
+                scheduleRepository.save(weeklySchedule)
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                // When
+                val response = req.get("/calendars/${calendar.id}/schedules/monthly?date=2025-07-01", token = token)
+
+                // Then
+                res.assertSuccess(response)
+                val responseBody = response.contentAsString
+                val jsonNode = objectMapper.readTree(responseBody)
+
+                val schedulesNode = jsonNode.path("data").path("schedules")
+                schedulesNode.size() shouldBe 4 // 7월 내 월요일 4번 (7, 14, 21, 28일)
+            }
+        }
+
+        context("매달 반복 일정이 있는 경우") {
+            it("해당 월의 월별 반복 일정 인스턴스를 반환한다") {
+                // Given
+                val member = memberRepository.save(createMember(nickname = "test"))
+                val calendar = createCalendar()
+                val participant = createParticipant(member = member, calendar = calendar, participationStatus = ParticipationStatus.ACCEPTED)
+                val category = categoryRepository.save(createCategory())
+                calendar.addParticipant(participant)
+                calendarRepository.save(calendar)
+
+                // 매달 반복 일정 (4월부터 12월까지)
+                val monthlyRecurrence = createRecurrence(
+                        frequency = "MONTHLY",
+                        recurrenceEndDate = "2025-12-31"
+                )
+                recurrenceRepository.save(monthlyRecurrence)
+
+                val monthlySchedule = createSchedule(
+                        title = "월간 정기 회의",
+                        startDate = "2025-04-15", // 4월 15일 시작
+                        endDate = "2025-04-15",
+                        member = member,
+                        calendar = calendar,
+                        category = category,
+                        recurrence = monthlyRecurrence
+                )
+                scheduleRepository.save(monthlySchedule)
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                // When
+                val response = req.get("/calendars/${calendar.id}/schedules/monthly?date=2025-07-01", token = token)
+
+                // Then
+                res.assertSuccess(response)
+                val responseBody = response.contentAsString
+                val jsonNode = objectMapper.readTree(responseBody)
+
+                val schedulesNode = jsonNode.path("data").path("schedules")
+                schedulesNode.size() shouldBe 1 // 7월 15일 1개
+            }
+        }
+
+        context("매년 반복 일정이 있는 경우") {
+            it("해당 월의 연별 반복 일정 인스턴스를 반환한다") {
+                // Given
+                val member = memberRepository.save(createMember(nickname = "test"))
+                val calendar = createCalendar()
+                val participant = createParticipant(member = member, calendar = calendar, participationStatus = ParticipationStatus.ACCEPTED)
+                val category = categoryRepository.save(createCategory())
+                calendar.addParticipant(participant)
+                calendarRepository.save(calendar)
+
+                // 매년 반복 일정 (2025년부터 2027년까지)
+                val yearlyRecurrence = createRecurrence(
+                        frequency = "YEARLY",
+                        recurrenceEndDate = "2027-12-31"
+                )
+                recurrenceRepository.save(yearlyRecurrence)
+
+                val yearlySchedule = createSchedule(
+                        title = "생일 축하",
+                        startDate = "2025-07-20", // 7월 20일 생일
+                        endDate = "2025-07-20",
+                        member = member,
+                        calendar = calendar,
+                        category = category,
+                        recurrence = yearlyRecurrence
+                )
+                scheduleRepository.save(yearlySchedule)
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                // When
+                val response = req.get("/calendars/${calendar.id}/schedules/monthly?date=2025-07-01", token = token)
+
+                // Then
+                res.assertSuccess(response)
+                val responseBody = response.contentAsString
+                val jsonNode = objectMapper.readTree(responseBody)
+                println("RESULT!!!! => " + responseBody.toString())
+
+                val schedulesNode = jsonNode.path("data").path("schedules")
+                schedulesNode.size() shouldBe 1 // 2025년 7월 20일 1개
+
             }
         }
     }
