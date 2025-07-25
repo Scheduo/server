@@ -9,5 +9,5 @@ public interface ScheduleService {
 
 	ScheduleResponseDto.SchedulesOnMonth getSchedulesOnMonth(Member member, Long calendarId, String date);
 
-	ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate();
+	ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate(Member member, Long calendarId, String date);
 }

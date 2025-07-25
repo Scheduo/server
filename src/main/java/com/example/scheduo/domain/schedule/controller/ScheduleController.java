@@ -52,7 +52,8 @@ public class ScheduleController {
 		@PathVariable("calendarId") Long calendarId,
 		@RequestParam("date") String date
 	) {
-		return ApiResponse.onSuccess();
+		ScheduleResponseDto.SchedulesOnDate res = scheduleService.getSchedulesOnDate(member, calendarId, date);
+		return ApiResponse.onSuccess(res);
 	}
 
 }
