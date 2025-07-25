@@ -13,14 +13,14 @@ public class ScheduleResponseDto {
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SchedulesByMonthly {
+	public static class SchedulesOnMonth {
 		private Long calendarId;
-		List<Schedule> schedules;
+		List<ScheduleOnMonth> schedules;
 
-		public static SchedulesByMonthly from(Long calendarId,
+		public static SchedulesOnMonth from(Long calendarId,
 			List<com.example.scheduo.domain.schedule.entity.Schedule> schedules) {
-			List<Schedule> scheduleList = schedules.stream()
-				.map(schedule -> new Schedule(
+			List<ScheduleOnMonth> scheduleList = schedules.stream()
+				.map(schedule -> new ScheduleOnMonth(
 					schedule.getId(),
 					schedule.getTitle(),
 					schedule.getStartDate(),
@@ -28,14 +28,22 @@ public class ScheduleResponseDto {
 					new Category(schedule.getCategory().getName(), schedule.getCategory().getColor())
 				))
 				.toList();
-			return new SchedulesByMonthly(calendarId, scheduleList);
+			return new SchedulesOnMonth(calendarId, scheduleList);
 		}
 	}
 
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class Schedule {
+	public static class SchedulesOnDate {
+		List<ScheduleOnMonth> schedules;
+	}
+
+
+		@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class ScheduleOnMonth {
 		private Long id;
 		private String title;
 		private LocalDate startDate;
@@ -46,7 +54,19 @@ public class ScheduleResponseDto {
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class Category {
+	private static class ScheduleOnDate {
+		private Long id;
+		private String title;
+		private LocalDate startTime;
+		private LocalDate endTime;
+		private boolean isAllDay;
+		private Category category;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Category {
 		private String name;
 		private Color color;
 	}
