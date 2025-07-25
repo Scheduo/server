@@ -3,6 +3,7 @@ package com.example.scheduo.domain.schedule.service.Impl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
@@ -157,4 +158,43 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		return ScheduleResponseDto.SchedulesOnMonth.from(calendarId, filteredSchedules);
 	}
+
+	@Override
+	public ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate(Member member, Long calendarId, String date) {
+		/**
+		 * 특정 캘린더 + 특정 날짜의 모든 일정 조회 로직
+		 * 1. 캘린더에 해당하는 해당 날짜 일의 단일 일정 조회
+		 * 2. 캘린더에 해당하는 반복 일정이 있는 모든 일정 조회
+		 * 3. 반복을 적용시켜 실제 일정으로 생성
+		 * 4. 두 일정을 합친 후 애플리케이션에서 필터링
+		 * 5. 반환
+		 */
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		if (!calendar.validateParticipant(member.getId()))
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+
+		// 특정 날짜 파싱
+		LocalDate targetDate = LocalDate.parse(date);
+
+		// 1. 해당 날짜의 단일 일정 조회
+		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByDate(targetDate, calendarId);
+
+		// 2. 반복 일정 조회 (해당 날짜가 포함될 수 있는 모든 반복 일정)
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForDate(targetDate, calendarId);
+
+		List<Schedule> allSchedules = Stream.concat(
+			schedulesInSingle.stream(),
+			schedulesWithRecurrence.stream().flatMap(s -> s.createSchedulesFromRecurrence().stream())
+		).toList();
+
+		// 5. 해당 날짜 필터링 (월별과 다른 부분)
+		List<Schedule> filteredSchedules = allSchedules.stream()
+			.filter(s -> !s.getStartDate().isAfter(targetDate) && !s.getEndDate().isBefore(targetDate))
+			.collect(Collectors.toList());
+
+		return ScheduleResponseDto.SchedulesOnDate.from(filteredSchedules);
+	}
+
 }

@@ -1,9 +1,12 @@
 package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.scheduo.domain.schedule.entity.Color;
+import com.example.scheduo.domain.schedule.entity.Schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,11 +39,19 @@ public class ScheduleResponseDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class SchedulesOnDate {
-		List<ScheduleOnMonth> schedules;
+		List<ScheduleOnDate> schedules;
+
+		public static SchedulesOnDate from(List<Schedule> schedules) {
+			List<ScheduleOnDate> scheduleOnDates = schedules.stream()
+				.map(ScheduleOnDate::from)
+				.collect(Collectors.toList());
+
+			return new SchedulesOnDate(scheduleOnDates);
+		}
 	}
 
 
-		@Getter
+	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
 	private static class ScheduleOnMonth {
@@ -57,10 +68,21 @@ public class ScheduleResponseDto {
 	private static class ScheduleOnDate {
 		private Long id;
 		private String title;
-		private LocalDate startTime;
-		private LocalDate endTime;
+		private LocalTime startTime;
+		private LocalTime endTime;
 		private boolean isAllDay;
 		private Category category;
+
+		public static ScheduleOnDate from(Schedule schedule) {
+			return new ScheduleOnDate(
+				schedule.getId(),
+				schedule.getTitle(),
+				schedule.getStartTime(),
+				schedule.getEndTime(),
+				schedule.isAllDay(),
+				Category.from(schedule.getCategory().getName(), schedule.getCategory().getColor())
+			);
+		}
 	}
 
 	@Getter
@@ -69,5 +91,9 @@ public class ScheduleResponseDto {
 	private static class Category {
 		private String name;
 		private Color color;
+
+		public static Category from(String name, Color color) {
+			return new Category(name, color);
+		}
 	}
 }

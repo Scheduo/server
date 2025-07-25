@@ -53,4 +53,36 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 			.getResultList();
 	}
 
+	@Override
+	public List<Schedule> findSchedulesByDate(LocalDate date, long calendarId) {
+		String jpql = """
+            SELECT s FROM Schedule s
+            JOIN FETCH s.category c
+            WHERE s.startDate <= :date 
+            AND s.endDate >= :date
+            AND s.recurrence is null
+            AND s.calendar.id = :calendarId
+            """;
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("date", date)
+			.setParameter("calendarId", calendarId)
+			.getResultList();
+	}
+
+	@Override
+	public List<Schedule> findSchedulesWithRecurrenceForDate(LocalDate date, long calendarId) {
+		String jpql = """
+            SELECT DISTINCT s FROM Schedule s
+            JOIN FETCH s.recurrence r
+            JOIN FETCH s.category c
+            WHERE s.startDate <= :date
+            AND (r.recurrenceEndDate IS NULL OR r.recurrenceEndDate >= :date)
+            AND s.calendar.id = :calendarId
+            """;
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("date", date)
+			.setParameter("calendarId", calendarId)
+			.getResultList();
+	}
+
 }
