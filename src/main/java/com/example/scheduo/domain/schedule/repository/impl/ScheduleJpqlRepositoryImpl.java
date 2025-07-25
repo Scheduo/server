@@ -17,25 +17,25 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 	private EntityManager entityManager;
 
 	@Override
-	public List<Schedule> findSchedulesByStartMonthAndEndMonth(int year, int month, long calendarId) {
+	public List<Schedule> findSchedulesByDateRange(LocalDate startOfMonth, LocalDate endOfMonth, long calendarId) {
 		String jpql = """
 			SELECT s FROM Schedule s
 			JOIN FETCH s.category c
-			WHERE c.id = s.category.id
-			AND ((YEAR(s.startDate) = :year AND MONTH(s.startDate) = :month)
-			 OR (YEAR(s.endDate) = :year AND MONTH(s.endDate) = :month))
+			WHERE ((s.startDate >= :startOfMonth AND s.startDate <= :endOfMonth)
+				   OR (s.endDate >= :startOfMonth AND s.endDate <= :endOfMonth)
+				   OR (s.startDate <= :startOfMonth AND s.endDate >= :endOfMonth))
 			AND s.recurrence is null
 			AND s.calendar.id = :calendarId
-			""";
+        	""";
 		return entityManager.createQuery(jpql, Schedule.class)
-			.setParameter("year", year)
-			.setParameter("month", month)
+			.setParameter("startOfMonth", startOfMonth)
+			.setParameter("endOfMonth", endOfMonth)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
 
 	@Override
-	public List<Schedule> findSchedulesWithRecurrence(LocalDate firstDayOfMonth, LocalDate lastDayOfMonth,
+	public List<Schedule> findSchedulesWithRecurrenceForRange(LocalDate firstDayOfMonth, LocalDate lastDayOfMonth,
 		long calendarId) {
 		String jpql = """
 				SELECT DISTINCT s FROM Schedule s

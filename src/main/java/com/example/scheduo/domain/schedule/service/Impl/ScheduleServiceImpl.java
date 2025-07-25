@@ -122,16 +122,16 @@ public class ScheduleServiceImpl implements ScheduleService {
 		if (!calendar.validateParticipant(member.getId()))
 			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
 
-		// DATE to MONTH 파싱 로직
-		// 1. start || end를 기준으로 가져옴, 여러날 일정을 만듬, 만약 그 달에 속하지 않는다면 거름..?
-		int year = LocalDate.parse(date).getYear();
-		int month = LocalDate.parse(date).getMonthValue();
-		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByStartMonthAndEndMonth(year, month, calendarId);
+		LocalDate parsedDate = LocalDate.parse(date);
+		LocalDate firstDayOfMonth = parsedDate.withDayOfMonth(1);
+		LocalDate lastDayOfMonth = firstDayOfMonth.withDayOfMonth(firstDayOfMonth.lengthOfMonth());
+
+		// 단일 일정 조회
+		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByDateRange(
+			firstDayOfMonth, lastDayOfMonth, calendarId);
 
 		// recurrence에서 enddate를 기준으로 지나지 않은 일정 조회
-		LocalDate firstDayOfMonth = LocalDate.parse(date).withDayOfMonth(1);
-		LocalDate lastDayOfMonth = firstDayOfMonth.withDayOfMonth(firstDayOfMonth.lengthOfMonth());
-		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrence(firstDayOfMonth,
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForRange(firstDayOfMonth,
 			lastDayOfMonth, calendarId);
 
 		// recurrence 인스턴스 일정 생성
@@ -140,10 +140,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 			schedulesWithRecurrence.stream().flatMap(s -> s.createSchedulesFromRecurrence().stream())
 		).toList();
 
-		// List<Schedule> filteredSchedules = new ArrayList<>(allSchedules.stream()
-		// 	.filter(s -> s.getStartDate().getMonthValue() == month || s.getEndDate().getMonthValue() == month)
-		// 	.toList());
-
+		int year = parsedDate.getYear();
+		int month = parsedDate.getMonthValue();
 		List<Schedule> filteredSchedules = new ArrayList<>(allSchedules.stream()
 			.filter(s -> (s.getStartDate().getYear() == year && s.getStartDate().getMonthValue() == month) ||
 				(s.getEndDate().getYear() == year && s.getEndDate().getMonthValue() == month))
@@ -178,10 +176,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 		// 특정 날짜 파싱
 		LocalDate targetDate = LocalDate.parse(date);
 
-		// 1. 해당 날짜의 단일 일정 조회
+		// 해당 날짜의 단일 일정 조회
 		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByDate(targetDate, calendarId);
 
-		// 2. 반복 일정 조회 (해당 날짜가 포함될 수 있는 모든 반복 일정)
+		// 반복 일정 조회 (해당 날짜가 포함될 수 있는 모든 반복 일정)
 		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForDate(targetDate, calendarId);
 
 		List<Schedule> allSchedules = Stream.concat(
@@ -189,7 +187,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 			schedulesWithRecurrence.stream().flatMap(s -> s.createSchedulesFromRecurrence().stream())
 		).toList();
 
-		// 5. 해당 날짜 필터링 (월별과 다른 부분)
+		// 해당 날짜 필터링 (월별과 다른 부분)
 		List<Schedule> filteredSchedules = allSchedules.stream()
 			.filter(s -> !s.getStartDate().isAfter(targetDate) && !s.getEndDate().isBefore(targetDate))
 			.collect(Collectors.toList());
