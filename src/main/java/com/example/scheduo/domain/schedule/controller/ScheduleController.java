@@ -37,7 +37,7 @@ public class ScheduleController {
 	}
 
 	@GetMapping("/calendars/{calendarId}/schedules/monthly")
-	public ApiResponse<ScheduleResponseDto.SchedulesOnMonth> getScheduleByMonthly(
+	public ApiResponse<ScheduleResponseDto.SchedulesOnMonth> getScheduleOnMonth(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,
 		@RequestParam("date") String date
@@ -47,7 +47,7 @@ public class ScheduleController {
 	}
 
 	@GetMapping("/calendars/{calendarId}/schedules")
-	public ApiResponse<ScheduleResponseDto.SchedulesOnDate> getScheduleOnDateInCalendar(
+	public ApiResponse<ScheduleResponseDto.SchedulesOnDate> getScheduleOnDate(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,
 		@RequestParam("date") String date
