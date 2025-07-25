@@ -17,6 +17,7 @@ import com.example.scheduo.domain.schedule.entity.Category;
 import com.example.scheduo.domain.schedule.entity.Recurrence;
 import com.example.scheduo.domain.schedule.entity.Schedule;
 import com.example.scheduo.domain.schedule.repository.CategoryRepository;
+import com.example.scheduo.domain.schedule.repository.RecurrenceRepository;
 import com.example.scheduo.domain.schedule.repository.ScheduleRepository;
 import com.example.scheduo.domain.schedule.service.ScheduleService;
 import com.example.scheduo.global.response.exception.ApiException;
@@ -31,6 +32,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 	private final ScheduleRepository scheduleRepository;
 	private final CategoryRepository categoryRepository;
 	private final CalendarRepository calendarRepository;
+	private final RecurrenceRepository recurrenceRepository;
 
 	@Override
 	@Transactional
@@ -47,6 +49,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 				request.getRecurrence().getFrequency(),
 				request.getRecurrence().getRecurrenceEndDate()
 			);
+			recurrence = recurrenceRepository.save(recurrence);
 		}
 
 		Schedule schedule = Schedule.create(

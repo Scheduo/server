@@ -83,7 +83,7 @@ public class Schedule extends BaseEntity {
 	@JoinColumn(name = "calendarId")
 	private Calendar calendar;
 
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "recurrenceId")
 	private Recurrence recurrence;
 
