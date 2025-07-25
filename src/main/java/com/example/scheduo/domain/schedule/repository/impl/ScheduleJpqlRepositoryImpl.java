@@ -21,9 +21,7 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 		String jpql = """
 			SELECT s FROM Schedule s
 			JOIN FETCH s.category c
-			WHERE ((s.startDate >= :startOfMonth AND s.startDate <= :endOfMonth)
-				   OR (s.endDate >= :startOfMonth AND s.endDate <= :endOfMonth)
-				   OR (s.startDate <= :startOfMonth AND s.endDate >= :endOfMonth))
+			WHERE (s.startDate <= :endOfMonth AND s.endDate >= :startOfMonth)
 			AND s.recurrence is null
 			AND s.calendar.id = :calendarId
         	""";
