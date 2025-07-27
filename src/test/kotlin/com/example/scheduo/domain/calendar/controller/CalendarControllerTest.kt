@@ -139,7 +139,7 @@ class CalendarControllerTest(
         }
 
         context("초대할 멤버가 존재하지 않는 경우") {
-            it("200 OK를 반혼하고 알림을 보내지 않는다") {
+            it("200 OK를 반환하고 알림을 보내지 않는다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val calendar = calendarRepository.save(createCalendar())
                 participantRepository.save(
