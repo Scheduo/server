@@ -153,7 +153,7 @@ class CalendarControllerTest(
                 )
                 val validToken = jwtFixture.createValidToken(owner.id)
                 val body = mapOf("memberIds" to listOf(999))
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", body, validToken)
+                val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
 
                 res.assertSuccess(response)
             }
