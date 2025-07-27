@@ -49,6 +49,8 @@ public class CalendarServiceImpl implements CalendarService {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
+		Participant owner = calendar.getOwner();
+
 		//초대 대상 멤버 조회
 		List<Member> invitees = memberRepository.findAllById(inviteeIds);
 
@@ -82,7 +84,7 @@ public class CalendarServiceImpl implements CalendarService {
 						.calendarId(calendarId)
 						.calendarName(calendar.getName())
 						.invitee(member)
-						.inviterName(inviter.getNickname())
+						.inviterName(owner.getNickname())
 						.build());
 			}
 		}
@@ -161,7 +163,7 @@ public class CalendarServiceImpl implements CalendarService {
 					.calendarId(calendar.getId())
 					.calendarName(calendar.getName())
 					.invitee(invitee)
-					.inviterName(owner.getNickname())
+					.inviterName(ownerParticipant.getNickname())
 					.build());
 		}
 		return CalendarResponseDto.CalendarInfo.from(calendar);
