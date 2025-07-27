@@ -136,8 +136,7 @@ public class CalendarServiceImpl implements CalendarService {
 				.collect(Collectors.toMap(CalendarRequestDto.Participant::getMemberId,
 					CalendarRequestDto.Participant::getRole));
 
-			List<Long> participantMemberIds = new ArrayList<>(roleMap.keySet());
-			List<Member> members = memberRepository.findAllById(participantMemberIds);
+			List<Member> members = memberRepository.findAllById(roleMap.keySet());
 
 			List<Participant> participants = members.stream()
 				.map(member -> Participant.builder()
