@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	private final LoggingService loggingService;
+	private final ObjectMapper objectMapper;
 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
@@ -37,7 +38,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
 		ErrorResponseDto result = ApiResponse.onFailure(exception);
 
-		ObjectMapper objectMapper = new ObjectMapper();
 		response.getWriter().write(objectMapper.writeValueAsString(result));
 	}
 }
