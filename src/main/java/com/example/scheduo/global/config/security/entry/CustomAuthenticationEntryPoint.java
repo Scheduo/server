@@ -1,14 +1,14 @@
 package com.example.scheduo.global.config.security.entry;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import com.example.scheduo.global.logger.service.LoggingService;
+import com.example.scheduo.global.response.ApiResponse;
+import com.example.scheduo.global.response.exception.ErrorResponseDto;
 import com.example.scheduo.global.response.status.ResponseStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,15 +35,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
 		loggingService.logError(request, exception.getStatus(), exception.getMessage());
 
-		String message = switch (exception) {
-			case INVALID_TOKEN, NOT_EXIST_TOKEN -> exception.getMessage();
-			default -> ResponseStatus.DEFAULT_TOKEN_ERROR.getMessage();
-		};
-		
-		Map<String, Object> result = new HashMap<>();
-		result.put("code", 401);
-		result.put("success", false);
-		result.put("message", message);
+		ErrorResponseDto result = ApiResponse.onFailure(exception);
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		response.getWriter().write(objectMapper.writeValueAsString(result));
