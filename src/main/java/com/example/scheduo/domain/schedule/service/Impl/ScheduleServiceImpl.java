@@ -192,6 +192,20 @@ public class ScheduleServiceImpl implements ScheduleService {
 			.filter(s -> !s.getStartDate().isAfter(targetDate) && !s.getEndDate().isBefore(targetDate))
 			.collect(Collectors.toList());
 
+		// 타임라인 정렬 로직(기간 > 종일 > 시작시간 > 생성시간)
+		filteredSchedules.sort((s1, s2) -> {
+			// 1. 기간 일정 우선 정렬
+			if (!s1.getStartDate().equals(s2.getStartDate()))
+				return s1.getStartDate().compareTo(s2.getStartDate());
+
+			// 2. 시작 시간 우선 정렬(종일 일정은 시작시간이 00:00:00 이므로 우선순위)
+			if (!s1.getStartTime().equals(s2.getStartTime()))
+				return s1.getStartTime().compareTo(s2.getStartTime());
+
+			// 3. 동점 처리 로직(일정 생성 기준 우선 정렬)
+			return s1.getCreatedAt().compareTo(s2.getCreatedAt());
+		});
+
 		return ScheduleResponseDto.SchedulesOnDate.from(filteredSchedules);
 	}
 
