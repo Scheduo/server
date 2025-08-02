@@ -75,12 +75,11 @@ public class ScheduleServiceImpl implements ScheduleService {
 	// TODO: 월별 조회 일정 로직 구현 필요
 
 	// TODO: prefetching(지난달(5) - 이번달(6) - 다음달(7))
-		// 캘린더 6월 -> 6.1(월) ~ 6.30(금) -> 5.30(일) ~ 7.1(일)
-		// 구현 방법 : """클라 쿼리 3번"""(선택) vs. 서버 3달치 전송
-		// 고려사항 : 요청 -> dirty check -> 클라(해시)
+	// 캘린더 6월 -> 6.1(월) ~ 6.30(금) -> 5.30(일) ~ 7.1(일)
+	// 구현 방법 : """클라 쿼리 3번"""(선택) vs. 서버 3달치 전송
+	// 고려사항 : 요청 -> dirty check -> 클라(해시)
 	// TODO: 쿼리가 너무 늦음(캐싱, 쿼리 최적화)
 	// TODO: 예외 조건 추가(rrule - exception 테이블) (수정 api 선 작업 후 진행)
-
 
 	// 테스트코드
 
@@ -124,6 +123,15 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		LocalDate parsedDate = LocalDate.parse(date);
 		LocalDate firstDayOfMonth = parsedDate.withDayOfMonth(1);
+		// DATE to MONTH 파싱 로직
+		// 1. start || end를 기준으로 가져옴, 여러날 일정을 만듬, 만약 그 달에 속하지 않는다면 거름..?
+		int year = LocalDate.parse(date).getYear();
+		int month = LocalDate.parse(date).getMonthValue();
+		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByStartMonthAndEndMonth(year, month,
+			calendarId);
+
+		// recurrence에서 enddate를 기준으로 지나지 않은 일정 조회
+		LocalDate firstDayOfMonth = LocalDate.parse(date).withDayOfMonth(1);
 		LocalDate lastDayOfMonth = firstDayOfMonth.withDayOfMonth(firstDayOfMonth.lengthOfMonth());
 
 		// 단일 일정 조회
@@ -155,6 +163,22 @@ public class ScheduleServiceImpl implements ScheduleService {
 		// });
 
 		return ScheduleResponseDto.SchedulesOnMonth.from(calendarId, filteredSchedules);
+	}
+
+	@Override
+	public ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId) {
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		calendar.validateParticipant(member.getId());
+
+		Schedule schedule = scheduleRepository.findScheduleByIdFetchJoin(scheduleId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND));
+
+		if (!schedule.getCalendar().getId().equals(calendarId)) {
+			throw new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND);
+		}
+		return ScheduleResponseDto.ScheduleInfo.from(schedule);
 	}
 
 	@Override

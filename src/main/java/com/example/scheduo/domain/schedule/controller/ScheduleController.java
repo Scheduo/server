@@ -56,4 +56,14 @@ public class ScheduleController {
 		return ApiResponse.onSuccess(res);
 	}
 
+	@GetMapping("/calendars/{calendarId}/schedules/{scheduleId}")
+	public ApiResponse<?> getScheduleInfo(
+		@RequestMember Member member,
+		@PathVariable("calendarId") Long calendarId,
+		@PathVariable("scheduleId") Long scheduleId
+	) {
+		ScheduleResponseDto.ScheduleInfo result = scheduleService.getScheduleInfo(member, calendarId, scheduleId);
+		return ApiResponse.onSuccess(result);
+	}
+
 }
