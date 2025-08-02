@@ -8,4 +8,6 @@ public interface ScheduleService {
 	void createSchedule(ScheduleRequestDto.Create request, Member member, Long calendarId);
 
 	ScheduleResponseDto.SchedulesByMonthly getSchedulesByMonth(Member member, Long calendarId, String date);
+
+	ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId);
 }
