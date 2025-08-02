@@ -58,10 +58,8 @@ public class Participant extends BaseEntity {
 	}
 
 	public void reinvite() {
-		switch (this.status) {
-			case DECLINED -> this.status = ParticipationStatus.PENDING;
-			case PENDING -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_INVITED);
-			case ACCEPTED -> throw new ApiException(ResponseStatus.MEMBER_ALREADY_PARTICIPANT);
+		if (this.status == ParticipationStatus.DECLINED) {
+			this.status = ParticipationStatus.PENDING;
 		}
 	}
 

@@ -1,9 +1,12 @@
 package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.scheduo.domain.schedule.entity.Color;
+import com.example.scheduo.domain.schedule.entity.Schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,14 +16,14 @@ public class ScheduleResponseDto {
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class SchedulesByMonthly {
+	public static class SchedulesOnMonth {
 		private Long calendarId;
-		List<Schedule> schedules;
+		List<ScheduleOnMonth> schedules;
 
-		public static SchedulesByMonthly from(Long calendarId,
+		public static SchedulesOnMonth from(Long calendarId,
 			List<com.example.scheduo.domain.schedule.entity.Schedule> schedules) {
-			List<Schedule> scheduleList = schedules.stream()
-				.map(schedule -> new Schedule(
+			List<ScheduleOnMonth> scheduleList = schedules.stream()
+				.map(schedule -> new ScheduleOnMonth(
 					schedule.getId(),
 					schedule.getTitle(),
 					schedule.getStartDate(),
@@ -28,14 +31,30 @@ public class ScheduleResponseDto {
 					new Category(schedule.getCategory().getName(), schedule.getCategory().getColor())
 				))
 				.toList();
-			return new SchedulesByMonthly(calendarId, scheduleList);
+			return new SchedulesOnMonth(calendarId, scheduleList);
 		}
 	}
 
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class Schedule {
+	public static class SchedulesOnDate {
+		List<ScheduleOnDate> schedules;
+
+		public static SchedulesOnDate from(List<Schedule> schedules) {
+			List<ScheduleOnDate> scheduleOnDates = schedules.stream()
+				.map(ScheduleOnDate::from)
+				.collect(Collectors.toList());
+
+			return new SchedulesOnDate(scheduleOnDates);
+		}
+	}
+
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class ScheduleOnMonth {
 		private Long id;
 		private String title;
 		private LocalDate startDate;
@@ -46,8 +65,35 @@ public class ScheduleResponseDto {
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class Category {
+	private static class ScheduleOnDate {
+		private Long id;
+		private String title;
+		private LocalTime startTime;
+		private LocalTime endTime;
+		private boolean isAllDay;
+		private Category category;
+
+		public static ScheduleOnDate from(Schedule schedule) {
+			return new ScheduleOnDate(
+				schedule.getId(),
+				schedule.getTitle(),
+				schedule.getStartTime(),
+				schedule.getEndTime(),
+				schedule.isAllDay(),
+				Category.from(schedule.getCategory().getName(), schedule.getCategory().getColor())
+			);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Category {
 		private String name;
 		private Color color;
+
+		public static Category from(String name, Color color) {
+			return new Category(name, color);
+		}
 	}
 }

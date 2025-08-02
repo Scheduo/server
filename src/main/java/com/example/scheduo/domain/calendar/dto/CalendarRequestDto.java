@@ -17,7 +17,7 @@ public class CalendarRequestDto {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class Invite {
-		private Long memberId;
+		private List<Long> memberIds;
 	}
 
 	@Getter

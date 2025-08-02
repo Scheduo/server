@@ -1,11 +1,12 @@
 package com.example.scheduo.domain.calendar.entity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.example.scheduo.domain.common.BaseEntity;
-import com.example.scheduo.global.response.ApiResponse;
 import com.example.scheduo.global.response.exception.ApiException;
 import com.example.scheduo.global.response.status.ResponseStatus;
 
@@ -71,6 +72,13 @@ public class Calendar extends BaseEntity {
 			.findFirst();
 	}
 
+	public List<Participant> findParticipants(List<Long> memberIds) {
+		Set<Long> sets = new HashSet<>(memberIds);
+		return this.participants.stream()
+			.filter(p -> sets.contains(p.getMember().getId()))
+			.toList();
+	}
+
 	public Optional<Participant> findParticipantById(Long participantId) {
 		return this.participants.stream()
 			.filter(p -> p.getId().equals(participantId))
@@ -119,7 +127,7 @@ public class Calendar extends BaseEntity {
 
 	public boolean validateParticipant(Long memberId) {
 		return this.findParticipant(memberId)
-			.orElseThrow(()-> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND))
+			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND))
 			.isAccepted();
 	}
 }

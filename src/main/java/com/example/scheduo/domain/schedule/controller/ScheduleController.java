@@ -37,12 +37,22 @@ public class ScheduleController {
 	}
 
 	@GetMapping("/calendars/{calendarId}/schedules/monthly")
-	public ApiResponse<ScheduleResponseDto.SchedulesByMonthly> getScheduleByMonthly(
+	public ApiResponse<ScheduleResponseDto.SchedulesOnMonth> getScheduleOnMonth(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,
 		@RequestParam("date") String date
 	) {
-		ScheduleResponseDto.SchedulesByMonthly res = scheduleService.getSchedulesByMonth(member, calendarId, date);
+		ScheduleResponseDto.SchedulesOnMonth res = scheduleService.getSchedulesOnMonth(member, calendarId, date);
+		return ApiResponse.onSuccess(res);
+	}
+
+	@GetMapping("/calendars/{calendarId}/schedules")
+	public ApiResponse<ScheduleResponseDto.SchedulesOnDate> getScheduleOnDate(
+		@RequestMember Member member,
+		@PathVariable("calendarId") Long calendarId,
+		@RequestParam("date") String date
+	) {
+		ScheduleResponseDto.SchedulesOnDate res = scheduleService.getSchedulesOnDate(member, calendarId, date);
 		return ApiResponse.onSuccess(res);
 	}
 
