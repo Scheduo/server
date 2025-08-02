@@ -64,14 +64,7 @@ public class Recurrence {
 		return recur.getDates(startDate, this.recurrenceEndDate);
 	}
 
-	protected static class RecurDate {
-		private final LocalDate startDate;
-		private final LocalDate endDate;
-
-		public RecurDate(LocalDate startDate, LocalDate endDate) {
-			this.startDate = startDate;
-			this.endDate = endDate;
-		}
-
+	public String getFrequency() {
+		return this.recurrenceRule.split(":")[1].split(";")[0].split("=")[1];
 	}
 }
