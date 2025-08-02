@@ -170,7 +170,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
-		calendar.validateParticipant(member.getId());
+		if (!calendar.validateParticipant(member.getId())) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+		}
 
 		Schedule schedule = scheduleRepository.findScheduleByIdFetchJoin(scheduleId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND));
