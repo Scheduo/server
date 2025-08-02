@@ -601,5 +601,122 @@ class ScheduleControllerTest(
                 schedulesNode[0].path("title").asText() shouldBe "주간 회의"
             }
         }
+
+        context("기간/종일/시간 일정이 섞여 있는 경우") {
+            it("기간일정 → 종일일정 → 시간순(동점 시 생성순)으로 정렬한다") {
+                // Given
+                val member = memberRepository.save(createMember(nickname = "test"))
+                val calendar = createCalendar()
+                val participant = createParticipant(
+                        member = member,
+                        calendar = calendar,
+                        participationStatus = ParticipationStatus.ACCEPTED
+                )
+                val category = categoryRepository.save(createCategory())
+                calendar.addParticipant(participant)
+                calendarRepository.save(calendar)
+
+                val targetDate = "2025-07-15"
+
+                // 1. 기간 일정 (시작일 < 대상일 = 가장 상단에 배치)
+                val periodSchedule = createSchedule(
+                        title = "기간 프로젝트",
+                        startDate = "2025-07-14",
+                        endDate = "2025-07-16",
+                        isAllDay = false,
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                // 2. 종일 일정 (당일, 종일 = 기간아님 → 두 번째)
+                val allDaySchedule = createSchedule(
+                        title = "종일 행사",
+                        startDate = "2025-07-15",
+                        endDate = "2025-07-15",
+                        isAllDay = true,
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                // 3. 시간 일정 (당일, 14:00 시작, 먼저 생성)
+                val timeScheduleA = createSchedule(
+                        title = "오후 회의 A",
+                        startDate = "2025-07-15",
+                        endDate = "2025-07-15",
+                        startTime = "14:00",
+                        endTime = "15:00",
+                        isAllDay = false,
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                // 4. 시간 일정 (당일, 14:00 시작, 같은 시간, 더 나중에 생성)
+                val timeScheduleB = createSchedule(
+                        title = "오후 회의 B",
+                        startDate = "2025-07-15",
+                        endDate = "2025-07-15",
+                        startTime = "14:00",
+                        endTime = "16:00",
+                        isAllDay = false,
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                // 5. 시간 일정 (당일, 09:00 시작, 날짜 기준으로 A/B보다 윗줄)
+                val morningSchedule = createSchedule(
+                        title = "오전 회의",
+                        startDate = "2025-07-15",
+                        endDate = "2025-07-15",
+                        startTime = "09:00",
+                        endTime = "10:00",
+                        isAllDay = false,
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                // 6. 해당 일이 아닌 일정 (포함 안 되어야 함)
+                val otherDaySchedule = createSchedule(
+                        title = "제외 테스트",
+                        startDate = "2025-07-16",
+                        endDate = "2025-07-16",
+                        member = member,
+                        calendar = calendar,
+                        category = category
+                )
+
+                // 일정 생성 및 저장 (createdAt 순서 적용)
+                scheduleRepository.save(periodSchedule)
+                scheduleRepository.save(allDaySchedule)
+                scheduleRepository.save(morningSchedule)
+                scheduleRepository.save(timeScheduleA)
+                scheduleRepository.save(timeScheduleB)
+                scheduleRepository.save(otherDaySchedule)
+
+                val token = jwtFixture.createValidToken(member.id)
+
+                // When
+                val response = req.get("/calendars/${calendar.id}/schedules?date=$targetDate", token = token)
+
+                // Then
+                res.assertSuccess(response)
+                val responseBody = response.contentAsString
+                val jsonNode = objectMapper.readTree(responseBody)
+
+                val schedulesNode = jsonNode.path("data").path("schedules")
+                schedulesNode.size() shouldBe 5
+
+                // 기간 > 종일 > 오전(시간) > 오후(동일 시간, 생성순) 테스트
+                schedulesNode[0].path("title").asText() shouldBe "기간 프로젝트"
+                schedulesNode[1].path("title").asText() shouldBe "종일 행사"
+                schedulesNode[2].path("title").asText() shouldBe "오전 회의"
+                schedulesNode[3].path("title").asText() shouldBe "오후 회의 A"
+                schedulesNode[4].path("title").asText() shouldBe "오후 회의 B"
+            }
+        }
     }
 })
