@@ -44,7 +44,7 @@ public class CalendarController {
 	public ApiResponse<?> invite(@PathVariable("calendarId") Long calendarId,
 		@RequestBody CalendarRequestDto.Invite request,
 		@RequestMember Member member) {
-		calendarService.inviteMember(calendarId, member, request.getMemberId());
+		calendarService.inviteMembers(calendarId, member, request.getMemberIds());
 		return ApiResponse.onSuccess();
 	}
 

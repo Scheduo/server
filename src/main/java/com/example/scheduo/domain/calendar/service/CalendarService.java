@@ -1,11 +1,13 @@
 package com.example.scheduo.domain.calendar.service;
 
+import java.util.List;
+
 import com.example.scheduo.domain.calendar.dto.CalendarRequestDto;
 import com.example.scheduo.domain.calendar.dto.CalendarResponseDto;
 import com.example.scheduo.domain.member.entity.Member;
 
 public interface CalendarService {
-	void inviteMember(Long calendarId, Member inviter, Long inviteeId);
+	void inviteMembers(Long calendarId, Member inviter, List<Long> inviteeIds);
 
 	void acceptInvitation(Long calendarId, Member member);
 
@@ -19,7 +21,8 @@ public interface CalendarService {
 
 	CalendarResponseDto.CalendarInfoList getCalendars(Member member);
 
-	void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request, Long requesterId);
+	void updateParticipantRole(Long calendarId, Long participantId, CalendarRequestDto.UpdateParticipantRole request,
+		Long requesterId);
 
 	void removeParticipant(Long calendarId, Long participantId, Long requesterId);
 

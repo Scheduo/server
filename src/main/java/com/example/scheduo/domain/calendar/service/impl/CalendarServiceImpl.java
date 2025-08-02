@@ -2,7 +2,9 @@ package com.example.scheduo.domain.calendar.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -39,7 +41,7 @@ public class CalendarServiceImpl implements CalendarService {
 
 	@Override
 	@Transactional
-	public void inviteMember(Long calendarId, Member inviter, Long inviteeId) {
+	public void inviteMembers(Long calendarId, Member inviter, List<Long> inviteeIds) {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
@@ -47,40 +49,45 @@ public class CalendarServiceImpl implements CalendarService {
 			throw new ApiException(ResponseStatus.MEMBER_NOT_OWNER);
 		}
 
-		Member invitee = memberRepository.findById(inviteeId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.MEMBER_NOT_FOUND));
+		Participant owner = calendar.getOwner();
 
-		Optional<Participant> existingParticipant = calendar.findParticipant(inviteeId);
+		//초대 대상 멤버 조회
+		List<Member> invitees = memberRepository.findAllById(inviteeIds);
 
-		if (existingParticipant.isPresent()) {
-			existingParticipant.get().reinvite();
-			applicationEventPublisher.publishEvent(
-				CalendarInvitationEvent.builder()
-					.calendarId(calendarId)
-					.calendarName(calendar.getName())
-					.invitee(invitee)
-					.inviterName(calendar.getOwner().getNickname())
-					.build());
-			return;
+		// 참여자 목록을 Map<Long, Participant>로 변환
+		Map<Long, Participant> participantMap = calendar.getParticipants()
+			.stream()
+			.collect(Collectors.toMap(participant -> participant.getMember().getId(), Function.identity()));
+
+		// 모든 초대 대상 처리
+		for (Member member : invitees) {
+			Participant participant = participantMap.get(member.getId());
+			boolean notify;
+			if (participant != null) {
+				participant.reinvite();
+				notify = participant.getStatus() != ParticipationStatus.ACCEPTED;
+			} else {
+				participant = Participant.builder()
+					.calendar(calendar)
+					.nickname(member.getNickname())
+					.member(member)
+					.status(ParticipationStatus.PENDING)
+					.role(Role.VIEW)
+					.build();
+				calendar.addParticipant(participant);
+				notify = true;
+			}
+
+			if (notify) {
+				applicationEventPublisher.publishEvent(
+					CalendarInvitationEvent.builder()
+						.calendarId(calendarId)
+						.calendarName(calendar.getName())
+						.invitee(member)
+						.inviterName(owner.getNickname())
+						.build());
+			}
 		}
-
-		Participant participant = Participant.builder()
-			.calendar(calendar)
-			.nickname(invitee.getNickname())
-			.member(invitee)
-			.status(ParticipationStatus.PENDING)
-			.role(Role.VIEW)
-			.build();
-
-		calendar.addParticipant(participant);
-
-		applicationEventPublisher.publishEvent(
-			CalendarInvitationEvent.builder()
-				.calendarId(calendarId)
-				.calendarName(calendar.getName())
-				.invitee(invitee)
-				.inviterName(calendar.getOwner().getNickname())
-				.build());
 	}
 
 	@Override
@@ -125,33 +132,24 @@ public class CalendarServiceImpl implements CalendarService {
 
 		if (requestParticipants != null && !requestParticipants.isEmpty()) {
 
-			List<Long> participantMemberIds = requestParticipants.stream()
-				.map(CalendarRequestDto.Participant::getMemberId)
-				.toList();
+			Map<Long, Role> roleMap = requestParticipants.stream()
+				.collect(Collectors.toMap(CalendarRequestDto.Participant::getMemberId,
+					CalendarRequestDto.Participant::getRole));
 
-			List<Member> members = memberRepository.findAllById(participantMemberIds);
+			List<Member> members = memberRepository.findAllById(roleMap.keySet());
 
-			if (members.size() != participantMemberIds.size()) {
-				throw new ApiException(ResponseStatus.MEMBER_NOT_FOUND);
-			}
-
-			List<Participant> participants = members.stream().map(member -> {
-				Role role = requestParticipants.stream()
-					.filter(p -> p.getMemberId().equals(member.getId()))
-					.map(CalendarRequestDto.Participant::getRole)
-					.findFirst()
-					.orElse(Role.VIEW);
-
-				return Participant.builder()
+			List<Participant> participants = members.stream()
+				.map(member -> Participant.builder()
 					.member(member)
+					.role(roleMap.get(member.getId()))
 					.nickname(member.getNickname())
-					.role(role)
 					.status(ParticipationStatus.PENDING)
-					.build();
-			}).toList();
+					.build())
+				.toList();
 
 			calendar.addParticipants(participants);
 		}
+
 		calendarRepository.save(calendar);
 
 		for (Participant participant : calendar.getParticipants()) {
@@ -164,10 +162,9 @@ public class CalendarServiceImpl implements CalendarService {
 					.calendarId(calendar.getId())
 					.calendarName(calendar.getName())
 					.invitee(invitee)
-					.inviterName(owner.getNickname())
+					.inviterName(ownerParticipant.getNickname())
 					.build());
 		}
-
 		return CalendarResponseDto.CalendarInfo.from(calendar);
 	}
 

@@ -60,7 +60,8 @@ class CalendarControllerTest(
         context("정상 초대 요청일 경우") {
             it("200 OK를 반환한다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
-                val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
+                val invitee1 = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
+                val invitee2 = memberRepository.save(createMember(email = "test3@gmail.com", nickname = "test3"))
                 val calendar = calendarRepository.save(createCalendar())
                 participantRepository.save(
                     createParticipant(
@@ -72,22 +73,33 @@ class CalendarControllerTest(
                     )
                 )
                 val validToken = jwtFixture.createValidToken(owner.id)
-                val body = mapOf("memberId" to invitee.id)
+                val body = mapOf("memberIds" to listOf(invitee1.id, invitee2.id))
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
 
                 res.assertSuccess(response)
 
                 await().atMost(1, TimeUnit.SECONDS).untilAsserted {
-                    val notifications = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee.id)
-                    notifications.size shouldBe 1
-                    notifications[0].message shouldBe NotificationType.CALENDAR_INVITATION.createMessage(
+                    val notifications1 = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee1.id)
+                    notifications1.size shouldBe 1
+                    notifications1[0].message shouldBe NotificationType.CALENDAR_INVITATION.createMessage(
                         mapOf(
                             "calendarId" to calendar.id,
                             "calendarName" to calendar.name,
                             "inviterName" to owner.nickname
                         )
                     )
-                    notifications[0].data["calendarId"] shouldBe calendar.id
+                    notifications1[0].data["calendarId"] shouldBe calendar.id
+
+                    val notifications2 = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee2.id)
+                    notifications2.size shouldBe 1
+                    notifications2[0].message shouldBe NotificationType.CALENDAR_INVITATION.createMessage(
+                        mapOf(
+                            "calendarId" to calendar.id,
+                            "calendarName" to calendar.name,
+                            "inviterName" to owner.nickname
+                        )
+                    )
+                    notifications2[0].data["calendarId"] shouldBe calendar.id
                 }
             }
         }
@@ -97,7 +109,7 @@ class CalendarControllerTest(
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
                 val validToken = jwtFixture.createValidToken(owner.id)
-                val body = mapOf("memberId" to invitee.id)
+                val body = mapOf("memberIds" to listOf(invitee.id))
                 val response = req.post("/calendars/999/invite", body, validToken)
 
                 res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
@@ -119,7 +131,7 @@ class CalendarControllerTest(
                     )
                 )
                 val validToken = jwtFixture.createValidToken(invitee.id)
-                val body = mapOf("memberId" to invitee.id)
+                val body = mapOf("memberIds" to listOf(invitee.id))
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
 
                 res.assertFailure(response, ResponseStatus.MEMBER_NOT_OWNER)
@@ -127,7 +139,7 @@ class CalendarControllerTest(
         }
 
         context("초대할 멤버가 존재하지 않는 경우") {
-            it("404 Not Found를 반환한다") {
+            it("200 OK를 반환하고 알림을 보내지 않는다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val calendar = calendarRepository.save(createCalendar())
                 participantRepository.save(
@@ -140,15 +152,15 @@ class CalendarControllerTest(
                     )
                 )
                 val validToken = jwtFixture.createValidToken(owner.id)
-                val body = mapOf("memberId" to 999)
-                val response = req.post("/calendars/${calendar.id}/invite?memberId=${owner.id}", body, validToken)
+                val body = mapOf("memberIds" to listOf(999))
+                val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
 
-                res.assertFailure(response, ResponseStatus.MEMBER_NOT_FOUND)
+                res.assertSuccess(response)
             }
         }
 
         context("초대할 멤버가 이미 초대된 경우") {
-            it("409 Conflict를 반환한다") {
+            it("200 OK를 반환하고 알림을 보낸다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
                 val calendar = calendarRepository.save(createCalendar())
@@ -169,15 +181,27 @@ class CalendarControllerTest(
                         participationStatus = ParticipationStatus.PENDING
                     )
                 )
-                val body = mapOf("memberId" to invitee.id)
+                val body = mapOf("memberIds" to listOf(invitee.id))
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
+                res.assertSuccess(response)
 
-                res.assertFailure(response, ResponseStatus.MEMBER_ALREADY_INVITED)
+                await().atMost(1, TimeUnit.SECONDS).untilAsserted {
+                    val notifications1 = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee.id)
+                    notifications1.size shouldBe 1
+                    notifications1[0].message shouldBe NotificationType.CALENDAR_INVITATION.createMessage(
+                        mapOf(
+                            "calendarId" to calendar.id,
+                            "calendarName" to calendar.name,
+                            "inviterName" to owner.nickname
+                        )
+                    )
+                    notifications1[0].data["calendarId"] shouldBe calendar.id
+                }
             }
         }
 
         context("초대할 멤버가 이미 참여 중인 경우") {
-            it("409 Conflict를 반환한다") {
+            it("200 OK를 반환하고 알림을 보내지 않는다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
                 val calendar = calendarRepository.save(createCalendar())
@@ -198,15 +222,20 @@ class CalendarControllerTest(
                         participationStatus = ParticipationStatus.ACCEPTED
                     )
                 )
-                val body = mapOf("memberId" to invitee.id)
+                val body = mapOf("memberIds" to listOf(invitee.id))
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
 
-                res.assertFailure(response, ResponseStatus.MEMBER_ALREADY_PARTICIPANT)
+                res.assertSuccess(response)
+
+                await().atMost(1, TimeUnit.SECONDS).untilAsserted {
+                    val notifications1 = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee.id)
+                    notifications1.size shouldBe 0
+                }
             }
         }
 
         context("초대할 멤버가 초대를 이미 거부한 경우") {
-            it("200 OK를 반환하고 상태를 PENDING으로 변경한다") {
+            it("200 OK를 반환하고 상태를 PENDING으로 변경하고 알림을 보낸다") {
                 val owner = memberRepository.save(createMember(nickname = "test1"))
                 val invitee = memberRepository.save(createMember(email = "test2@gmail.com", nickname = "test2"))
                 val calendar = calendarRepository.save(createCalendar())
@@ -227,7 +256,7 @@ class CalendarControllerTest(
                         participationStatus = ParticipationStatus.DECLINED
                     )
                 )
-                val body = mapOf("memberId" to invitee.id)
+                val body = mapOf("memberIds" to listOf(invitee.id))
                 val response = req.post("/calendars/${calendar.id}/invite", body, validToken)
 
                 res.assertSuccess(response)
@@ -532,6 +561,7 @@ class CalendarControllerTest(
                 val owner = memberRepository.save(createMember())
                 val token = jwtFixture.createValidToken(owner.id)
 
+
                 val request = mapOf(
                     "title" to "Test Calendar",
                     "participants" to listOf(
@@ -548,8 +578,9 @@ class CalendarControllerTest(
         }
 
         context("참가할 멤버가 존재하지 않는 경우") {
-            it("404 Not Found를 반환한다") {
-                val owner = memberRepository.save(createMember())
+            it("해당 멤버를 제외하고 캘린더를 생성하고 200 OK를 반환한다") {
+                val owner = memberRepository.save(createMember(nickname = "owner"))
+                val invitee = memberRepository.save(createMember())
                 val token = jwtFixture.createValidToken(owner.id)
 
                 val request = mapOf(
@@ -558,12 +589,37 @@ class CalendarControllerTest(
                         mapOf(
                             "memberId" to 999,
                             "role" to "VIEW"
+                        ),
+                        mapOf(
+                            "memberId" to invitee.id,
+                            "role" to "EDIT"
                         )
                     )
                 )
                 val response = req.post("/calendars", request, token)
 
-                res.assertFailure(response, ResponseStatus.MEMBER_NOT_FOUND)
+                res.assertSuccess(response)
+
+                val json = objectMapper.readTree(response.contentAsString)
+                val calendarName = json["data"]["title"].asText()
+                val calendarId = json["data"]["calendarId"].asLong()
+
+                calendarName shouldBe request["title"]
+
+                await().atMost(1, TimeUnit.SECONDS).untilAsserted {
+                    val notification1 = notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(invitee.id)
+                    notification1.size shouldBe 1
+                    notification1[0].message shouldBe NotificationType.CALENDAR_INVITATION.createMessage(
+                        mapOf(
+                            "calendarId" to calendarId,
+                            "calendarName" to calendarName,
+                            "inviterName" to owner.nickname
+                        )
+                    )
+                    notification1[0].data["calendarId"] shouldBe calendarId
+
+                }
+
             }
         }
     }
