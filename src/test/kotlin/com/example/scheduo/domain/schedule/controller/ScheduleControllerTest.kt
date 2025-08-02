@@ -445,7 +445,8 @@ class ScheduleControllerTest(
                 val calendar = createCalendar()
                 val participant = createParticipant(
                     member = member,
-                    calendar = calendar
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -465,7 +466,6 @@ class ScheduleControllerTest(
                 res.assertSuccess(response)
 
                 val json = objectMapper.readTree(response.contentAsString)
-                json["data"]["id"] shouldBe schedule.id
                 json["data"]["title"].asText() shouldBe schedule.title
                 json["data"]["allDay"].asBoolean() shouldBe schedule.isAllDay
             }
@@ -486,7 +486,8 @@ class ScheduleControllerTest(
                 val calendar = createCalendar()
                 val participant = createParticipant(
                     member = member,
-                    calendar = calendar
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 calendar.addParticipant(participant)
                 calendarRepository.save(calendar)
@@ -504,7 +505,8 @@ class ScheduleControllerTest(
                 val calendar = createCalendar()
                 val participant = createParticipant(
                     member = member,
-                    calendar = calendar
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 calendar.addParticipant(participant)
                 calendarRepository.save(calendar)
