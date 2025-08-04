@@ -36,6 +36,7 @@ public class ScheduleController {
 		return ApiResponse.onSuccess();
 	}
 
+	@Operation(summary = "일정 월별 조회", description = "해당 캘린더의 월별 일정을 조회합니다.")
 	@GetMapping("/calendars/{calendarId}/schedules/monthly")
 	public ApiResponse<ScheduleResponseDto.SchedulesOnMonth> getScheduleOnMonth(
 		@RequestMember Member member,
@@ -56,8 +57,9 @@ public class ScheduleController {
 		return ApiResponse.onSuccess(res);
 	}
 
+	@Operation(summary = "일정 상세 조회", description = "해당 일정의 상세 정보를 조회합니다.")
 	@GetMapping("/calendars/{calendarId}/schedules/{scheduleId}")
-	public ApiResponse<?> getScheduleInfo(
+	public ApiResponse<ScheduleResponseDto.ScheduleInfo> getScheduleInfo(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,
 		@PathVariable("scheduleId") Long scheduleId

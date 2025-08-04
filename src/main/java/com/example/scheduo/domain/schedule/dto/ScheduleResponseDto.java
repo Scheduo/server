@@ -112,8 +112,7 @@ public class ScheduleResponseDto {
 		private String category;
 		private String memo;
 		private String notificationTime;
-		private String frequency;
-		private LocalDate recurrenceEndDate;
+		private Recurrence recurrence;
 
 		public static ScheduleInfo from(com.example.scheduo.domain.schedule.entity.Schedule schedule) {
 			String frequency = schedule.getRecurrence() != null
@@ -131,9 +130,18 @@ public class ScheduleResponseDto {
 				schedule.getCategory().getName(),
 				schedule.getMemo(),
 				schedule.getNotificationTime() != null ? schedule.getNotificationTime().name() : null,
-				frequency,
-				schedule.getRecurrence() != null ? schedule.getRecurrence().getRecurrenceEndDate() : null
+				schedule.getRecurrence() != null
+					? new Recurrence(frequency, schedule.getRecurrence().getRecurrenceEndDate())
+					: null
 			);
 		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Recurrence {
+		private String frequency;
+		private LocalDate recurrenceEndDate;
 	}
 }
