@@ -72,47 +72,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 		scheduleRepository.save(schedule);
 	}
 
-	// TODO: 월별 조회 일정 로직 구현 필요
-
-	// TODO: prefetching(지난달(5) - 이번달(6) - 다음달(7))
-	// 캘린더 6월 -> 6.1(월) ~ 6.30(금) -> 5.30(일) ~ 7.1(일)
-	// 구현 방법 : """클라 쿼리 3번"""(선택) vs. 서버 3달치 전송
-	// 고려사항 : 요청 -> dirty check -> 클라(해시)
-	// TODO: 쿼리가 너무 늦음(캐싱, 쿼리 최적화)
 	// TODO: 예외 조건 추가(rrule - exception 테이블) (수정 api 선 작업 후 진행)
-
-	// 테스트코드
-
-	/**
-	 *
-	 *
-	 * 단일일정
-	 * 반복일정(매일)
-	 * 반복일정(매주)
-	 * 반복일정(매달)
-	 * 반복일정(매년)
-	 *
-	 * ----------------
-	 *
-	 * 단일일정(반복x) 조회
-	 * 단일일정(반복o) 조회
-	 * 기간일정(반복x) 조회
-	 * 기간일정(반복o) 조회
-	 * 기간일정(2달 걸쳐있는거) 조회
-	 *
-	 *
-	 */
-
 	@Override
 	public ScheduleResponseDto.SchedulesOnMonth getSchedulesOnMonth(Member member, Long calendarId, String date) {
-		/**
-		 * 로직 => 월별조회
-		 * 1. 캘린더에 멤버가 속해있는지 검증
-		 * 2. month에 대한 schedule db 쿼리 날리기
-		 * 3. 단일 일정 조회
-		 * 4. 반복 일정 조회 -> 직접 일정을 생성
-		 * 5. 예외 조건 추가
-		 */
 		// 캘린더 조회
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
@@ -123,15 +85,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		LocalDate parsedDate = LocalDate.parse(date);
 		LocalDate firstDayOfMonth = parsedDate.withDayOfMonth(1);
-		// DATE to MONTH 파싱 로직
-		// 1. start || end를 기준으로 가져옴, 여러날 일정을 만듬, 만약 그 달에 속하지 않는다면 거름..?
-		int year = LocalDate.parse(date).getYear();
-		int month = LocalDate.parse(date).getMonthValue();
-		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByStartMonthAndEndMonth(year, month,
-			calendarId);
-
-		// recurrence에서 enddate를 기준으로 지나지 않은 일정 조회
-		LocalDate firstDayOfMonth = LocalDate.parse(date).withDayOfMonth(1);
 		LocalDate lastDayOfMonth = firstDayOfMonth.withDayOfMonth(firstDayOfMonth.lengthOfMonth());
 
 		// 단일 일정 조회
@@ -185,14 +138,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 	@Override
 	public ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate(Member member, Long calendarId, String date) {
-		/**
-		 * 특정 캘린더 + 특정 날짜의 모든 일정 조회 로직
-		 * 1. 캘린더에 해당하는 해당 날짜 일의 단일 일정 조회
-		 * 2. 캘린더에 해당하는 반복 일정이 있는 모든 일정 조회
-		 * 3. 반복을 적용시켜 실제 일정으로 생성
-		 * 4. 두 일정을 합친 후 애플리케이션에서 필터링
-		 * 5. 반환
-		 */
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
@@ -206,7 +151,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByDate(targetDate, calendarId);
 
 		// 반복 일정 조회 (해당 날짜가 포함될 수 있는 모든 반복 일정)
-		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForDate(targetDate, calendarId);
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForDate(targetDate,
+			calendarId);
 
 		List<Schedule> allSchedules = Stream.concat(
 			schedulesInSingle.stream(),
