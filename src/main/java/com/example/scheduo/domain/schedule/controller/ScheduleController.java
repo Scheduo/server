@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,6 +67,19 @@ public class ScheduleController {
 	) {
 		ScheduleResponseDto.ScheduleInfo result = scheduleService.getScheduleInfo(member, calendarId, scheduleId);
 		return ApiResponse.onSuccess(result);
+	}
+
+	@PatchMapping("/calendars/{calendarId}/schedules/{scheduleId}")
+	@Operation(summary = "일정 수정", description = "해당 일정의 정보를 수정합니다.")
+	public ApiResponse<?> updateSchedule(
+		@RequestMember Member member,
+		@PathVariable("calendarId") Long calendarId,
+		@PathVariable("scheduleId") Long scheduleId,
+		@RequestParam("date") String date,
+		@Valid @RequestBody ScheduleRequestDto.Update request
+	) {
+		scheduleService.updateSchedule(request, member, calendarId, scheduleId, date);
+		return ApiResponse.onSuccess();
 	}
 
 }

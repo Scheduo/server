@@ -137,6 +137,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 	}
 
 	@Override
+	@Transactional
 	public ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate(Member member, Long calendarId, String date) {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
@@ -179,6 +180,120 @@ public class ScheduleServiceImpl implements ScheduleService {
 		});
 
 		return ScheduleResponseDto.SchedulesOnDate.from(filteredSchedules);
+	}
+
+	@Override
+	@Transactional
+	public void updateSchedule(ScheduleRequestDto.Update request, Member member, Long calendarId, Long scheduleId,
+		String date) {
+		Schedule schedule = scheduleRepository.findScheduleByIdFetchJoin(scheduleId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND));
+
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		if (!schedule.getCalendar().getId().equals(calendarId)) {
+			throw new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND);
+		}
+
+		if (!calendar.canEdit(member.getId())) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+		}
+
+		Category category;
+		if (!schedule.getCategory().getName().equals(request.getCategory())) {
+			category = categoryRepository.findByName(request.getCategory())
+				.orElseThrow(() -> new ApiException(ResponseStatus.CATEGORY_NOT_FOUND));
+		} else {
+			category = schedule.getCategory();
+		}
+		// 단일 일정인 경우
+		if (schedule.getRecurrence() == null) {
+			schedule.update(
+				request.getTitle(),
+				request.isAllDay(),
+				request.getStartDate(),
+				request.getEndDate(),
+				request.getStartTime(),
+				request.getEndTime(),
+				request.getLocation(),
+				request.getMemo(),
+				request.getNotificationTime(),
+				null,
+				null,
+				category
+			);
+		} else {
+			// 반복 일정인 경우
+			// 모든 일정 수정인 경우
+			switch (request.getScope()) {
+				case ALL -> {
+					schedule.update(
+						request.getTitle(),
+						request.isAllDay(),
+						request.getStartDate(),
+						request.getEndDate(),
+						request.getStartTime(),
+						request.getEndTime(),
+						request.getLocation(),
+						request.getMemo(),
+						request.getNotificationTime(),
+						request.getRecurrence().getFrequency(),
+						request.getRecurrence().getRecurrenceEndDate(),
+						category
+					);
+				}
+				// 이 일정만 수정인 경우, Exception 테이블에 추가 + 새로운 단일 일정 생성
+				case ONLY_THIS -> {
+					Schedule newSchedule = Schedule.create(
+						request.getTitle(),
+						request.isAllDay(),
+						request.getStartDate(),
+						request.getEndDate(),
+						request.getStartTime(),
+						request.getEndTime(),
+						request.getLocation(),
+						request.getMemo(),
+						request.getNotificationTime(),
+						category,
+						schedule.getMember(),
+						schedule.getCalendar(),
+						null
+					);
+					schedule.getRecurrence().addException(date);
+					scheduleRepository.save(newSchedule);
+				}
+
+				case THIS_AND_FUTURE -> {
+					// startDate 기준으로 일정들을 2개로 나누기
+					// 기존꺼의 endDate는 startDate로 변경
+					schedule.getRecurrence().changeRecurrenceEndDate(request.getStartDate());
+
+					// startDate 이후의 일정들을 새로운 Recurrence로 생성
+					Recurrence recurrence = Recurrence.create(
+						request.getRecurrence().getFrequency(),
+						request.getRecurrence().getRecurrenceEndDate()
+					);
+					recurrence = recurrenceRepository.save(recurrence);
+					Schedule newSchedule = Schedule.create(
+						request.getTitle(),
+						request.isAllDay(),
+						request.getStartDate(),
+						request.getEndDate(),
+						request.getStartTime(),
+						request.getEndTime(),
+						request.getLocation(),
+						request.getMemo(),
+						request.getNotificationTime(),
+						category,
+						schedule.getMember(),
+						schedule.getCalendar(),
+						recurrence
+					);
+					scheduleRepository.save(newSchedule);
+				}
+			}
+		}
 	}
 
 }

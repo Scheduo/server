@@ -12,7 +12,6 @@ import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.common.BaseEntity;
 import com.example.scheduo.domain.member.entity.Member;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -146,4 +145,34 @@ public class Schedule extends BaseEntity {
 				.build())
 			.toList();
 	}
+
+	public void update(
+		String title,
+		boolean isAllDay,
+		String startDate,
+		String endDate,
+		String startTime,
+		String endTime,
+		String location,
+		String memo,
+		NotificationTime notificationTime,
+		String recurrenceRule,
+		String recurrenceEndDate,
+		Category category
+	) {
+		this.title = title;
+		this.isAllDay = isAllDay;
+		this.startDate = LocalDate.parse(startDate);
+		this.endDate = LocalDate.parse(endDate);
+		this.startTime = LocalTime.parse(isAllDay ? "00:00" : startTime);
+		this.endTime = LocalTime.parse(isAllDay ? "23:59" : endTime);
+		this.location = location;
+		this.memo = memo;
+		this.notificationTime = notificationTime;
+		this.category = category;
+		if (recurrenceRule != null && recurrenceEndDate != null) {
+			this.recurrence.updateRecurrence(recurrenceRule, recurrenceEndDate);
+		}
+	}
+
 }
