@@ -81,7 +81,6 @@ public class Recurrence {
 			.exceptionDate(date)
 			.build();
 		this.exceptions.add(exception);
-		exception.setRecurrence(this);
 	}
 
 	public void changeRecurrenceEndDate(String recurrenceEndDate) {

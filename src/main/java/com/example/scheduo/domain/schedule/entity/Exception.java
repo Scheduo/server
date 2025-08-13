@@ -36,8 +36,4 @@ public class Exception {
 	private Recurrence recurrence;
 
 	private LocalDate exceptionDate;
-
-	public void setRecurrence(Recurrence recurrence) {
-		this.recurrence = recurrence;
-	}
 }
