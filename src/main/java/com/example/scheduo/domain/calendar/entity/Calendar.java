@@ -130,4 +130,10 @@ public class Calendar extends BaseEntity {
 			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND))
 			.isAccepted();
 	}
+
+	public boolean canEdit(Long memberId) {
+		return this.findParticipant(memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND))
+			.getRole() == Role.EDIT || this.isOwner(memberId);
+	}
 }
