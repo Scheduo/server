@@ -63,9 +63,10 @@ public class ScheduleController {
 	public ApiResponse<ScheduleResponseDto.ScheduleInfo> getScheduleInfo(
 		@RequestMember Member member,
 		@PathVariable("calendarId") Long calendarId,
-		@PathVariable("scheduleId") Long scheduleId
+		@PathVariable("scheduleId") Long scheduleId,
+		@RequestParam("date") String date
 	) {
-		ScheduleResponseDto.ScheduleInfo result = scheduleService.getScheduleInfo(member, calendarId, scheduleId);
+		ScheduleResponseDto.ScheduleInfo result = scheduleService.getScheduleInfo(member, calendarId, scheduleId, date);
 		return ApiResponse.onSuccess(result);
 	}
 
