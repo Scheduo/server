@@ -69,4 +69,16 @@ public class ScheduleController {
 		return ApiResponse.onSuccess(result);
 	}
 
+	@Operation(summary = "캘린더 별 기간별 일정 조회", description = "해당 캘린더의 지정된 기간 동안의 모든 일정을 조회합니다.")
+	@GetMapping("/calendars/{calendarId}/schedules/range")
+	public ApiResponse<ScheduleResponseDto.SchedulesInRange> getSchedulesInRange(
+		@RequestMember Member member,
+		@PathVariable("calendarId") Long calendarId,
+		@RequestParam("startDate") String startDate,
+		@RequestParam("endDate") String endDate
+	) {
+		ScheduleResponseDto.SchedulesInRange res = scheduleService.getSchedulesInRange(member, calendarId, startDate, endDate);
+		return ApiResponse.onSuccess(res);
+	}
+
 }
