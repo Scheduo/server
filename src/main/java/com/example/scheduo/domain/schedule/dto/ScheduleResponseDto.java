@@ -2,6 +2,7 @@ package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +50,6 @@ public class ScheduleResponseDto {
 			return new SchedulesOnDate(scheduleOnDates);
 		}
 	}
-
 
 	@Getter
 	@NoArgsConstructor
@@ -114,16 +114,29 @@ public class ScheduleResponseDto {
 		private String notificationTime;
 		private Recurrence recurrence;
 
-		public static ScheduleInfo from(com.example.scheduo.domain.schedule.entity.Schedule schedule) {
+		public static ScheduleInfo from(com.example.scheduo.domain.schedule.entity.Schedule schedule, String date) {
 			String frequency = schedule.getRecurrence() != null
 				? schedule.getRecurrence().getFrequency()
 				: null;
+
+			LocalDate startDate = (date == null || date.isBlank())
+				? schedule.getStartDate()
+				: LocalDate.parse(date);
+
+			LocalDate endDate;
+			if (date == null || date.isBlank()) {
+				endDate = schedule.getEndDate();
+			} else {
+				long daysDiff = ChronoUnit.DAYS.between(schedule.getStartDate(), schedule.getEndDate());
+				endDate = startDate.plusDays(daysDiff);
+			}
+
 			return new ScheduleInfo(
 				schedule.getId(),
 				schedule.getTitle(),
 				schedule.isAllDay(),
-				schedule.getStartDate(),
-				schedule.getEndDate(),
+				startDate,
+				endDate,
 				schedule.getStartTime().toString(),
 				schedule.getEndTime().toString(),
 				schedule.getLocation(),

@@ -12,7 +12,6 @@ import com.example.scheduo.domain.calendar.entity.Calendar;
 import com.example.scheduo.domain.common.BaseEntity;
 import com.example.scheduo.domain.member.entity.Member;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -145,5 +144,10 @@ public class Schedule extends BaseEntity {
 				.recurrence(recurrence)
 				.build())
 			.toList();
+	}
+
+	public boolean includesDate(LocalDate date) {
+		List<Schedule> schedules = this.createSchedulesFromRecurrence();
+		return schedules.stream().anyMatch(schedule -> schedule.getStartDate().isEqual(date));
 	}
 }
