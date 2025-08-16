@@ -181,4 +181,52 @@ public class ScheduleServiceImpl implements ScheduleService {
 		return ScheduleResponseDto.SchedulesOnDate.from(filteredSchedules);
 	}
 
+
+	@Override
+	public ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate) {
+		// 1. 캘린더 확인
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		// 2. 권한 확인
+		if (!calendar.validateParticipant(member.getId()))
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+
+		// 기간 파싱
+		LocalDate rangeStartDate = LocalDate.parse(startDate);
+		LocalDate rangeEndDate = LocalDate.parse(endDate);
+
+		// 3. 기간 동안의 단일 일정 확인
+		List<Schedule> schedulesInRange = scheduleRepository.findSchedulesByDateRange(rangeStartDate, rangeEndDate, calendarId);
+
+		// 4. 반복 일정일 때, 해당 기간에 속하는 일정 찾기
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForRange(
+			rangeStartDate, rangeEndDate, calendarId);
+
+		List<Schedule> allSchedules = Stream.concat(
+			schedulesInRange.stream(),
+			schedulesWithRecurrence.stream().flatMap(s -> s.createSchedulesFromRecurrence().stream())
+		).toList();
+
+		// 기간 내 일정 필터링
+		List<Schedule> filteredSchedules = allSchedules.stream()
+			.filter(s -> !s.getEndDate().isBefore(rangeStartDate) && !s.getStartDate().isAfter(rangeEndDate))
+			.collect(Collectors.toList());
+
+		// 5. 정렬하는 로직 수행
+		filteredSchedules.sort((s1, s2) -> {
+			// 1. 날짜별 정렬
+			if (!s1.getStartDate().equals(s2.getStartDate()))
+				return s1.getStartDate().compareTo(s2.getStartDate());
+
+			// 2. 시작 시간별 정렬
+			if (!s1.getStartTime().equals(s2.getStartTime()))
+				return s1.getStartTime().compareTo(s2.getStartTime());
+
+			// 3. 생성 시간별 정렬
+			return s1.getCreatedAt().compareTo(s2.getCreatedAt());
+		});
+
+		return ScheduleResponseDto.SchedulesInRange.from(filteredSchedules);
+	}
 }
