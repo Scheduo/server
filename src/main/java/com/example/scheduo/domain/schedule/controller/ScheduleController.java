@@ -49,6 +49,7 @@ public class ScheduleController {
 	}
 
 	@Operation(summary = "캘린더 별 특정 날짜의 일정 조회", description = "해당 캘린더의 특정 날짜의 모든 일정을 조회합니다.")
+	@Operation(summary = "일정 날짜별 조회", description = "해당 캘린더의 특정 날짜에 일정을 조회합니다.")
 	@GetMapping("/calendars/{calendarId}/schedules")
 	public ApiResponse<ScheduleResponseDto.SchedulesOnDate> getScheduleOnDate(
 		@RequestMember Member member,

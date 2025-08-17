@@ -504,8 +504,8 @@ class ScheduleControllerTest(
                 schedulesNode.size() shouldBe 2
 
                 val scheduleDetails = schedulesNode.map { it.path("title").asText() to it.path("startTime").asText() }
-                scheduleDetails.contains("아침 회의" to "09:00:00") shouldBe true
-                scheduleDetails.contains("오후 미팅" to "14:00:00") shouldBe true
+                scheduleDetails.contains("아침 회의" to "09:00") shouldBe true
+                scheduleDetails.contains("오후 미팅" to "14:00") shouldBe true
             }
         }
 
