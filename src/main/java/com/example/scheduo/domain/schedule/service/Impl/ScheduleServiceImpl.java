@@ -119,7 +119,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 	}
 
 	@Override
-	public ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId) {
+	public ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId,
+		String date) {
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
@@ -133,7 +134,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 		if (!schedule.getCalendar().getId().equals(calendarId)) {
 			throw new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND);
 		}
-		return ScheduleResponseDto.ScheduleInfo.from(schedule);
+
+		LocalDate parsedDate = LocalDate.parse(date);
+		if (!schedule.includesDate(parsedDate)) {
+			return ScheduleResponseDto.ScheduleInfo.from(schedule, null);
+		}
+		return ScheduleResponseDto.ScheduleInfo.from(schedule, date);
 	}
 
 	@Override

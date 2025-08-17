@@ -175,4 +175,9 @@ public class Schedule extends BaseEntity {
 		}
 	}
 
+
+	public boolean includesDate(LocalDate date) {
+		List<Schedule> schedules = this.createSchedulesFromRecurrence();
+		return schedules.stream().anyMatch(schedule -> schedule.getStartDate().isEqual(date));
+	}
 }

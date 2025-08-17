@@ -11,7 +11,7 @@ public interface ScheduleService {
 
 	ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate(Member member, Long calendarId, String date);
 
-	ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId);
+	ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId, String date);
 
 	void updateSchedule(ScheduleRequestDto.Update request, Member member, Long calendarId, Long scheduleId,
 		String date);
