@@ -1,6 +1,6 @@
 package com.example.scheduo.domain.schedule.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -35,5 +35,5 @@ public class Exception {
 	@JoinColumn(name = "recurrenceId")
 	private Recurrence recurrence;
 
-	private Date exceptionDate;
+	private LocalDate exceptionDate;
 }

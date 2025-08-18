@@ -445,9 +445,9 @@ class ScheduleControllerTest(
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 val category = categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -455,35 +455,35 @@ class ScheduleControllerTest(
 
                 // 2025-07-15 당일 일정들
                 val morningSchedule = createSchedule(
-                        title = "아침 회의",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        startTime = "09:00",
-                        endTime = "10:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "아침 회의",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    startTime = "09:00",
+                    endTime = "10:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
                 val afternoonSchedule = createSchedule(
-                        title = "오후 미팅",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        startTime = "14:00",
-                        endTime = "15:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "오후 미팅",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    startTime = "14:00",
+                    endTime = "15:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
                 // 다른 날짜 일정 (포함되면 안됨)
                 val otherDaySchedule = createSchedule(
-                        title = "다른 날 일정",
-                        startDate = "2025-07-16",
-                        endDate = "2025-07-16",
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "다른 날 일정",
+                    startDate = "2025-07-16",
+                    endDate = "2025-07-16",
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 scheduleRepository.save(morningSchedule)
@@ -515,9 +515,9 @@ class ScheduleControllerTest(
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 val category = categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -525,25 +525,25 @@ class ScheduleControllerTest(
 
                 // 2025-07-15를 포함하는 기간 일정
                 val periodSchedule = createSchedule(
-                        title = "3일간 워크샵",
-                        startDate = "2025-07-14",
-                        endDate = "2025-07-16",
-                        isAllDay = true,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "3일간 워크샵",
+                    startDate = "2025-07-14",
+                    endDate = "2025-07-16",
+                    isAllDay = true,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
                 // 당일 일정
                 val daySchedule = createSchedule(
-                        title = "당일 회의",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        startTime = "14:00",
-                        endTime = "15:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "당일 회의",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    startTime = "14:00",
+                    endTime = "15:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 scheduleRepository.save(periodSchedule)
@@ -577,32 +577,32 @@ class ScheduleControllerTest(
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 val category = categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
                 calendarRepository.save(calendar)
 
                 val weeklyRecurrence = createRecurrence(
-                        frequency = "WEEKLY",
-                        recurrenceEndDate = "2025-12-31"
+                    frequency = "WEEKLY",
+                    recurrenceEndDate = "2025-12-31"
                 )
                 recurrenceRepository.save(weeklyRecurrence)
 
                 // 매주 월요일 반복 일정
                 val recurringSchedule = createSchedule(
-                        title = "주간 회의",
-                        startDate = "2025-07-14", // 월요일 시작
-                        endDate = "2025-07-14",
-                        startTime = "10:00",
-                        endTime = "11:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category,
-                        recurrence = weeklyRecurrence
+                    title = "주간 회의",
+                    startDate = "2025-07-14", // 월요일 시작
+                    endDate = "2025-07-14",
+                    startTime = "10:00",
+                    endTime = "11:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category,
+                    recurrence = weeklyRecurrence
                 )
                 scheduleRepository.save(recurringSchedule)
 
@@ -628,9 +628,9 @@ class ScheduleControllerTest(
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 val category = categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -640,73 +640,73 @@ class ScheduleControllerTest(
 
                 // 1. 기간 일정 (시작일 < 대상일 = 가장 상단에 배치)
                 val periodSchedule = createSchedule(
-                        title = "기간 프로젝트",
-                        startDate = "2025-07-14",
-                        endDate = "2025-07-16",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "기간 프로젝트",
+                    startDate = "2025-07-14",
+                    endDate = "2025-07-16",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 // 2. 종일 일정 (당일, 종일 = 기간아님 → 두 번째)
                 val allDaySchedule = createSchedule(
-                        title = "종일 행사",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        isAllDay = true,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "종일 행사",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    isAllDay = true,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 // 3. 시간 일정 (당일, 14:00 시작, 먼저 생성)
                 val timeScheduleA = createSchedule(
-                        title = "오후 회의 A",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        startTime = "14:00",
-                        endTime = "15:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "오후 회의 A",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    startTime = "14:00",
+                    endTime = "15:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 // 4. 시간 일정 (당일, 14:00 시작, 같은 시간, 더 나중에 생성)
                 val timeScheduleB = createSchedule(
-                        title = "오후 회의 B",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        startTime = "14:00",
-                        endTime = "16:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "오후 회의 B",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    startTime = "14:00",
+                    endTime = "16:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 // 5. 시간 일정 (당일, 09:00 시작, 날짜 기준으로 A/B보다 윗줄)
                 val morningSchedule = createSchedule(
-                        title = "오전 회의",
-                        startDate = "2025-07-15",
-                        endDate = "2025-07-15",
-                        startTime = "09:00",
-                        endTime = "10:00",
-                        isAllDay = false,
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "오전 회의",
+                    startDate = "2025-07-15",
+                    endDate = "2025-07-15",
+                    startTime = "09:00",
+                    endTime = "10:00",
+                    isAllDay = false,
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 // 6. 해당 일이 아닌 일정 (포함 안 되어야 함)
                 val otherDaySchedule = createSchedule(
-                        title = "제외 테스트",
-                        startDate = "2025-07-16",
-                        endDate = "2025-07-16",
-                        member = member,
-                        calendar = calendar,
-                        category = category
+                    title = "제외 테스트",
+                    startDate = "2025-07-16",
+                    endDate = "2025-07-16",
+                    member = member,
+                    calendar = calendar,
+                    category = category
                 )
 
                 // 일정 생성 및 저장 (createdAt 순서 적용)
@@ -740,7 +740,7 @@ class ScheduleControllerTest(
         }
     }
 
-    describe("GET /calendars/{calendarId}/schedules/{scheduleId} 요청 시") {
+    describe("GET /calendars/{calendarId}/schedules/{scheduleId}?date 요청 시") {
         context("존재하는 일정 조회 요청인 경우") {
             it("200 OK를 반환한다") {
                 val member = memberRepository.save(createMember(nickname = "test"))
@@ -759,11 +759,12 @@ class ScheduleControllerTest(
                     calendar = calendar,
                     category = categoryRepository.findAll().first(),
                 )
+                val date = schedule.startDate
                 scheduleRepository.save(schedule)
 
                 val token = jwtFixture.createValidToken(member.id)
 
-                val response = req.get("/calendars/${calendar.id}/schedules/${schedule.id}", token = token)
+                val response = req.get("/calendars/${calendar.id}/schedules/${schedule.id}?date=$date", token = token)
 
                 res.assertSuccess(response)
 
@@ -776,8 +777,9 @@ class ScheduleControllerTest(
             it("404 NOT FOUND를 반환한다") {
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val token = jwtFixture.createValidToken(member.id)
+                val date = "2025-07-01" //
 
-                val response = req.get("/calendars/999/schedules/1", token = token)
+                val response = req.get("/calendars/999/schedules/1?date=$date", token = token)
 
                 res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
             }
@@ -794,9 +796,10 @@ class ScheduleControllerTest(
                 calendar.addParticipant(participant)
                 calendarRepository.save(calendar)
 
+                val date = "2025-07-01" //
                 val token = jwtFixture.createValidToken(member.id)
 
-                val response = req.get("/calendars/${calendar.id}/schedules/999", token = token)
+                val response = req.get("/calendars/${calendar.id}/schedules/999?date=$date", token = token)
 
                 res.assertFailure(response, ResponseStatus.SCHEDULE_NOT_FOUND)
             }
@@ -823,11 +826,12 @@ class ScheduleControllerTest(
                     calendar = otherCalendar,
                     category = categoryRepository.findAll().first(),
                 )
+                val date = schedule.startDate
                 scheduleRepository.save(schedule)
 
                 val token = jwtFixture.createValidToken(member.id)
 
-                val response = req.get("/calendars/${calendar.id}/schedules/${schedule.id}", token = token)
+                val response = req.get("/calendars/${calendar.id}/schedules/${schedule.id}?date=$date", token = token)
 
                 res.assertFailure(response, ResponseStatus.SCHEDULE_NOT_FOUND)
             }
