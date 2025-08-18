@@ -157,4 +157,42 @@ public class ScheduleResponseDto {
 		private String frequency;
 		private LocalDate recurrenceEndDate;
 	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SchedulesInRange {
+		List<ScheduleInRange> schedules;
+
+		public static SchedulesInRange from(List<Schedule> schedules) {
+			List<ScheduleInRange> scheduleInRanges = schedules.stream()
+				.map(ScheduleInRange::from)
+				.collect(Collectors.toList());
+
+			return new SchedulesInRange(scheduleInRanges);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class ScheduleInRange {
+		private Long id;
+		private String title;
+		private String startDate;
+		private String endDate;
+		private String startTime;
+		private String endTime;
+
+		public static ScheduleInRange from(Schedule schedule) {
+			return new ScheduleInRange(
+				schedule.getId(),
+				schedule.getTitle(),
+				schedule.getStartDate().toString(),
+				schedule.getEndDate().toString(),
+				schedule.getStartTime().toString(),
+				schedule.getEndTime().toString()
+			);
+		}
+	}
 }

@@ -15,4 +15,6 @@ public interface ScheduleService {
 
 	void updateSchedule(ScheduleRequestDto.Update request, Member member, Long calendarId, Long scheduleId,
 		String date);
+
+	ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate);
 }
