@@ -365,10 +365,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
 		// 멤버 권한 확인(fromCalendar - participant이면 ok, toCalendar - participant 이면서 edit 이상)
-		if(!fromCalendar.validateParticipant(member.getId()))
-			throw new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION);
-		if(!toCalendar.validateParticipant(member.getId()))
-			throw new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION);
+		fromCalendar.validateParticipant(member.getId());
+		toCalendar.validateParticipant(member.getId());
 
 		if(!toCalendar.canEdit(member.getId()))
 			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
@@ -379,6 +377,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		// toCalendar에 새로운 일정 생성
 		List<Schedule> schedules = scheduleTimes.stream().map(st -> {
+			if(st.getStartDateTime().isAfter(st.getEndDateTime()))
+				throw new ApiException(ResponseStatus.INVALID_SCHEDULE_RANGE);
+
 			LocalDate startDate = st.getStartDateTime().toLocalDate();
 			LocalDate endDate = st.getEndDateTime().toLocalDate();
 
