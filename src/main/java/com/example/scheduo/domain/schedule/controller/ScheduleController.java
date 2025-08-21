@@ -92,7 +92,8 @@ public class ScheduleController {
 		@RequestParam("startDate") String startDate,
 		@RequestParam("endDate") String endDate
 	) {
-		ScheduleResponseDto.SchedulesInRange res = scheduleService.getSchedulesInRange(member, calendarId, startDate, endDate);
+		ScheduleResponseDto.SchedulesInRange res = scheduleService.getSchedulesInRange(member, calendarId, startDate,
+			endDate);
 		return ApiResponse.onSuccess(res);
 	}
 

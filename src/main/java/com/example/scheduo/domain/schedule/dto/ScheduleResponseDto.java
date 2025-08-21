@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -68,17 +69,18 @@ public class ScheduleResponseDto {
 	private static class ScheduleOnDate {
 		private Long id;
 		private String title;
-		private LocalTime startTime;
-		private LocalTime endTime;
+		private String startTime;
+		private String endTime;
 		private boolean isAllDay;
 		private Category category;
 
 		public static ScheduleOnDate from(Schedule schedule) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 			return new ScheduleOnDate(
 				schedule.getId(),
 				schedule.getTitle(),
-				schedule.getStartTime(),
-				schedule.getEndTime(),
+				schedule.getStartTime().format(formatter),
+				schedule.getEndTime().format(formatter),
 				schedule.isAllDay(),
 				Category.from(schedule.getCategory().getName(), schedule.getCategory().getColor())
 			);

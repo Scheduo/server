@@ -181,8 +181,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 			if (!s1.getStartTime().equals(s2.getStartTime()))
 				return s1.getStartTime().compareTo(s2.getStartTime());
 
-			// 3. 동점 처리 로직(일정 생성 기준 우선 정렬)
-			return s1.getCreatedAt().compareTo(s2.getCreatedAt());
+			// Title 기준으로 정렬
+			return s1.getTitle().compareTo(s2.getTitle());
 		});
 
 		return ScheduleResponseDto.SchedulesOnDate.from(filteredSchedules);
