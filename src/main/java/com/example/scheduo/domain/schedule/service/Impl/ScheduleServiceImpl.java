@@ -2,6 +2,7 @@ package com.example.scheduo.domain.schedule.service.Impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -353,6 +354,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 	@Override
 	public ScheduleResponseDto.SearchList searchSchedules(Member member, String keyword) {
+		if (keyword == "") {
+			return new ScheduleResponseDto.SearchList(Collections.emptyList());
+		}
+
 		// 키워드를 기반으로 내가 속해있는 캘린더의 모든 일정 검색
 		List<Schedule> myScheduleList = scheduleRepository.searchByMemberIdAndKeywordPrefix(member.getId(), keyword);
 		return ScheduleResponseDto.SearchList.from(myScheduleList);
