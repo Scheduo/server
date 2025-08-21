@@ -132,8 +132,11 @@ public class Calendar extends BaseEntity {
 	}
 
 	public boolean canEdit(Long memberId) {
-		return this.findParticipant(memberId)
-			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND))
-			.getRole() == Role.EDIT || this.isOwner(memberId);
+		Participant participant = this.findParticipant(memberId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.PARTICIPANT_NOT_FOUND));
+		if (!participant.isAccepted()) {
+			return false;
+		}
+		return participant.getRole() == Role.EDIT || this.isOwner(memberId);
 	}
 }
