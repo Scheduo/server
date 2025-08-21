@@ -1,17 +1,20 @@
 package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.transform.recurrence.Frequency;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -34,6 +37,9 @@ public class Recurrence {
 	private String recurrenceRule;
 
 	private LocalDate recurrenceEndDate;
+
+	@OneToMany(mappedBy = "recurrence", cascade = CascadeType.ALL)
+	private List<Exception> exceptions = new ArrayList<>();
 
 	public static Recurrence create(String recurrenceRule, String recurrenceEndDate) {
 		LocalDate recurrenceEndLocalDate = LocalDate.parse(recurrenceEndDate);
@@ -64,14 +70,31 @@ public class Recurrence {
 		return recur.getDates(startDate, this.recurrenceEndDate);
 	}
 
-	protected static class RecurDate {
-		private final LocalDate startDate;
-		private final LocalDate endDate;
+	public String getFrequency() {
+		return this.recurrenceRule.split(":")[1].split(";")[0].split("=")[1];
+	}
 
-		public RecurDate(LocalDate startDate, LocalDate endDate) {
-			this.startDate = startDate;
-			this.endDate = endDate;
-		}
+	public void addException(String exceptionDate) {
+		LocalDate date = LocalDate.parse(exceptionDate);
+		Exception exception = Exception.builder()
+			.recurrence(this)
+			.exceptionDate(date)
+			.build();
+		this.exceptions.add(exception);
+	}
 
+	public void changeRecurrenceEndDate(String recurrenceEndDate) {
+		LocalDate newEndDate = LocalDate.parse(recurrenceEndDate);
+		String frequency = this.getFrequency();
+		RRule<LocalDate> rRule = createRRule(frequency, newEndDate);
+		this.recurrenceRule = rRule.toString();
+		this.recurrenceEndDate = newEndDate;
+	}
+
+	public void updateRecurrence(String recurrenceRule, String recurrenceEndDate) {
+		LocalDate recurrenceEndLocalDate = LocalDate.parse(recurrenceEndDate);
+		RRule<LocalDate> rRule = createRRule(recurrenceRule, recurrenceEndLocalDate);
+		this.recurrenceRule = rRule.toString();
+		this.recurrenceEndDate = LocalDate.parse(recurrenceEndDate);
 	}
 }

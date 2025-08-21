@@ -1,6 +1,8 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.scheduo.domain.calendar.entity.Calendar;
+import com.example.scheduo.domain.calendar.entity.Participant;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.schedule.dto.ScheduleRequestDto;
@@ -72,48 +75,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 		scheduleRepository.save(schedule);
 	}
 
-	// TODO: 월별 조회 일정 로직 구현 필요
-
-	// TODO: prefetching(지난달(5) - 이번달(6) - 다음달(7))
-		// 캘린더 6월 -> 6.1(월) ~ 6.30(금) -> 5.30(일) ~ 7.1(일)
-		// 구현 방법 : """클라 쿼리 3번"""(선택) vs. 서버 3달치 전송
-		// 고려사항 : 요청 -> dirty check -> 클라(해시)
-	// TODO: 쿼리가 너무 늦음(캐싱, 쿼리 최적화)
 	// TODO: 예외 조건 추가(rrule - exception 테이블) (수정 api 선 작업 후 진행)
-
-
-	// 테스트코드
-
-	/**
-	 *
-	 *
-	 * 단일일정
-	 * 반복일정(매일)
-	 * 반복일정(매주)
-	 * 반복일정(매달)
-	 * 반복일정(매년)
-	 *
-	 * ----------------
-	 *
-	 * 단일일정(반복x) 조회
-	 * 단일일정(반복o) 조회
-	 * 기간일정(반복x) 조회
-	 * 기간일정(반복o) 조회
-	 * 기간일정(2달 걸쳐있는거) 조회
-	 *
-	 *
-	 */
-
 	@Override
 	public ScheduleResponseDto.SchedulesOnMonth getSchedulesOnMonth(Member member, Long calendarId, String date) {
-		/**
-		 * 로직 => 월별조회
-		 * 1. 캘린더에 멤버가 속해있는지 검증
-		 * 2. month에 대한 schedule db 쿼리 날리기
-		 * 3. 단일 일정 조회
-		 * 4. 반복 일정 조회 -> 직접 일정을 생성
-		 * 5. 예외 조건 추가
-		 */
 		// 캘린더 조회
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
@@ -158,15 +122,32 @@ public class ScheduleServiceImpl implements ScheduleService {
 	}
 
 	@Override
+	public ScheduleResponseDto.ScheduleInfo getScheduleInfo(Member member, Long calendarId, Long scheduleId,
+		String date) {
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		if (!calendar.validateParticipant(member.getId())) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+		}
+
+		Schedule schedule = scheduleRepository.findScheduleByIdFetchJoin(scheduleId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND));
+
+		if (!schedule.getCalendar().getId().equals(calendarId)) {
+			throw new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND);
+		}
+
+		LocalDate parsedDate = LocalDate.parse(date);
+		if (!schedule.includesDate(parsedDate)) {
+			return ScheduleResponseDto.ScheduleInfo.from(schedule, null);
+		}
+		return ScheduleResponseDto.ScheduleInfo.from(schedule, date);
+	}
+
+	@Override
+	@Transactional
 	public ScheduleResponseDto.SchedulesOnDate getSchedulesOnDate(Member member, Long calendarId, String date) {
-		/**
-		 * 특정 캘린더 + 특정 날짜의 모든 일정 조회 로직
-		 * 1. 캘린더에 해당하는 해당 날짜 일의 단일 일정 조회
-		 * 2. 캘린더에 해당하는 반복 일정이 있는 모든 일정 조회
-		 * 3. 반복을 적용시켜 실제 일정으로 생성
-		 * 4. 두 일정을 합친 후 애플리케이션에서 필터링
-		 * 5. 반환
-		 */
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
 
@@ -180,7 +161,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 		List<Schedule> schedulesInSingle = scheduleRepository.findSchedulesByDate(targetDate, calendarId);
 
 		// 반복 일정 조회 (해당 날짜가 포함될 수 있는 모든 반복 일정)
-		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForDate(targetDate, calendarId);
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForDate(targetDate,
+			calendarId);
 
 		List<Schedule> allSchedules = Stream.concat(
 			schedulesInSingle.stream(),
@@ -202,11 +184,234 @@ public class ScheduleServiceImpl implements ScheduleService {
 			if (!s1.getStartTime().equals(s2.getStartTime()))
 				return s1.getStartTime().compareTo(s2.getStartTime());
 
-			// 3. 동점 처리 로직(일정 생성 기준 우선 정렬)
-			return s1.getCreatedAt().compareTo(s2.getCreatedAt());
+			// Title 기준으로 정렬
+			return s1.getTitle().compareTo(s2.getTitle());
 		});
 
 		return ScheduleResponseDto.SchedulesOnDate.from(filteredSchedules);
 	}
 
+	@Override
+	@Transactional
+	public void updateSchedule(ScheduleRequestDto.Update request, Member member, Long calendarId, Long scheduleId,
+		String date) {
+		Schedule schedule = scheduleRepository.findScheduleByIdFetchJoin(scheduleId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND));
+
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		if (!schedule.getCalendar().getId().equals(calendarId)) {
+			throw new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND);
+		}
+
+		if (!calendar.canEdit(member.getId())) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+		}
+
+		Category category;
+		if (!schedule.getCategory().getName().equals(request.getCategory())) {
+			category = categoryRepository.findByName(request.getCategory())
+				.orElseThrow(() -> new ApiException(ResponseStatus.CATEGORY_NOT_FOUND));
+		} else {
+			category = schedule.getCategory();
+		}
+		// 단일 일정인 경우
+		if (schedule.getRecurrence() == null) {
+			schedule.update(
+				request.getTitle(),
+				request.isAllDay(),
+				request.getStartDate(),
+				request.getEndDate(),
+				request.getStartTime(),
+				request.getEndTime(),
+				request.getLocation(),
+				request.getMemo(),
+				request.getNotificationTime(),
+				null,
+				null,
+				category
+			);
+		} else {
+			// 반복 일정인 경우
+			// 모든 일정 수정인 경우
+			switch (request.getScope()) {
+				case ALL -> {
+					schedule.update(
+						request.getTitle(),
+						request.isAllDay(),
+						request.getStartDate(),
+						request.getEndDate(),
+						request.getStartTime(),
+						request.getEndTime(),
+						request.getLocation(),
+						request.getMemo(),
+						request.getNotificationTime(),
+						request.getRecurrence().getFrequency(),
+						request.getRecurrence().getRecurrenceEndDate(),
+						category
+					);
+				}
+				// 이 일정만 수정인 경우, Exception 테이블에 추가 + 새로운 단일 일정 생성
+				case ONLY_THIS -> {
+					Schedule newSchedule = Schedule.create(
+						request.getTitle(),
+						request.isAllDay(),
+						request.getStartDate(),
+						request.getEndDate(),
+						request.getStartTime(),
+						request.getEndTime(),
+						request.getLocation(),
+						request.getMemo(),
+						request.getNotificationTime(),
+						category,
+						schedule.getMember(),
+						schedule.getCalendar(),
+						null
+					);
+					schedule.getRecurrence().addException(date);
+					scheduleRepository.save(newSchedule);
+				}
+
+				case THIS_AND_FUTURE -> {
+					// startDate 기준으로 일정들을 2개로 나누기
+					// 기존꺼의 endDate는 startDate로 변경
+					schedule.getRecurrence().changeRecurrenceEndDate(request.getStartDate());
+
+					// startDate 이후의 일정들을 새로운 Recurrence로 생성
+					Recurrence recurrence = Recurrence.create(
+						request.getRecurrence().getFrequency(),
+						request.getRecurrence().getRecurrenceEndDate()
+					);
+					recurrence = recurrenceRepository.save(recurrence);
+					Schedule newSchedule = Schedule.create(
+						request.getTitle(),
+						request.isAllDay(),
+						request.getStartDate(),
+						request.getEndDate(),
+						request.getStartTime(),
+						request.getEndTime(),
+						request.getLocation(),
+						request.getMemo(),
+						request.getNotificationTime(),
+						category,
+						schedule.getMember(),
+						schedule.getCalendar(),
+						recurrence
+					);
+					scheduleRepository.save(newSchedule);
+				}
+			}
+		}
+	}
+
+
+	@Override
+	public ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate) {
+		// 1. 캘린더 확인
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		// 2. 권한 확인
+		if (!calendar.validateParticipant(member.getId()))
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+
+		// 기간 파싱
+		LocalDate rangeStartDate = LocalDate.parse(startDate);
+		LocalDate rangeEndDate = LocalDate.parse(endDate);
+
+		// 3. 기간 동안의 단일 일정 확인
+		List<Schedule> schedulesInRange = scheduleRepository.findSchedulesByDateRange(rangeStartDate, rangeEndDate, calendarId);
+
+		// 4. 반복 일정일 때, 해당 기간에 속하는 일정 찾기
+		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForRange(
+			rangeStartDate, rangeEndDate, calendarId);
+
+		List<Schedule> allSchedules = Stream.concat(
+			schedulesInRange.stream(),
+			schedulesWithRecurrence.stream().flatMap(s -> s.createSchedulesFromRecurrence().stream())
+		).toList();
+
+		// 기간 내 일정 필터링
+		List<Schedule> filteredSchedules = allSchedules.stream()
+			.filter(s -> !s.getEndDate().isBefore(rangeStartDate) && !s.getStartDate().isAfter(rangeEndDate))
+			.collect(Collectors.toList());
+
+		// 5. 정렬하는 로직 수행
+		filteredSchedules.sort((s1, s2) -> {
+			// 1. 날짜별 정렬
+			if (!s1.getStartDate().equals(s2.getStartDate()))
+				return s1.getStartDate().compareTo(s2.getStartDate());
+
+			// 2. 시작 시간별 정렬
+			if (!s1.getStartTime().equals(s2.getStartTime()))
+				return s1.getStartTime().compareTo(s2.getStartTime());
+
+			// 3. 생성 시간별 정렬
+			return s1.getCreatedAt().compareTo(s2.getCreatedAt());
+		});
+
+		return ScheduleResponseDto.SchedulesInRange.from(filteredSchedules);
+	}
+
+	@Override
+	@Transactional
+	public void shareSchedule(Member member, Long calendarId, Long targetCalendarId,
+		List<ScheduleRequestDto.ScheduleTime> scheduleTimes) {
+		// 캘린더 존재여부 확인(fromCalendar, toCalendar)
+		Calendar fromCalendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+		Calendar toCalendar = calendarRepository.findByIdWithParticipants(targetCalendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		// 멤버 권한 확인(fromCalendar - participant이면 ok, toCalendar - participant 이면서 edit 이상)
+		fromCalendar.validateParticipant(member.getId());
+		toCalendar.validateParticipant(member.getId());
+
+		if(!toCalendar.canEdit(member.getId()))
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+
+		String nicknameByToCalendar = toCalendar.findParticipant(member.getId())
+			.map(Participant::getNickname)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		// toCalendar에 새로운 일정 생성
+		List<Schedule> schedules = scheduleTimes.stream().map(st -> {
+			if(st.getStartDateTime().isAfter(st.getEndDateTime()))
+				throw new ApiException(ResponseStatus.INVALID_SCHEDULE_RANGE);
+
+			LocalDate startDate = st.getStartDateTime().toLocalDate();
+			LocalDate endDate = st.getEndDateTime().toLocalDate();
+
+			LocalTime startTime = st.getStartDateTime().toLocalTime();
+			LocalTime endTime = st.getEndDateTime().toLocalTime();
+
+			DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+			// isAllDay 계산 로직
+			boolean isAllDay = LocalTime.MIDNIGHT.equals(startTime)
+				&& LocalTime.of(23,59,59).equals(endTime);
+
+			Category category = categoryRepository.findByName("default").orElseThrow(() -> new ApiException(ResponseStatus.CATEGORY_NOT_FOUND));
+
+			return Schedule.create(
+				nicknameByToCalendar,
+				isAllDay,
+				startDate.format(DATE_FMT),
+				endDate.format(DATE_FMT),
+				startTime.format(TIME_FMT),
+				endTime.format(TIME_FMT),
+				null,
+				null,
+				null,
+				category,
+				member,
+				toCalendar,
+				null
+			);
+		}).toList();
+
+		schedules.forEach(s -> scheduleRepository.save(s));
+	}
 }

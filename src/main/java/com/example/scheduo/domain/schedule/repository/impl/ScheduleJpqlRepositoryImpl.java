@@ -2,6 +2,7 @@ package com.example.scheduo.domain.schedule.repository.impl;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -81,6 +82,21 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 			.setParameter("date", date)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
+	}
+
+	@Override
+	public Optional<Schedule> findScheduleByIdFetchJoin(Long scheduleId) {
+		String jpql = """
+			SELECT s FROM Schedule s
+			JOIN FETCH s.category c
+			JOIN FETCH s.calendar cal
+			LEFT JOIN FETCH s.recurrence r
+			WHERE s.id = :scheduleId
+			""";
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("scheduleId", scheduleId)
+			.getResultStream()
+			.findFirst();
 	}
 
 }

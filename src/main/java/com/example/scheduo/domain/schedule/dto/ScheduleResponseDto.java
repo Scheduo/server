@@ -1,7 +1,9 @@
 package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +52,6 @@ public class ScheduleResponseDto {
 		}
 	}
 
-
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
@@ -68,17 +69,18 @@ public class ScheduleResponseDto {
 	private static class ScheduleOnDate {
 		private Long id;
 		private String title;
-		private LocalTime startTime;
-		private LocalTime endTime;
+		private String startTime;
+		private String endTime;
 		private boolean isAllDay;
 		private Category category;
 
 		public static ScheduleOnDate from(Schedule schedule) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 			return new ScheduleOnDate(
 				schedule.getId(),
 				schedule.getTitle(),
-				schedule.getStartTime(),
-				schedule.getEndTime(),
+				schedule.getStartTime().format(formatter),
+				schedule.getEndTime().format(formatter),
 				schedule.isAllDay(),
 				Category.from(schedule.getCategory().getName(), schedule.getCategory().getColor())
 			);
@@ -94,6 +96,105 @@ public class ScheduleResponseDto {
 
 		public static Category from(String name, Color color) {
 			return new Category(name, color);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ScheduleInfo {
+		private Long id;
+		private String title;
+		private boolean isAllDay;
+		private LocalDate startDate;
+		private LocalDate endDate;
+		private String startTime;
+		private String endTime;
+		private String location;
+		private String category;
+		private String memo;
+		private String notificationTime;
+		private Recurrence recurrence;
+
+		public static ScheduleInfo from(com.example.scheduo.domain.schedule.entity.Schedule schedule, String date) {
+			String frequency = schedule.getRecurrence() != null
+				? schedule.getRecurrence().getFrequency()
+				: null;
+
+			LocalDate startDate = (date == null || date.isBlank())
+				? schedule.getStartDate()
+				: LocalDate.parse(date);
+
+			LocalDate endDate;
+			if (date == null || date.isBlank()) {
+				endDate = schedule.getEndDate();
+			} else {
+				long daysDiff = ChronoUnit.DAYS.between(schedule.getStartDate(), schedule.getEndDate());
+				endDate = startDate.plusDays(daysDiff);
+			}
+
+			return new ScheduleInfo(
+				schedule.getId(),
+				schedule.getTitle(),
+				schedule.isAllDay(),
+				startDate,
+				endDate,
+				schedule.getStartTime().toString(),
+				schedule.getEndTime().toString(),
+				schedule.getLocation(),
+				schedule.getCategory().getName(),
+				schedule.getMemo(),
+				schedule.getNotificationTime() != null ? schedule.getNotificationTime().name() : null,
+				schedule.getRecurrence() != null
+					? new Recurrence(frequency, schedule.getRecurrence().getRecurrenceEndDate())
+					: null
+			);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Recurrence {
+		private String frequency;
+		private LocalDate recurrenceEndDate;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SchedulesInRange {
+		List<ScheduleInRange> schedules;
+
+		public static SchedulesInRange from(List<Schedule> schedules) {
+			List<ScheduleInRange> scheduleInRanges = schedules.stream()
+				.map(ScheduleInRange::from)
+				.collect(Collectors.toList());
+
+			return new SchedulesInRange(scheduleInRanges);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class ScheduleInRange {
+		private Long id;
+		private String title;
+		private String startDate;
+		private String endDate;
+		private String startTime;
+		private String endTime;
+
+		public static ScheduleInRange from(Schedule schedule) {
+			return new ScheduleInRange(
+				schedule.getId(),
+				schedule.getTitle(),
+				schedule.getStartDate().toString(),
+				schedule.getEndDate().toString(),
+				schedule.getStartTime().toString(),
+				schedule.getEndTime().toString()
+			);
 		}
 	}
 }
