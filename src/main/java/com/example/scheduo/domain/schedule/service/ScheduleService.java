@@ -17,4 +17,6 @@ public interface ScheduleService {
 		String date);
 
 	ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate);
+
+	ScheduleResponseDto.SearchList searchSchedules(Member member, String keyword);
 }
