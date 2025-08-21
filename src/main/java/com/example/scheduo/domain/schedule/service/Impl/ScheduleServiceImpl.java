@@ -350,4 +350,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		return ScheduleResponseDto.SchedulesInRange.from(filteredSchedules);
 	}
+
+	@Override
+	public ScheduleResponseDto.SearchList searchSchedules(Member member, String keyword) {
+		// 키워드를 기반으로 내가 속해있는 캘린더의 모든 일정 검색
+		List<Schedule> myScheduleList = scheduleRepository.searchByMemberIdAndKeywordPrefix(member.getId(), keyword);
+		return ScheduleResponseDto.SearchList.from(myScheduleList);
+	}
+
 }
