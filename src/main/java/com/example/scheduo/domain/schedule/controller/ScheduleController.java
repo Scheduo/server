@@ -107,4 +107,13 @@ public class ScheduleController {
 		scheduleService.shareSchedule(member, calendarId, req.getTargetCalendarId(), req.getSchedules());
 		return ApiResponse.onSuccess();
 	}
+	@Operation(summary = "일정 검색", description = "내가 속해있는 모든 캘린더의 일정에 대해서 keyword 기준으로 검색합니다.")
+	@GetMapping("/schedules/search")
+	public ApiResponse<ScheduleResponseDto.SearchList> searchSchedules(
+		@RequestMember Member member,
+		@RequestParam("keyword") String keyword
+	) {
+		ScheduleResponseDto.SearchList res = scheduleService.searchSchedules(member, keyword);
+		return ApiResponse.onSuccess(res);
+	}
 }

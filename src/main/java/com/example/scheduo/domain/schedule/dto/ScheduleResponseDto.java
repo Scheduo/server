@@ -1,8 +1,8 @@
 package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -194,6 +194,44 @@ public class ScheduleResponseDto {
 				schedule.getEndDate().toString(),
 				schedule.getStartTime().toString(),
 				schedule.getEndTime().toString()
+			);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SearchList {
+		private List<SearchContent> contents;
+
+		public static SearchList from(List<Schedule> schedules) {
+			List<SearchContent> searchContents = schedules.stream()
+				.map(SearchContent::from)
+				.collect(Collectors.toList());
+
+			return new SearchList(searchContents);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SearchContent {
+		private Long scheduleId;
+		private Long calendarId;
+		private String calendarName;
+		private String title;
+		private LocalDateTime startDateTime;
+		private LocalDateTime endDateTime;
+
+		public static SearchContent from(Schedule schedule) {
+			return new SearchContent(
+				schedule.getId(),
+				schedule.getCalendar().getId(),
+				schedule.getCalendar().getName(),
+				schedule.getTitle(),
+				schedule.getStartDate().atTime(schedule.getStartTime()),
+				schedule.getEndDate().atTime(schedule.getEndTime())
 			);
 		}
 	}

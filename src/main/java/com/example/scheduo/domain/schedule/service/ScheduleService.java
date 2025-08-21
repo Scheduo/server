@@ -21,4 +21,6 @@ public interface ScheduleService {
 	ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate);
 
 	void shareSchedule(Member member, Long calendarId, Long targetCalendarId, List<ScheduleRequestDto.ScheduleTime> schedules);
+
+	ScheduleResponseDto.SearchList searchSchedules(Member member, String keyword);
 }
