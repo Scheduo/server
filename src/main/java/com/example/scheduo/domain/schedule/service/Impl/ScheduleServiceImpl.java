@@ -418,7 +418,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 	@Override
 	public ScheduleResponseDto.SearchList searchSchedules(Member member, String keyword) {
-		if (keyword == "") {
+		if (keyword.isBlank()) {
 			return new ScheduleResponseDto.SearchList(Collections.emptyList());
 		}
 
