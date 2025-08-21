@@ -1,5 +1,6 @@
 package com.example.scheduo.domain.schedule.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -95,6 +96,19 @@ public class ScheduleController {
 		ScheduleResponseDto.SchedulesInRange res = scheduleService.getSchedulesInRange(member, calendarId, startDate,
 			endDate);
 		return ApiResponse.onSuccess(res);
+	}
+
+	@Operation(summary = "일정 삭제", description = "해당 일정을 삭제합니다.")
+	@DeleteMapping("/calendars/{calendarId}/schedules/{scheduleId}")
+	public ApiResponse<?> deleteSchedule(
+		@RequestMember Member member,
+		@PathVariable("calendarId") Long calendarId,
+		@PathVariable("scheduleId") Long scheduleId,
+		@RequestParam(value = "scope", required = false) ScheduleRequestDto.Scope scope,
+		@RequestParam(value = "date", required = false) String date
+	) {
+		scheduleService.deleteSchedule(member, calendarId, scheduleId, date, scope);
+		return ApiResponse.onSuccess();
 	}
 
 	@Operation(summary = "일정 공유", description = "캘린더 간 일정 공유를 합니다.")

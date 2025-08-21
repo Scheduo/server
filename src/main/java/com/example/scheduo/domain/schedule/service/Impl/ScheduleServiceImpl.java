@@ -306,9 +306,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 		}
 	}
 
-
 	@Override
-	public ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate) {
+	public ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate,
+		String endDate) {
 		// 1. 캘린더 확인
 		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
 			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
@@ -322,7 +322,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 		LocalDate rangeEndDate = LocalDate.parse(endDate);
 
 		// 3. 기간 동안의 단일 일정 확인
-		List<Schedule> schedulesInRange = scheduleRepository.findSchedulesByDateRange(rangeStartDate, rangeEndDate, calendarId);
+		List<Schedule> schedulesInRange = scheduleRepository.findSchedulesByDateRange(rangeStartDate, rangeEndDate,
+			calendarId);
 
 		// 4. 반복 일정일 때, 해당 기간에 속하는 일정 찾기
 		List<Schedule> schedulesWithRecurrence = scheduleRepository.findSchedulesWithRecurrenceForRange(
@@ -353,6 +354,49 @@ public class ScheduleServiceImpl implements ScheduleService {
 		});
 
 		return ScheduleResponseDto.SchedulesInRange.from(filteredSchedules);
+	}
+
+	@Override
+	@Transactional
+	public void deleteSchedule(Member member, Long calendarId, Long scheduleId, String date,
+		ScheduleRequestDto.Scope scope) {
+		Calendar calendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		if (!calendar.canEdit(member.getId())) {
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+		}
+
+		Schedule schedule = scheduleRepository.findScheduleByIdFetchJoin(scheduleId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND));
+
+		if (!schedule.getCalendar().getId().equals(calendarId)) {
+			throw new ApiException(ResponseStatus.SCHEDULE_NOT_FOUND);
+		}
+
+		switch (scope) {
+			case ALL -> {
+				if (schedule.getRecurrence() != null) {
+					recurrenceRepository.delete(schedule.getRecurrence());
+				}
+				scheduleRepository.delete(schedule);
+			}
+			case ONLY_THIS -> {
+				if (schedule.getRecurrence() == null) {
+					scheduleRepository.delete(schedule);
+				} else {
+					schedule.getRecurrence().addException(date);
+					scheduleRepository.save(schedule);
+				}
+			}
+			case THIS_AND_FUTURE -> {
+				if (schedule.getRecurrence() == null) {
+					scheduleRepository.delete(schedule);
+				} else {
+					schedule.getRecurrence().changeRecurrenceEndDate(date);
+				}
+			}
+		}
 	}
 
 	@Override
