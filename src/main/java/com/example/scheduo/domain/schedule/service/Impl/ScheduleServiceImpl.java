@@ -1,6 +1,8 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.scheduo.domain.calendar.entity.Calendar;
+import com.example.scheduo.domain.calendar.entity.Participant;
 import com.example.scheduo.domain.calendar.repository.CalendarRepository;
 import com.example.scheduo.domain.member.entity.Member;
 import com.example.scheduo.domain.schedule.dto.ScheduleRequestDto;
@@ -349,5 +352,66 @@ public class ScheduleServiceImpl implements ScheduleService {
 		});
 
 		return ScheduleResponseDto.SchedulesInRange.from(filteredSchedules);
+	}
+
+	@Override
+	@Transactional
+	public void shareSchedule(Member member, Long calendarId, Long targetCalendarId,
+		List<ScheduleRequestDto.ScheduleTime> scheduleTimes) {
+		// 캘린더 존재여부 확인(fromCalendar, toCalendar)
+		Calendar fromCalendar = calendarRepository.findByIdWithParticipants(calendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+		Calendar toCalendar = calendarRepository.findByIdWithParticipants(targetCalendarId)
+			.orElseThrow(() -> new ApiException(ResponseStatus.CALENDAR_NOT_FOUND));
+
+		// 멤버 권한 확인(fromCalendar - participant이면 ok, toCalendar - participant 이면서 edit 이상)
+		fromCalendar.validateParticipant(member.getId());
+		toCalendar.validateParticipant(member.getId());
+
+		if(!toCalendar.canEdit(member.getId()))
+			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
+
+		String nicknameByToCalendar = toCalendar.findParticipant(member.getId())
+			.map(Participant::getNickname)
+			.orElseThrow(() -> new ApiException(ResponseStatus.INVALID_CALENDAR_PARTICIPATION));
+
+		// toCalendar에 새로운 일정 생성
+		List<Schedule> schedules = scheduleTimes.stream().map(st -> {
+			if(st.getStartDateTime().isAfter(st.getEndDateTime()))
+				throw new ApiException(ResponseStatus.INVALID_SCHEDULE_RANGE);
+
+			LocalDate startDate = st.getStartDateTime().toLocalDate();
+			LocalDate endDate = st.getEndDateTime().toLocalDate();
+
+			LocalTime startTime = st.getStartDateTime().toLocalTime();
+			LocalTime endTime = st.getEndDateTime().toLocalTime();
+
+			DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+			// isAllDay 계산 로직
+			boolean isAllDay = LocalTime.MIDNIGHT.equals(startTime)
+				&& LocalTime.of(23,59,59).equals(endTime);
+
+			Category category = categoryRepository.findByName("default").orElseThrow(() -> new ApiException(ResponseStatus.CATEGORY_NOT_FOUND));
+
+			return Schedule.create(
+				nicknameByToCalendar,
+				isAllDay,
+				startDate.format(DATE_FMT),
+				endDate.format(DATE_FMT),
+				startTime.format(TIME_FMT),
+				endTime.format(TIME_FMT),
+				null,
+				null,
+				null,
+				category,
+				member,
+				toCalendar,
+				null
+			);
+		}).toList();
+
+		schedules.forEach(s -> scheduleRepository.save(s));
 	}
 }

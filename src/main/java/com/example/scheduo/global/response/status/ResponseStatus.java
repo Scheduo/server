@@ -62,6 +62,7 @@ public enum ResponseStatus {
 
 	// 일정 관련 에러 응답
 	SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "SCHEDULE_0001", "일정을 찾을 수 없습니다."),
+	INVALID_SCHEDULE_RANGE(HttpStatus.NOT_FOUND, "SCHEDULE_0002", "일정 생성에 사용되는 기간이 부적절합니다."),
 	;
 
 	private final HttpStatus httpStatus;

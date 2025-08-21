@@ -10,3 +10,11 @@ fun createCategory(): Category {
         Color.RED
     )
 }
+
+fun createCategory(name: String): Category {
+    return Category(
+            null,
+            name,
+            Color.RED
+    )
+}

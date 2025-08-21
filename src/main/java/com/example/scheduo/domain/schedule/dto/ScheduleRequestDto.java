@@ -1,5 +1,8 @@
 package com.example.scheduo.domain.schedule.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.example.scheduo.domain.schedule.entity.NotificationTime;
 
 import jakarta.validation.constraints.Pattern;
@@ -67,4 +70,19 @@ public class ScheduleRequestDto {
 		THIS_AND_FUTURE // 현재 일정과 이후 일정
 	}
 
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Share {
+		private Long targetCalendarId;
+		private List<ScheduleTime> schedules;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ScheduleTime {
+		private LocalDateTime startDateTime;
+		private LocalDateTime endDateTime;
+	}
 }
