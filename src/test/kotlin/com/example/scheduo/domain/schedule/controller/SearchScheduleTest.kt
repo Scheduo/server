@@ -120,7 +120,7 @@ class SearchScheduleTest(
     describe("GET /schedules/search") {
 
         context("keyword 경계 - 빈 문자열") {
-            it("빈 문자열이면 모든 내 캘린더의 모든 스케줄이 반환된다(빈 prefix는 전체 매칭)") {
+            it("빈 문자열이면 빈 리스트를 반환한다") {
                 // 준비
                 val s1 = saveSchedule("Meet", myCalA)
                 val s2 = saveSchedule("memo", myCalA)
