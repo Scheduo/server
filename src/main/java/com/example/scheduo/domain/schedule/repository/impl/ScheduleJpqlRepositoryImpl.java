@@ -99,4 +99,22 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 			.findFirst();
 	}
 
+	@Override
+	public List<Schedule> searchByMemberIdAndKeywordPrefix(Long memberId, String keyword) {
+		// prefix 검색을 위해 keyword% 형태로 바인딩
+		String likeParam = keyword + "%";
+		String jpql = """
+			SELECT s FROM Schedule s
+			JOIN FETCH s.calendar c
+			JOIN c.participants p
+			WHERE p.member.id = :memberId
+				AND lower(s.title) LIKE lower(:kw)
+			ORDER BY s.startDate, s.startTime, s.id
+			""";
+
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("memberId", memberId)
+			.setParameter("kw", likeParam)
+			.getResultList();
+	}
 }
