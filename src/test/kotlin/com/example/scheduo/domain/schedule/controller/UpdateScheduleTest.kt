@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,8 +74,10 @@ class UpdateScheduleTest(
     beforeTest {
         singleSchedule = createSchedule(
             title = "단일 일정",
-            startDate = "2025-08-01",
-            endDate = "2025-08-01",
+//            startDate = "2025-08-01",
+//            endDate = "2025-08-01",
+            start = LocalDateTime.of(2025, 8, 1, 9, 0),
+            end = LocalDateTime.of(2025, 8, 1, 10, 0),
             member = member,
             calendar = calendar,
             category = categoryRepository.save(createCategory())
@@ -89,8 +92,10 @@ class UpdateScheduleTest(
 
         recurrenceSchedule = createSchedule(
             title = "반복 일정",
-            startDate = "2025-08-01",
-            endDate = "2025-08-01",
+//            startDate = "2025-08-01",
+//            endDate = "2025-08-01",
+            start = LocalDateTime.of(2025, 8, 1, 9, 0),
+            end = LocalDateTime.of(2025, 8, 1, 10, 0),
             member = member,
             calendar = calendar,
             category = categoryRepository.save(createCategory()),
@@ -118,10 +123,12 @@ class UpdateScheduleTest(
                 val nonExistentScheduleId = 999L
                 val body = mapOf(
                     "title" to "수정된 일정",
-                    "startDate" to "2025-08-01",
-                    "endDate" to "2025-08-01",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-01",
+//                    "endDate" to "2025-08-01",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 1, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 1, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 A",
                     "memo" to "수정된 메모"
@@ -143,10 +150,12 @@ class UpdateScheduleTest(
                 val nonExistentCalendarId = 999L
                 val body = mapOf(
                     "title" to "수정된 일정",
-                    "startDate" to "2025-08-01",
-                    "endDate" to "2025-08-01",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-01",
+//                    "endDate" to "2025-08-01",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 1, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 1, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 A",
                     "memo" to "수정된 메모"
@@ -169,10 +178,12 @@ class UpdateScheduleTest(
                 val anotherCalendar = calendarRepository.save(createCalendar())
                 val body = mapOf(
                     "title" to "수정된 일정",
-                    "startDate" to "2025-08-01",
-                    "endDate" to "2025-08-01",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-01",
+//                    "endDate" to "2025-08-01",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 1, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 1, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 A",
                     "memo" to "수정된 메모"
@@ -203,10 +214,12 @@ class UpdateScheduleTest(
                 val token = jwtFixture.createValidToken(memberWithoutPermission.id)
                 val body = mapOf(
                     "title" to "수정된 일정",
-                    "startDate" to "2025-08-01",
-                    "endDate" to "2025-08-01",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-01",
+//                    "endDate" to "2025-08-01",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 1, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 1, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 A",
                     "memo" to "수정된 메모",
@@ -227,10 +240,12 @@ class UpdateScheduleTest(
                 val token = jwtFixture.createValidToken(member.id)
                 val body = mapOf(
                     "title" to "수정된 일정",
-                    "startDate" to "2025-08-01",
-                    "endDate" to "2025-08-01",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-01",
+//                    "endDate" to "2025-08-01",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 1, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 1, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 A",
                     "memo" to "수정된 메모",
@@ -253,10 +268,12 @@ class UpdateScheduleTest(
                 val token = jwtFixture.createValidToken(member.id)
                 val body = mapOf(
                     "title" to "수정된 단일 일정",
-                    "startDate" to "2025-08-02",
-                    "endDate" to "2025-08-02",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-02",
+//                    "endDate" to "2025-08-02",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 2, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 2, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 A",
                     "memo" to "수정된 메모",
@@ -275,10 +292,10 @@ class UpdateScheduleTest(
                     val updatedSchedule = scheduleRepository.findById(singleSchedule.id)
                     updatedSchedule.ifPresent { schedule ->
                         assert(schedule.title == "수정된 단일 일정")
-                        assert(schedule.startDate.toString() == "2025-08-02")
-                        assert(schedule.endDate.toString() == "2025-08-02")
-                        assert(schedule.startTime.toString() == "10:00")
-                        assert(schedule.endTime.toString() == "11:00")
+                        assert(schedule.start.toLocalDate().toString() == "2025-08-02")
+                        assert(schedule.end.toLocalDate().toString() == "2025-08-02")
+                        assert(schedule.start.toLocalTime().toString() == "10:00")
+                        assert(schedule.end.toLocalTime().toString() == "11:00")
                         assert(!schedule.isAllDay)
                         assert(schedule.location == "회의실 A")
                         assert(schedule.memo == "수정된 메모")
@@ -292,10 +309,12 @@ class UpdateScheduleTest(
                 val token = jwtFixture.createValidToken(member.id)
                 val body = mapOf(
                     "title" to "수정된 반복 일정",
-                    "startDate" to "2025-08-02",
-                    "endDate" to "2025-08-02",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-02",
+//                    "endDate" to "2025-08-02",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 2, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 2, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 B",
                     "memo" to "수정된 메모",
@@ -318,10 +337,10 @@ class UpdateScheduleTest(
                     val updatedSchedule = scheduleRepository.findById(recurrenceSchedule.id)
                     updatedSchedule.ifPresent { schedule ->
                         assert(schedule.title == "수정된 반복 일정")
-                        assert(schedule.startDate.toString() == "2025-08-02")
-                        assert(schedule.endDate.toString() == "2025-08-02")
-                        assert(schedule.startTime.toString() == "10:00")
-                        assert(schedule.endTime.toString() == "11:00")
+                        assert(schedule.start.toLocalDate().toString() == "2025-08-02")
+                        assert(schedule.end.toLocalDate().toString() == "2025-08-02")
+                        assert(schedule.start.toLocalTime().toString() == "10:00")
+                        assert(schedule.end.toLocalTime().toString() == "11:00")
                         assert(!schedule.isAllDay)
                         assert(schedule.location == "회의실 B")
                         assert(schedule.memo == "수정된 메모")
@@ -338,10 +357,12 @@ class UpdateScheduleTest(
                 val token = jwtFixture.createValidToken(member.id)
                 val body = mapOf(
                     "title" to "수정된 반복 일정 일부",
-                    "startDate" to "2025-08-02",
-                    "endDate" to "2025-08-02",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-08-02",
+//                    "endDate" to "2025-08-02",
+//                    "startTime" to "10:00",
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 2, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 2, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 C",
                     "memo" to "수정된 메모 일부",
@@ -378,10 +399,8 @@ class UpdateScheduleTest(
                 val token = jwtFixture.createValidToken(member.id)
                 val body = mapOf(
                     "title" to "수정된 반복 일정 이후",
-                    "startDate" to "2025-08-02",
-                    "endDate" to "2025-08-02",
-                    "startTime" to "10:00",
-                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 8, 2, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 8, 2, 11, 0),
                     "isAllDay" to false,
                     "location" to "회의실 D",
                     "memo" to "수정된 메모 이후",
@@ -404,7 +423,7 @@ class UpdateScheduleTest(
                 tx.execute {
                     val updatedSchedule = scheduleRepository.findById(recurrenceSchedule.id)
                     updatedSchedule.ifPresent {
-                        assert(it.recurrence.recurrenceEndDate == LocalDate.parse(body["startDate"] as String))
+                        assert(it.recurrence.recurrenceEndDate == (body["startDateTime"] as LocalDateTime).toLocalDate())
                         assert(it.recurrence.exceptions.isEmpty())
                     }
                 }

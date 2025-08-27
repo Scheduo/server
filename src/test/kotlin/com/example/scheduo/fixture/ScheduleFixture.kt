@@ -6,32 +6,29 @@ import com.example.scheduo.domain.schedule.entity.Category
 import com.example.scheduo.domain.schedule.entity.NotificationTime
 import com.example.scheduo.domain.schedule.entity.Recurrence
 import com.example.scheduo.domain.schedule.entity.Schedule
+import java.time.LocalDateTime
 
 fun createSchedule(
-        title: String = "테스트 일정",
-        startDate: String = "2025-07-01",
-        endDate: String = "2025-07-01",
-        startTime: String = "09:00",
-        endTime: String = "10:00",
-        isAllDay: Boolean = false,
-        location: String = "회의실",
-        memo: String = "테스트 메모",
-        member: Member,
-        calendar: Calendar,
-        category: Category,
-        recurrence: Recurrence? = null
+    title: String = "테스트 일정",
+    start: LocalDateTime = LocalDateTime.of(2025, 7, 1, 9, 0),
+    end: LocalDateTime = LocalDateTime.of(2025, 7, 1, 10, 0),
+    isAllDay: Boolean = false,
+    location: String = "회의실",
+    memo: String = "테스트 메모",
+    member: Member,
+    calendar: Calendar,
+    category: Category,
+    recurrence: Recurrence? = null
 ) = Schedule.create(
-        title,
-        isAllDay,
-        startDate,
-        endDate,
-        startTime,
-        endTime,
-        location,
-        memo,
-        NotificationTime.ONE_DAY_BEFORE,
-        category,
-        member,
-        calendar,
-        recurrence
+    title,
+    isAllDay,
+    start,
+    end,
+    location,
+    memo,
+    NotificationTime.ONE_DAY_BEFORE,
+    category,
+    member,
+    calendar,
+    recurrence
 )

@@ -17,14 +17,16 @@ public class ScheduleRequestDto {
 	public static class Create {
 		private String title; // 일정 제목
 		private boolean allDay; // 종일 일정 여부
-		@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
-		private String startDate; // 시작 날짜 (yyyy-mm-dd)
-		@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
-		private String endDate; // 종료 날짜 (yyyy-mm-dd)
-		@Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
-		private String startTime; // 시작 시간 (hh:mm)
-		@Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
-		private String endTime; // 종료 시간 (hh:mm)
+		// @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
+		// private String startDate; // 시작 날짜 (yyyy-mm-dd)
+		// @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
+		// private String endDate; // 종료 날짜 (yyyy-mm-dd)
+		// @Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
+		// private String startTime; // 시작 시간 (hh:mm)
+		// @Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
+		private LocalDateTime startDateTime; // 시작 시간 (hh:mm)
+		private LocalDateTime endDateTime; // 종료 시간 (hh:mm)
+		// private String endTime; // 종료 시간 (hh:mm)
 		private String location; // 장소
 		private String category; // 일정 카테고리
 		private String memo; // 메모
@@ -47,14 +49,16 @@ public class ScheduleRequestDto {
 	public static class Update {
 		private String title; // 일정 제목
 		private boolean allDay; // 종일 일정 여부
-		@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
-		private String startDate; // 시작 날짜 (yyyy-mm-dd)
-		@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
-		private String endDate; // 종료 날짜 (yyyy-mm-dd)
-		@Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
-		private String startTime; // 시작 시간 (hh:mm)
-		@Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
-		private String endTime; // 종료 시간 (hh:mm)
+		// @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
+		// private String startDate; // 시작 날짜 (yyyy-mm-dd)
+		// @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "날짜 형식은 yyyy-mm-dd이어야 합니다.")
+		// private String endDate; // 종료 날짜 (yyyy-mm-dd)
+		// @Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
+		// private String startTime; // 시작 시간 (hh:mm)
+		// @Pattern(regexp = "\\d{2}:\\d{2}", message = "시간 형식은 hh:mm이어야 합니다.")
+		// private String endTime; // 종료 시간 (hh:mm)
+		private LocalDateTime startDateTime;
+		private LocalDateTime endDateTime;
 		private String location; // 장소
 		private String category; // 일정 카테고리
 		private String memo; // 메모
