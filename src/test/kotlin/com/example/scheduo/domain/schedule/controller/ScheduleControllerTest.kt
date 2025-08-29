@@ -19,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import java.time.LocalDateTime
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -67,10 +68,12 @@ class ScheduleControllerTest(
                 val scheduleData = mapOf(
                     "title" to "제목",
                     "allDay" to true,
-                    "startDate" to "2025-05-20",
-                    "endDate" to "2025-05-20",
-                    "startTime" to "10:00", // hh:mm
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-05-20",
+//                    "endDate" to "2025-05-20",
+//                    "startTime" to "10:00", // hh:mm
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 5, 20, 10, 0).toString(),
+                    "endDateTime" to LocalDateTime.of(2025, 5, 20, 11, 0).toString(),
                     "location" to "회의실 A",
                     "category" to "개인",
                     "memo" to "주간 업무 회의",
@@ -100,10 +103,12 @@ class ScheduleControllerTest(
                 val scheduleData = mapOf(
                     "title" to "제목",
                     "allDay" to true,
-                    "startDate" to "2025-05-20", // yyyy-mm-dd
-                    "endDate" to "2025-05-20",
-                    "startTime" to "10:00", // hh:mm
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-05-20", // yyyy-mm-dd
+//                    "endDate" to "2025-05-20",
+//                    "startTime" to "10:00", // hh:mm
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 5, 20, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 5, 20, 11, 0),
                     "location" to "회의실 A",
                     "category" to "개인",
                     "memo" to "주간 업무 회의",
@@ -137,10 +142,12 @@ class ScheduleControllerTest(
                 val scheduleData = mapOf(
                     "title" to "제목",
                     "allDay" to true,
-                    "startDate" to "2025-05-20", // yyyy-mm-dd
-                    "endDate" to "2025-05-20",
-                    "startTime" to "10:00", // hh:mm
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-05-20", // yyyy-mm-dd
+//                    "endDate" to "2025-05-20",
+//                    "startTime" to "10:00", // hh:mm
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 5, 20, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 5, 20, 11, 0),
                     "location" to "회의실 A",
                     "category" to "개인",
                     "memo" to "주간 업무 회의",
@@ -169,10 +176,12 @@ class ScheduleControllerTest(
                 val scheduleData = mapOf(
                     "title" to "제목",
                     "allDay" to true,
-                    "startDate" to "2025-05-20", // yyyy-mm-dd
-                    "endDate" to "2025-05-20",
-                    "startTime" to "10:00", // hh:mm
-                    "endTime" to "11:00",
+//                    "startDate" to "2025-05-20", // yyyy-mm-dd
+//                    "endDate" to "2025-05-20",
+//                    "startTime" to "10:00", // hh:mm
+//                    "endTime" to "11:00",
+                    "startDateTime" to LocalDateTime.of(2025, 5, 20, 10, 0),
+                    "endDateTime" to LocalDateTime.of(2025, 5, 20, 11, 0),
                     "location" to "회의실 A",
                     "category" to "존재하지 않는 카테고리",
                     "memo" to "주간 업무 회의",
@@ -204,16 +213,20 @@ class ScheduleControllerTest(
                 // 7월 일정 2개
                 val julySchedule1 = createSchedule(
                     title = "7월 회의1",
-                    startDate = "2025-07-10",
-                    endDate = "2025-07-10",
+//                    startDate = "2025-07-10",
+//                    endDate = "2025-07-10",
+                    start = LocalDateTime.of(2025, 7, 10, 9, 0),
+                    end = LocalDateTime.of(2025, 7, 10, 10, 0),
                     member = member,
                     calendar = calendar,
                     category = category
                 )
                 val julySchedule2 = createSchedule(
                     title = "7월 회의2",
-                    startDate = "2025-07-25",
-                    endDate = "2025-07-25",
+//                    startDate = "2025-07-25",
+//                    endDate = "2025-07-25",
+                    start = LocalDateTime.of(2025, 7, 25, 14, 0),
+                    end = LocalDateTime.of(2025, 7, 25, 15, 0),
                     member = member,
                     calendar = calendar,
                     category = category
@@ -221,8 +234,10 @@ class ScheduleControllerTest(
                 // 6월 일정 (포함되면 안됨)
                 val juneSchedule = createSchedule(
                     title = "6월 회의",
-                    startDate = "2025-06-15",
-                    endDate = "2025-06-15",
+//                    startDate = "2025-06-15",
+//                    endDate = "2025-06-15",
+                    start = LocalDateTime.of(2025, 6, 15, 11, 0),
+                    end = LocalDateTime.of(2025, 6, 15, 12, 0),
                     member = member,
                     calendar = calendar,
                     category = category
@@ -270,8 +285,10 @@ class ScheduleControllerTest(
 
                 val dailySchedule = createSchedule(
                     title = "매일 운동",
-                    startDate = "2025-07-01",
-                    endDate = "2025-07-01",
+//                    startDate = "2025-07-01",
+//                    endDate = "2025-07-01",
+                    start = LocalDateTime.of(2025, 7, 1, 7, 0),
+                    end = LocalDateTime.of(2025, 7, 1, 8, 0),
                     member = member,
                     calendar = calendar,
                     category = category,
@@ -317,8 +334,10 @@ class ScheduleControllerTest(
 
                 val weeklySchedule = createSchedule(
                     title = "주간 회의",
-                    startDate = "2025-07-07", // 7월 첫째 주 월요일
-                    endDate = "2025-07-07",
+//                    startDate = "2025-07-07", // 7월 첫째 주 월요일
+//                    endDate = "2025-07-07",
+                    start = LocalDateTime.of(2025, 7, 7, 10, 0),
+                    end = LocalDateTime.of(2025, 7, 7, 11, 0),
                     member = member,
                     calendar = calendar,
                     category = category,
@@ -364,8 +383,10 @@ class ScheduleControllerTest(
 
                 val monthlySchedule = createSchedule(
                     title = "월간 정기 회의",
-                    startDate = "2025-04-15", // 4월 15일 시작
-                    endDate = "2025-04-15",
+//                    startDate = "2025-04-15", // 4월 15일 시작
+//                    endDate = "2025-04-15",
+                    start = LocalDateTime.of(2025, 4, 15, 16, 0),
+                    end = LocalDateTime.of(2025, 4, 15, 17, 0),
                     member = member,
                     calendar = calendar,
                     category = category,
@@ -411,8 +432,10 @@ class ScheduleControllerTest(
 
                 val yearlySchedule = createSchedule(
                     title = "생일 축하",
-                    startDate = "2025-07-20", // 7월 20일 생일
-                    endDate = "2025-07-20",
+//                    startDate = "2025-07-20", // 7월 20일 생일
+//                    endDate = "2025-07-20",
+                    start = LocalDateTime.of(2025, 7, 20, 0, 0),
+                    end = LocalDateTime.of(2025, 7, 20, 23, 59),
                     member = member,
                     calendar = calendar,
                     category = category,
@@ -456,10 +479,12 @@ class ScheduleControllerTest(
                 // 2025-07-15 당일 일정들
                 val morningSchedule = createSchedule(
                     title = "아침 회의",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
-                    startTime = "09:00",
-                    endTime = "10:00",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+//                    startTime = "09:00",
+//                    endTime = "10:00",
+                    start = LocalDateTime.of(2025, 7, 15, 9, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 10, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -467,10 +492,12 @@ class ScheduleControllerTest(
                 )
                 val afternoonSchedule = createSchedule(
                     title = "오후 미팅",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
-                    startTime = "14:00",
-                    endTime = "15:00",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+//                    startTime = "14:00",
+//                    endTime = "15:00",
+                    start = LocalDateTime.of(2025, 7, 15, 14, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 15, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -479,8 +506,10 @@ class ScheduleControllerTest(
                 // 다른 날짜 일정 (포함되면 안됨)
                 val otherDaySchedule = createSchedule(
                     title = "다른 날 일정",
-                    startDate = "2025-07-16",
-                    endDate = "2025-07-16",
+//                    startDate = "2025-07-16",
+//                    endDate = "2025-07-16",
+                    start = LocalDateTime.of(2025, 7, 16, 11, 0),
+                    end = LocalDateTime.of(2025, 7, 16, 12, 0),
                     member = member,
                     calendar = calendar,
                     category = category
@@ -526,8 +555,10 @@ class ScheduleControllerTest(
                 // 2025-07-15를 포함하는 기간 일정
                 val periodSchedule = createSchedule(
                     title = "3일간 워크샵",
-                    startDate = "2025-07-14",
-                    endDate = "2025-07-16",
+//                    startDate = "2025-07-14",
+//                    endDate = "2025-07-16",
+                    start = LocalDateTime.of(2025, 7, 14, 0, 0),
+                    end = LocalDateTime.of(2025, 7, 16, 23, 59),
                     isAllDay = true,
                     member = member,
                     calendar = calendar,
@@ -536,10 +567,12 @@ class ScheduleControllerTest(
                 // 당일 일정
                 val daySchedule = createSchedule(
                     title = "당일 회의",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
-                    startTime = "14:00",
-                    endTime = "15:00",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+//                    startTime = "14:00",
+//                    endTime = "15:00",
+                    start = LocalDateTime.of(2025, 7, 15, 14, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 15, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -594,10 +627,12 @@ class ScheduleControllerTest(
                 // 매주 월요일 반복 일정
                 val recurringSchedule = createSchedule(
                     title = "주간 회의",
-                    startDate = "2025-07-14", // 월요일 시작
-                    endDate = "2025-07-14",
-                    startTime = "10:00",
-                    endTime = "11:00",
+//                    startDate = "2025-07-14", // 월요일 시작
+//                    endDate = "2025-07-14",
+//                    startTime = "10:00",
+//                    endTime = "11:00",
+                    start = LocalDateTime.of(2025, 7, 14, 10, 0),
+                    end = LocalDateTime.of(2025, 7, 14, 11, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -641,8 +676,10 @@ class ScheduleControllerTest(
                 // 1. 기간 일정 (시작일 < 대상일 = 가장 상단에 배치)
                 val periodSchedule = createSchedule(
                     title = "기간 프로젝트",
-                    startDate = "2025-07-14",
-                    endDate = "2025-07-16",
+//                    startDate = "2025-07-14",
+//                    endDate = "2025-07-16",
+                    start = LocalDateTime.of(2025, 7, 14, 0, 0),
+                    end = LocalDateTime.of(2025, 7, 16, 23, 59),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -652,8 +689,10 @@ class ScheduleControllerTest(
                 // 2. 종일 일정 (당일, 종일 = 기간아님 → 두 번째)
                 val allDaySchedule = createSchedule(
                     title = "종일 행사",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+                    start = LocalDateTime.of(2025, 7, 15, 0, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 23, 59),
                     isAllDay = true,
                     member = member,
                     calendar = calendar,
@@ -663,10 +702,12 @@ class ScheduleControllerTest(
                 // 3. 시간 일정 (당일, 14:00 시작, 먼저 생성)
                 val timeScheduleA = createSchedule(
                     title = "오후 회의 A",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
-                    startTime = "14:00",
-                    endTime = "15:00",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+//                    startTime = "14:00",
+//                    endTime = "15:00",
+                    start = LocalDateTime.of(2025, 7, 15, 14, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 15, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -676,10 +717,12 @@ class ScheduleControllerTest(
                 // 4. 시간 일정 (당일, 14:00 시작, 같은 시간, 더 나중에 생성)
                 val timeScheduleB = createSchedule(
                     title = "오후 회의 B",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
-                    startTime = "14:00",
-                    endTime = "16:00",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+//                    startTime = "14:00",
+//                    endTime = "16:00",
+                    start = LocalDateTime.of(2025, 7, 15, 14, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 16, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -689,10 +732,12 @@ class ScheduleControllerTest(
                 // 5. 시간 일정 (당일, 09:00 시작, 날짜 기준으로 A/B보다 윗줄)
                 val morningSchedule = createSchedule(
                     title = "오전 회의",
-                    startDate = "2025-07-15",
-                    endDate = "2025-07-15",
-                    startTime = "09:00",
-                    endTime = "10:00",
+//                    startDate = "2025-07-15",
+//                    endDate = "2025-07-15",
+//                    startTime = "09:00",
+//                    endTime = "10:00",
+                    start = LocalDateTime.of(2025, 7, 15, 9, 0),
+                    end = LocalDateTime.of(2025, 7, 15, 10, 0),
                     isAllDay = false,
                     member = member,
                     calendar = calendar,
@@ -702,8 +747,10 @@ class ScheduleControllerTest(
                 // 6. 해당 일이 아닌 일정 (포함 안 되어야 함)
                 val otherDaySchedule = createSchedule(
                     title = "제외 테스트",
-                    startDate = "2025-07-16",
-                    endDate = "2025-07-16",
+//                    startDate = "2025-07-16",
+//                    endDate = "2025-07-16",
+                    start = LocalDateTime.of(2025, 7, 16, 10, 0),
+                    end = LocalDateTime.of(2025, 7, 16, 11, 0),
                     member = member,
                     calendar = calendar,
                     category = category
@@ -759,7 +806,7 @@ class ScheduleControllerTest(
                     calendar = calendar,
                     category = categoryRepository.findAll().first(),
                 )
-                val date = schedule.startDate
+                val date = schedule.start.toLocalDate().toString()
                 scheduleRepository.save(schedule)
 
                 val token = jwtFixture.createValidToken(member.id)
@@ -826,7 +873,7 @@ class ScheduleControllerTest(
                     calendar = otherCalendar,
                     category = categoryRepository.findAll().first(),
                 )
-                val date = schedule.startDate
+                val date = schedule.start.toLocalDate().toString()
                 scheduleRepository.save(schedule)
 
                 val token = jwtFixture.createValidToken(member.id)

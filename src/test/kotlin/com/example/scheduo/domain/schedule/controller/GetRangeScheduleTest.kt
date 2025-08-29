@@ -10,6 +10,7 @@ import com.example.scheduo.fixture.*
 import com.example.scheduo.global.response.status.ResponseStatus
 import com.example.scheduo.util.Request
 import com.example.scheduo.util.Response
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.comparables.shouldBeGreaterThan
@@ -19,19 +20,21 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class GetRangeScheduleTest (
-        @Autowired val mockMvc: MockMvc,
-        @Autowired val objectMapper: ObjectMapper,
-        @Autowired val memberRepository: MemberRepository,
-        @Autowired val calendarRepository: CalendarRepository,
-        @Autowired val categoryRepository: CategoryRepository,
-        @Autowired val scheduleRepository: ScheduleRepository,
-        @Autowired val recurrenceRepository: RecurrenceRepository,
-        @Autowired val jwtFixture: JwtFixture,
+class GetRangeScheduleTest(
+    @Autowired val mockMvc: MockMvc,
+    @Autowired val objectMapper: ObjectMapper,
+    @Autowired val memberRepository: MemberRepository,
+    @Autowired val calendarRepository: CalendarRepository,
+    @Autowired val categoryRepository: CategoryRepository,
+    @Autowired val scheduleRepository: ScheduleRepository,
+    @Autowired val recurrenceRepository: RecurrenceRepository,
+    @Autowired val jwtFixture: JwtFixture,
 ) : DescribeSpec({
     lateinit var req: Request
     lateinit var res: Response
@@ -50,14 +53,19 @@ class GetRangeScheduleTest (
     }
 
     describe("GET /calendars/{calendarId}/schedules/range 요청 시") {
+        val minuteFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+
+        fun asMinuteString(node: JsonNode, field: String): String =
+            LocalDateTime.parse(node[field].asText()).format(minuteFmt)
+
         context("정상적인 기간별 일정 조회 요청인 경우") {
             it("200 OK와 해당 기간의 모든 일정을 반환한다") {
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -65,24 +73,20 @@ class GetRangeScheduleTest (
 
                 // 당일 일정 생성
                 val singleDaySchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-11",
-                        endDate = "2025-04-11",
-                        startTime = "12:00",
-                        endTime = "13:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 11, 12, 0),
+                    end = LocalDateTime.of(2025, 4, 11, 13, 0)
                 )
 
                 // 기간 일정 생성
                 val periodSchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-12",
-                        endDate = "2025-04-14",
-                        startTime = "09:00",
-                        endTime = "18:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 12, 9, 0),
+                    end = LocalDateTime.of(2025, 4, 14, 18, 0)
                 )
 
                 scheduleRepository.save(singleDaySchedule)
@@ -90,8 +94,8 @@ class GetRangeScheduleTest (
 
                 val token = jwtFixture.createValidToken(member.id)
                 val response = req.get(
-                        "/calendars/${calendar.id}/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
-                        token = token
+                    "/calendars/${calendar.id}/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
+                    token = token
                 )
 
                 res.assertSuccess(response)
@@ -100,11 +104,11 @@ class GetRangeScheduleTest (
 
                 schedules.size() shouldBe 2
                 schedules[0]["title"].asText() shouldBe singleDaySchedule.title
-                schedules[0]["startDate"].asText() shouldBe "2025-04-11"
-                schedules[0]["endDate"].asText() shouldBe "2025-04-11"
+                asMinuteString(schedules[0], "startDateTime") shouldBe singleDaySchedule.start.format(minuteFmt)
+                asMinuteString(schedules[0], "endDateTime") shouldBe singleDaySchedule.end.format(minuteFmt)
                 schedules[1]["title"].asText() shouldBe periodSchedule.title
-                schedules[1]["startDate"].asText() shouldBe "2025-04-12"
-                schedules[1]["endDate"].asText() shouldBe "2025-04-14"
+                asMinuteString(schedules[1], "startDateTime") shouldBe periodSchedule.start.format(minuteFmt)
+                asMinuteString(schedules[1], "endDateTime") shouldBe periodSchedule.end.format(minuteFmt)
             }
         }
 
@@ -113,9 +117,9 @@ class GetRangeScheduleTest (
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -123,24 +127,20 @@ class GetRangeScheduleTest (
 
                 // 조회 범위보다 긴 기간 일정
                 val longPeriodSchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-08",
-                        endDate = "2025-04-18",
-                        startTime = "09:00",
-                        endTime = "18:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 8, 9, 0),
+                    end = LocalDateTime.of(2025, 4, 18, 18, 0)
                 )
 
                 // 조회 범위와 일부만 겹치는 일정
                 val partialOverlapSchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-14",
-                        endDate = "2025-04-16",
-                        startTime = "10:00",
-                        endTime = "17:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 14, 10, 0),
+                    end = LocalDateTime.of(2025, 4, 16, 17, 0)
                 )
 
                 scheduleRepository.save(longPeriodSchedule)
@@ -148,8 +148,8 @@ class GetRangeScheduleTest (
 
                 val token = jwtFixture.createValidToken(member.id)
                 val response = req.get(
-                        "/calendars/${calendar.id}/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
-                        token = token
+                    "/calendars/${calendar.id}/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
+                    token = token
                 )
 
                 res.assertSuccess(response)
@@ -157,10 +157,10 @@ class GetRangeScheduleTest (
                 val schedules = json["data"]["schedules"]
 
                 schedules.size() shouldBe 2
-                schedules[0]["startDate"].asText() shouldBe "2025-04-08"
-                schedules[0]["endDate"].asText() shouldBe "2025-04-18"
-                schedules[1]["startDate"].asText() shouldBe "2025-04-14"
-                schedules[1]["endDate"].asText() shouldBe "2025-04-16"
+                asMinuteString(schedules[0], "startDateTime") shouldBe longPeriodSchedule.start.format(minuteFmt)
+                asMinuteString(schedules[0], "endDateTime") shouldBe longPeriodSchedule.end.format(minuteFmt)
+                asMinuteString(schedules[1], "startDateTime") shouldBe partialOverlapSchedule.start.format(minuteFmt)
+                asMinuteString(schedules[1], "endDateTime") shouldBe partialOverlapSchedule.end.format(minuteFmt)
             }
         }
 
@@ -169,42 +169,38 @@ class GetRangeScheduleTest (
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
                 calendarRepository.save(calendar)
 
                 val weeklyRecurrence = createRecurrence(
-                        frequency = "WEEKLY",
-                        recurrenceEndDate = "2025-04-30"
+                    frequency = "WEEKLY",
+                    recurrenceEndDate = "2025-04-30"
                 )
                 recurrenceRepository.save(weeklyRecurrence)
 
                 // 주간 반복 일정 생성
                 val weeklyRecurrenceSchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-07",
-                        endDate = "2025-04-07",
-                        startTime = "14:00",
-                        endTime = "15:00",
-                        recurrence = weeklyRecurrence
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 7, 14, 0),
+                    end = LocalDateTime.of(2025, 4, 7, 15, 0),
+                    recurrence = weeklyRecurrence
                 )
 
                 // 기간 반복 일정 생성 (2일 짜리가 매주 반복)
                 val weeklyPeriodRecurrenceSchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-09",
-                        endDate = "2025-04-10",
-                        startTime = "09:00",
-                        endTime = "18:00",
-                        recurrence = weeklyRecurrence
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 9, 9, 0),
+                    end = LocalDateTime.of(2025, 4, 10, 18, 0),
+                    recurrence = weeklyRecurrence
                 )
 
                 scheduleRepository.save(weeklyRecurrenceSchedule)
@@ -212,8 +208,8 @@ class GetRangeScheduleTest (
 
                 val token = jwtFixture.createValidToken(member.id)
                 val response = req.get(
-                        "/calendars/${calendar.id}/schedules/range?startDate=2025-04-07&endDate=2025-04-20",
-                        token = token
+                    "/calendars/${calendar.id}/schedules/range?startDate=2025-04-07&endDate=2025-04-20",
+                    token = token
                 )
 
                 res.assertSuccess(response)
@@ -224,9 +220,8 @@ class GetRangeScheduleTest (
                 schedules.size() shouldBeGreaterThan 3
 
                 // 첫 번째 일정 검증 (4월 7일 월요일)
-                schedules[0]["startDate"].asText() shouldBe "2025-04-07"
-                schedules[0]["endDate"].asText() shouldBe "2025-04-07"
-                schedules[0]["startTime"].asText() shouldBe "14:00"
+                asMinuteString(schedules[0], "startDateTime") shouldBe weeklyRecurrenceSchedule.start.format(minuteFmt)
+                asMinuteString(schedules[0], "endDateTime") shouldBe weeklyRecurrenceSchedule.end.format(minuteFmt)
             }
         }
 
@@ -235,17 +230,17 @@ class GetRangeScheduleTest (
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 calendar.addParticipant(participant)
                 calendarRepository.save(calendar)
 
                 val token = jwtFixture.createValidToken(member.id)
                 val response = req.get(
-                        "/calendars/${calendar.id}/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
-                        token = token
+                    "/calendars/${calendar.id}/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
+                    token = token
                 )
 
                 res.assertSuccess(response)
@@ -261,8 +256,8 @@ class GetRangeScheduleTest (
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val token = jwtFixture.createValidToken(member.id)
                 val response = req.get(
-                        "/calendars/999/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
-                        token = token
+                    "/calendars/999/schedules/range?startDate=2025-04-10&endDate=2025-04-15",
+                    token = token
                 )
 
                 res.assertFailure(response, ResponseStatus.CALENDAR_NOT_FOUND)
@@ -274,9 +269,9 @@ class GetRangeScheduleTest (
                 val member = memberRepository.save(createMember(nickname = "test"))
                 val calendar = createCalendar()
                 val participant = createParticipant(
-                        member = member,
-                        calendar = calendar,
-                        participationStatus = ParticipationStatus.ACCEPTED
+                    member = member,
+                    calendar = calendar,
+                    participationStatus = ParticipationStatus.ACCEPTED
                 )
                 categoryRepository.save(createCategory())
                 calendar.addParticipant(participant)
@@ -284,35 +279,30 @@ class GetRangeScheduleTest (
 
                 // 늦은 시간 일정
                 val lateSchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-11",
-                        endDate = "2025-04-11",
-                        startTime = "15:00",
-                        endTime = "16:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 11, 15, 0),
+                    end = LocalDateTime.of(2025, 4, 11, 16, 0)
                 )
 
                 // 이른 시간 일정
                 val earlySchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-11",
-                        endDate = "2025-04-11",
-                        startTime = "09:00",
-                        endTime = "10:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+                    start = LocalDateTime.of(2025, 4, 11, 9, 0),
+                    end = LocalDateTime.of(2025, 4, 11, 10, 0)
                 )
 
                 // 다음날 일정
                 val nextDaySchedule = createSchedule(
-                        member = member,
-                        calendar = calendar,
-                        category = categoryRepository.findAll().first(),
-                        startDate = "2025-04-12",
-                        endDate = "2025-04-12",
-                        startTime = "08:00",
-                        endTime = "09:00"
+                    member = member,
+                    calendar = calendar,
+                    category = categoryRepository.findAll().first(),
+
+                    start = LocalDateTime.of(2025, 4, 12, 8, 0),
+                    end = LocalDateTime.of(2025, 4, 12, 9, 0)
                 )
 
                 scheduleRepository.save(lateSchedule)
@@ -321,8 +311,8 @@ class GetRangeScheduleTest (
 
                 val token = jwtFixture.createValidToken(member.id)
                 val response = req.get(
-                        "/calendars/${calendar.id}/schedules/range?startDate=2025-04-11&endDate=2025-04-12",
-                        token = token
+                    "/calendars/${calendar.id}/schedules/range?startDate=2025-04-11&endDate=2025-04-12",
+                    token = token
                 )
 
                 res.assertSuccess(response)
@@ -331,12 +321,12 @@ class GetRangeScheduleTest (
 
                 schedules.size() shouldBe 3
                 // 날짜순, 시간순 정렬 확인
-                schedules[0]["startDate"].asText() shouldBe "2025-04-11"
-                schedules[0]["startTime"].asText() shouldBe "09:00"
-                schedules[1]["startDate"].asText() shouldBe "2025-04-11"
-                schedules[1]["startTime"].asText() shouldBe "15:00"
-                schedules[2]["startDate"].asText() shouldBe "2025-04-12"
-                schedules[2]["startTime"].asText() shouldBe "08:00"
+                asMinuteString(schedules[0], "startDateTime") shouldBe earlySchedule.start.format(minuteFmt)
+                asMinuteString(schedules[0], "endDateTime") shouldBe earlySchedule.end.format(minuteFmt)
+                asMinuteString(schedules[1], "startDateTime") shouldBe lateSchedule.start.format(minuteFmt)
+                asMinuteString(schedules[1], "endDateTime") shouldBe lateSchedule.end.format(minuteFmt)
+                asMinuteString(schedules[2], "startDateTime") shouldBe nextDaySchedule.start.format(minuteFmt)
+                asMinuteString(schedules[2], "endDateTime") shouldBe nextDaySchedule.end.format(minuteFmt)
             }
         }
     }

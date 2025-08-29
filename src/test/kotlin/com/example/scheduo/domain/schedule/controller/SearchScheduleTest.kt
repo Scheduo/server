@@ -16,27 +16,29 @@ import com.example.scheduo.util.Request
 import com.example.scheduo.util.Response
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class SearchScheduleTest(
-        @Autowired val mockMvc: MockMvc,
-        @Autowired val objectMapper: ObjectMapper,
-        @Autowired val memberRepository: MemberRepository,
-        @Autowired val calendarRepository: CalendarRepository,
-        @Autowired val categoryRepository: CategoryRepository,
-        @Autowired val scheduleRepository: ScheduleRepository,
-        @Autowired val recurrenceRepository: RecurrenceRepository,
-        @Autowired val jwtFixture: JwtFixture,
+    @Autowired val mockMvc: MockMvc,
+    @Autowired val objectMapper: ObjectMapper,
+    @Autowired val memberRepository: MemberRepository,
+    @Autowired val calendarRepository: CalendarRepository,
+    @Autowired val categoryRepository: CategoryRepository,
+    @Autowired val scheduleRepository: ScheduleRepository,
+    @Autowired val recurrenceRepository: RecurrenceRepository,
+    @Autowired val jwtFixture: JwtFixture,
 ) : DescribeSpec({
 
     lateinit var req: Request
@@ -64,16 +66,16 @@ class SearchScheduleTest(
         otherCal = createCalendar(name = "Other")
 
         val pA = createParticipant(
-                member = me,
-                calendar = myCalA,
-                role = Role.EDIT,
-                participationStatus = ParticipationStatus.ACCEPTED
+            member = me,
+            calendar = myCalA,
+            role = Role.EDIT,
+            participationStatus = ParticipationStatus.ACCEPTED
         )
         val pB = createParticipant(
-                member = me,
-                calendar = myCalB,
-                role = Role.EDIT,
-                participationStatus = ParticipationStatus.ACCEPTED
+            member = me,
+            calendar = myCalB,
+            role = Role.EDIT,
+            participationStatus = ParticipationStatus.ACCEPTED
         )
         myCalA.addParticipant(pA)
         myCalB.addParticipant(pB)
@@ -91,22 +93,22 @@ class SearchScheduleTest(
     }
 
     fun saveSchedule(
-            title: String,
-            calendar: Calendar,
-            owner: Member = me,
-            start: String = "2025-08-10",
-            end: String = "2025-08-10"
+        title: String,
+        calendar: Calendar,
+        owner: Member = me,
+        start: String = "2025-08-10",
+        end: String = "2025-08-10"
     ): Schedule {
         val cat = categoryRepository.save(createCategory())
         return scheduleRepository.save(
-                createSchedule(
-                        title = title,
-                        startDate = start,
-                        endDate = end,
-                        member = owner,
-                        calendar = calendar,
-                        category = cat
-                )
+            createSchedule(
+                title = title,
+                start = LocalDate.parse(start).atStartOfDay(),
+                end = LocalDate.parse(end).atStartOfDay(),
+                member = owner,
+                calendar = calendar,
+                category = cat
+            )
         )
     }
 
@@ -150,8 +152,8 @@ class SearchScheduleTest(
                 val contents = json["data"]["contents"]
 
                 val titles = contents.elements().asSequence()
-                        .map { it.get("title").asText() }
-                        .toList()
+                    .map { it.get("title").asText() }
+                    .toList()
 
                 titles.shouldContainExactlyInAnyOrder(listOf("Meet", "memo"))
             }
@@ -195,8 +197,8 @@ class SearchScheduleTest(
                 val contents = json["data"]["contents"]
 
                 val ids = contents.elements().asSequence()
-                        .map { it.get("scheduleId").asLong() }
-                        .toList()
+                    .map { it.get("scheduleId").asLong() }
+                    .toList()
 
                 ids.shouldContainExactlyInAnyOrder(listOf(s1.id, s2.id))
             }
@@ -225,8 +227,8 @@ class SearchScheduleTest(
                 val contents = json["data"]["contents"]
 
                 val titles = contents.elements().asSequence()
-                        .map { it.get("title").asText() }
-                        .toList()
+                    .map { it.get("title").asText() }
+                    .toList()
 
                 titles.shouldContainExactlyInAnyOrder(listOf("Meeting"))
             }
@@ -244,8 +246,8 @@ class SearchScheduleTest(
                 val contents = json["data"]["contents"]
 
                 val ids = contents.elements().asSequence()
-                        .map { it.get("scheduleId").asLong() }
-                        .toList()
+                    .map { it.get("scheduleId").asLong() }
+                    .toList()
 
                 ids shouldBe listOf(a1.id, a2.id, b1.id)
             }
@@ -257,29 +259,34 @@ class SearchScheduleTest(
 
                 val catA = categoryRepository.save(createCategory())
                 val catB = categoryRepository.save(createCategory())
-                val rec = recurrenceRepository.save(createRecurrence(frequency = "WEEKLY", recurrenceEndDate = "2025-12-31"))
+                val rec =
+                    recurrenceRepository.save(createRecurrence(frequency = "WEEKLY", recurrenceEndDate = "2025-12-31"))
 
                 val single = scheduleRepository.save(
-                        createSchedule(
-                                title = "Review",
-                                startDate = "2025-08-01",
-                                endDate = "2025-08-01",
-                                member = me,
-                                calendar = myCalA,
-                                category = catA
-                        )
+                    createSchedule(
+                        title = "Review",
+//                        startDate = "2025-08-01",
+//                        endDate = "2025-08-01",
+                        start = LocalDateTime.of(2025, 8, 1, 9, 0),
+                        end = LocalDateTime.of(2025, 8, 1, 10, 0),
+                        member = me,
+                        calendar = myCalA,
+                        category = catA
+                    )
                 )
 
                 val recurring = scheduleRepository.save(
-                        createSchedule(
-                                title = "Review weekly",
-                                startDate = "2025-08-01",
-                                endDate = "2025-08-01",
-                                member = me,
-                                calendar = myCalA,
-                                category = catB,
-                                recurrence = rec
-                        )
+                    createSchedule(
+                        title = "Review weekly",
+//                        startDate = "2025-08-01",
+//                        endDate = "2025-08-01",
+                        start = LocalDateTime.of(2025, 8, 1, 11, 0),
+                        end = LocalDateTime.of(2025, 8, 1, 12, 0),
+                        member = me,
+                        calendar = myCalA,
+                        category = catB,
+                        recurrence = rec
+                    )
                 )
 
                 val response = search(keyword = "Re")
@@ -287,8 +294,8 @@ class SearchScheduleTest(
                 val contents = json["data"]["contents"]
 
                 val titles = contents.elements().asSequence()
-                        .map { it.get("title").asText() }
-                        .toList()
+                    .map { it.get("title").asText() }
+                    .toList()
 
                 titles.shouldContainExactlyInAnyOrder(listOf("Review", "Review weekly"))
             }
@@ -299,18 +306,21 @@ class SearchScheduleTest(
                 scheduleRepository.deleteAll()
 
                 val cat = categoryRepository.save(createCategory())
-                val rec = recurrenceRepository.save(createRecurrence(frequency = "WEEKLY", recurrenceEndDate = "2025-12-31"))
+                val rec =
+                    recurrenceRepository.save(createRecurrence(frequency = "WEEKLY", recurrenceEndDate = "2025-12-31"))
 
                 val recurring = scheduleRepository.save(
-                        createSchedule(
-                                title = "Review weekly",
-                                startDate = "2025-08-01",
-                                endDate = "2025-08-01",
-                                member = me,
-                                calendar = myCalA,
-                                category = cat,
-                                recurrence = rec
-                        )
+                    createSchedule(
+                        title = "Review weekly",
+//                        startDate = "2025-08-01",
+//                        endDate = "2025-08-01",
+                        start = LocalDateTime.of(2025, 8, 1, 11, 0),
+                        end = LocalDateTime.of(2025, 8, 1, 12, 0),
+                        member = me,
+                        calendar = myCalA,
+                        category = cat,
+                        recurrence = rec
+                    )
                 )
 
                 val response = search(keyword = "Re")

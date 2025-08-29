@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
 import java.util.List;
@@ -52,16 +53,10 @@ public class Schedule extends BaseEntity {
 	private boolean isAllDay;
 
 	@Column(nullable = false)
-	private LocalDate startDate;
+	private LocalDateTime start;
 
 	@Column(nullable = false)
-	private LocalDate endDate;
-
-	@Column(nullable = false)
-	private LocalTime startTime;
-
-	@Column(nullable = false)
-	private LocalTime endTime;
+	private LocalDateTime end;
 
 	@Enumerated(EnumType.STRING)
 	private NotificationTime notificationTime;
@@ -89,10 +84,8 @@ public class Schedule extends BaseEntity {
 	public static Schedule create(
 		String title,
 		boolean isAllDay,
-		String startDate,
-		String endDate,
-		String startTime,
-		String endTime,
+		LocalDateTime start,
+		LocalDateTime end,
 		String location,
 		String memo,
 		NotificationTime notificationTime,
@@ -105,10 +98,8 @@ public class Schedule extends BaseEntity {
 		return Schedule.builder()
 			.title(title)
 			.isAllDay(isAllDay)
-			.startDate(LocalDate.parse(startDate))
-			.endDate(LocalDate.parse(endDate))
-			.startTime(LocalTime.parse(isAllDay ? "00:00" : startTime))
-			.endTime(LocalTime.parse(isAllDay ? "23:59" : endTime))
+			.start(start)
+			.end(end)
 			.location(location)
 			.memo(memo)
 			.notificationTime(notificationTime)
@@ -124,6 +115,10 @@ public class Schedule extends BaseEntity {
 		if (recurrence == null) {
 			return List.of(this);
 		}
+		LocalDate startDate = this.start.toLocalDate();
+		LocalTime startTime = this.start.toLocalTime();
+		LocalDate endDate = this.end.toLocalDate();
+		LocalTime endTime = this.end.toLocalTime();
 		Period duration = Period.between(startDate, endDate);
 
 		return recurrence.createRecurDates(startDate).stream()
@@ -131,10 +126,8 @@ public class Schedule extends BaseEntity {
 				.id(id)
 				.title(title)
 				.isAllDay(isAllDay)
-				.startDate(date)
-				.endDate(date.plus(duration))
-				.startTime(startTime)
-				.endTime(endTime)
+				.start(LocalDateTime.of(date, startTime))
+				.end(LocalDateTime.of(date.plus(duration), endTime))
 				.location(location)
 				.memo(memo)
 				.notificationTime(notificationTime)
@@ -149,10 +142,8 @@ public class Schedule extends BaseEntity {
 	public void update(
 		String title,
 		boolean isAllDay,
-		String startDate,
-		String endDate,
-		String startTime,
-		String endTime,
+		LocalDateTime start,
+		LocalDateTime end,
 		String location,
 		String memo,
 		NotificationTime notificationTime,
@@ -162,10 +153,8 @@ public class Schedule extends BaseEntity {
 	) {
 		this.title = title;
 		this.isAllDay = isAllDay;
-		this.startDate = LocalDate.parse(startDate);
-		this.endDate = LocalDate.parse(endDate);
-		this.startTime = LocalTime.parse(isAllDay ? "00:00" : startTime);
-		this.endTime = LocalTime.parse(isAllDay ? "23:59" : endTime);
+		this.start = isAllDay ? LocalDateTime.of(start.toLocalDate(), LocalTime.of(0, 0)) : start;
+		this.end = isAllDay ? LocalDateTime.of(end.toLocalDate(), LocalTime.of(23, 59)) : end;
 		this.location = location;
 		this.memo = memo;
 		this.notificationTime = notificationTime;
@@ -177,6 +166,6 @@ public class Schedule extends BaseEntity {
 
 	public boolean includesDate(LocalDate date) {
 		List<Schedule> schedules = this.createSchedulesFromRecurrence();
-		return schedules.stream().anyMatch(schedule -> schedule.getStartDate().isEqual(date));
+		return schedules.stream().anyMatch(schedule -> schedule.getStart().toLocalDate().isEqual(date));
 	}
 }

@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.repository.impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,13 +23,15 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 		String jpql = """
 			SELECT s FROM Schedule s
 			JOIN FETCH s.category c
-			WHERE (s.startDate <= :endOfMonth AND s.endDate >= :startOfMonth)
+			WHERE (s.start <= :endOfMonth AND s.end >= :startOfMonth)
 			AND s.recurrence is null
 			AND s.calendar.id = :calendarId
-        	""";
+			""";
+		LocalDateTime startInclusive = startOfMonth.atStartOfDay();
+		LocalDateTime endExclusive = endOfMonth.plusDays(1).atStartOfDay();
 		return entityManager.createQuery(jpql, Schedule.class)
-			.setParameter("startOfMonth", startOfMonth)
-			.setParameter("endOfMonth", endOfMonth)
+			.setParameter("startOfMonth", startInclusive)
+			.setParameter("endOfMonth", endExclusive)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
@@ -41,13 +44,13 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 				JOIN FETCH s.recurrence r
 				JOIN FETCH s.category c
 				WHERE r.recurrenceEndDate >= :startOfMonth
-				AND s.startDate <= :endOfMonth
+				AND s.start <= :endOfMonth
 				AND s.calendar.id = :calendarId
 			""";
-
+		LocalDateTime endExclusive = lastDayOfMonth.plusDays(1).atStartOfDay();
 		return entityManager.createQuery(jpql, Schedule.class)
 			.setParameter("startOfMonth", firstDayOfMonth)
-			.setParameter("endOfMonth", lastDayOfMonth)
+			.setParameter("endOfMonth", endExclusive)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
@@ -55,15 +58,18 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 	@Override
 	public List<Schedule> findSchedulesByDate(LocalDate date, long calendarId) {
 		String jpql = """
-            SELECT s FROM Schedule s
-            JOIN FETCH s.category c
-            WHERE s.startDate <= :date 
-            AND s.endDate >= :date
-            AND s.recurrence is null
-            AND s.calendar.id = :calendarId
-            """;
+			SELECT s FROM Schedule s
+			JOIN FETCH s.category c
+			WHERE s.start <= :endExclusive 
+			AND s.end >= :startOfDay
+			AND s.recurrence is null
+			AND s.calendar.id = :calendarId
+			""";
+		LocalDateTime startOfDay = date.atStartOfDay();
+		LocalDateTime endExclusive = date.plusDays(1).atStartOfDay();
 		return entityManager.createQuery(jpql, Schedule.class)
-			.setParameter("date", date)
+			.setParameter("startOfDay", startOfDay)
+			.setParameter("endExclusive", endExclusive)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
@@ -71,15 +77,17 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 	@Override
 	public List<Schedule> findSchedulesWithRecurrenceForDate(LocalDate date, long calendarId) {
 		String jpql = """
-            SELECT DISTINCT s FROM Schedule s
-            JOIN FETCH s.recurrence r
-            JOIN FETCH s.category c
-            WHERE s.startDate <= :date
-            AND (r.recurrenceEndDate IS NULL OR r.recurrenceEndDate >= :date)
-            AND s.calendar.id = :calendarId
-            """;
+			SELECT DISTINCT s FROM Schedule s
+			JOIN FETCH s.recurrence r
+			JOIN FETCH s.category c
+			WHERE s.start <= :endExclusive
+			AND (r.recurrenceEndDate IS NULL OR r.recurrenceEndDate >= :date)
+			AND s.calendar.id = :calendarId
+			""";
+		LocalDateTime endExclusive = date.plusDays(1).atStartOfDay();
 		return entityManager.createQuery(jpql, Schedule.class)
 			.setParameter("date", date)
+			.setParameter("endExclusive", endExclusive)
 			.setParameter("calendarId", calendarId)
 			.getResultList();
 	}
@@ -109,7 +117,7 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 			JOIN c.participants p
 			WHERE p.member.id = :memberId
 				AND lower(s.title) LIKE lower(:kw)
-			ORDER BY s.startDate, s.startTime, s.id
+			ORDER BY s.start, s.id
 			""";
 
 		return entityManager.createQuery(jpql, Schedule.class)

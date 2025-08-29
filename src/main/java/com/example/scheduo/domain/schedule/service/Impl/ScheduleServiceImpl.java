@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.service.Impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -60,10 +61,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 		Schedule schedule = Schedule.create(
 			request.getTitle(),
 			request.isAllDay(),
-			request.getStartDate(),
-			request.getEndDate(),
-			request.getStartTime(),
-			request.getEndTime(),
+			request.getStartDateTime(),
+			request.getEndDateTime(),
 			request.getLocation(),
 			request.getMemo(),
 			request.getNotificationTime(),
@@ -108,8 +107,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 		int year = parsedDate.getYear();
 		int month = parsedDate.getMonthValue();
 		List<Schedule> filteredSchedules = new ArrayList<>(allSchedules.stream()
-			.filter(s -> (s.getStartDate().getYear() == year && s.getStartDate().getMonthValue() == month) ||
-				(s.getEndDate().getYear() == year && s.getEndDate().getMonthValue() == month))
+			.filter(s -> (s.getStart().getYear() == year && s.getStart().getMonthValue() == month) ||
+				(s.getEnd().getYear() == year && s.getEnd().getMonthValue() == month))
 			.toList());
 
 		// filteredSchedules.sort((s1, s2) -> {
@@ -172,18 +171,19 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		// 해당 날짜 필터링 (월별과 다른 부분)
 		List<Schedule> filteredSchedules = allSchedules.stream()
-			.filter(s -> !s.getStartDate().isAfter(targetDate) && !s.getEndDate().isBefore(targetDate))
+			.filter(
+				s -> !s.getStart().toLocalDate().isAfter(targetDate) && !s.getEnd().toLocalDate().isBefore(targetDate))
 			.collect(Collectors.toList());
 
 		// 타임라인 정렬 로직(기간 > 종일 > 시작시간 > 생성시간)
 		filteredSchedules.sort((s1, s2) -> {
 			// 1. 기간 일정 우선 정렬
-			if (!s1.getStartDate().equals(s2.getStartDate()))
-				return s1.getStartDate().compareTo(s2.getStartDate());
+			if (!s1.getStart().toLocalDate().equals(s2.getStart().toLocalDate()))
+				return s1.getStart().toLocalDate().compareTo(s2.getStart().toLocalDate());
 
 			// 2. 시작 시간 우선 정렬(종일 일정은 시작시간이 00:00:00 이므로 우선순위)
-			if (!s1.getStartTime().equals(s2.getStartTime()))
-				return s1.getStartTime().compareTo(s2.getStartTime());
+			if (!s1.getStart().toLocalTime().equals(s2.getStart().toLocalTime()))
+				return s1.getStart().toLocalTime().compareTo(s2.getStart().toLocalTime());
 
 			// Title 기준으로 정렬
 			return s1.getTitle().compareTo(s2.getTitle());
@@ -222,10 +222,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 			schedule.update(
 				request.getTitle(),
 				request.isAllDay(),
-				request.getStartDate(),
-				request.getEndDate(),
-				request.getStartTime(),
-				request.getEndTime(),
+				request.getStartDateTime(),
+				request.getEndDateTime(),
 				request.getLocation(),
 				request.getMemo(),
 				request.getNotificationTime(),
@@ -241,10 +239,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 					schedule.update(
 						request.getTitle(),
 						request.isAllDay(),
-						request.getStartDate(),
-						request.getEndDate(),
-						request.getStartTime(),
-						request.getEndTime(),
+						request.getStartDateTime(),
+						request.getEndDateTime(),
 						request.getLocation(),
 						request.getMemo(),
 						request.getNotificationTime(),
@@ -258,10 +254,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 					Schedule newSchedule = Schedule.create(
 						request.getTitle(),
 						request.isAllDay(),
-						request.getStartDate(),
-						request.getEndDate(),
-						request.getStartTime(),
-						request.getEndTime(),
+						request.getStartDateTime(),
+						request.getEndDateTime(),
 						request.getLocation(),
 						request.getMemo(),
 						request.getNotificationTime(),
@@ -277,7 +271,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 				case THIS_AND_FUTURE -> {
 					// startDate 기준으로 일정들을 2개로 나누기
 					// 기존꺼의 endDate는 startDate로 변경
-					schedule.getRecurrence().changeRecurrenceEndDate(request.getStartDate());
+					schedule.getRecurrence()
+						.changeRecurrenceEndDate(request.getStartDateTime().toLocalDate().toString());
 
 					// startDate 이후의 일정들을 새로운 Recurrence로 생성
 					Recurrence recurrence = Recurrence.create(
@@ -288,10 +283,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 					Schedule newSchedule = Schedule.create(
 						request.getTitle(),
 						request.isAllDay(),
-						request.getStartDate(),
-						request.getEndDate(),
-						request.getStartTime(),
-						request.getEndTime(),
+						request.getStartDateTime(),
+						request.getEndDateTime(),
 						request.getLocation(),
 						request.getMemo(),
 						request.getNotificationTime(),
@@ -336,18 +329,20 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		// 기간 내 일정 필터링
 		List<Schedule> filteredSchedules = allSchedules.stream()
-			.filter(s -> !s.getEndDate().isBefore(rangeStartDate) && !s.getStartDate().isAfter(rangeEndDate))
+			.filter(s -> !s.getEnd().toLocalDate().isBefore(rangeStartDate) && !s.getStart()
+				.toLocalDate()
+				.isAfter(rangeEndDate))
 			.collect(Collectors.toList());
 
 		// 5. 정렬하는 로직 수행
 		filteredSchedules.sort((s1, s2) -> {
 			// 1. 날짜별 정렬
-			if (!s1.getStartDate().equals(s2.getStartDate()))
-				return s1.getStartDate().compareTo(s2.getStartDate());
+			if (!s1.getStart().toLocalDate().equals(s2.getStart().toLocalDate()))
+				return s1.getStart().toLocalDate().compareTo(s2.getStart().toLocalDate());
 
 			// 2. 시작 시간별 정렬
-			if (!s1.getStartTime().equals(s2.getStartTime()))
-				return s1.getStartTime().compareTo(s2.getStartTime());
+			if (!s1.getStart().toLocalTime().equals(s2.getStart().toLocalTime()))
+				return s1.getStart().toLocalTime().compareTo(s2.getStart().toLocalTime());
 
 			// 3. 생성 시간별 정렬
 			return s1.getCreatedAt().compareTo(s2.getCreatedAt());
@@ -413,7 +408,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 		fromCalendar.validateParticipant(member.getId());
 		toCalendar.validateParticipant(member.getId());
 
-		if(!toCalendar.canEdit(member.getId()))
+		if (!toCalendar.canEdit(member.getId()))
 			throw new ApiException(ResponseStatus.PARTICIPANT_PERMISSION_LEAK);
 
 		String nicknameByToCalendar = toCalendar.findParticipant(member.getId())
@@ -422,7 +417,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 		// toCalendar에 새로운 일정 생성
 		List<Schedule> schedules = scheduleTimes.stream().map(st -> {
-			if(st.getStartDateTime().isAfter(st.getEndDateTime()))
+			if (st.getStartDateTime().isAfter(st.getEndDateTime()))
 				throw new ApiException(ResponseStatus.INVALID_SCHEDULE_RANGE);
 
 			LocalDate startDate = st.getStartDateTime().toLocalDate();
@@ -434,19 +429,21 @@ public class ScheduleServiceImpl implements ScheduleService {
 			DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+			LocalDateTime startDateTime = LocalDateTime.of(startDate, startTime);
+			LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+
 			// isAllDay 계산 로직
 			boolean isAllDay = LocalTime.MIDNIGHT.equals(startTime)
-				&& LocalTime.of(23,59,59).equals(endTime);
+				&& LocalTime.of(23, 59, 59).equals(endTime);
 
-			Category category = categoryRepository.findByName("default").orElseThrow(() -> new ApiException(ResponseStatus.CATEGORY_NOT_FOUND));
+			Category category = categoryRepository.findByName("default")
+				.orElseThrow(() -> new ApiException(ResponseStatus.CATEGORY_NOT_FOUND));
 
 			return Schedule.create(
 				nicknameByToCalendar,
 				isAllDay,
-				startDate.format(DATE_FMT),
-				endDate.format(DATE_FMT),
-				startTime.format(TIME_FMT),
-				endTime.format(TIME_FMT),
+				startDateTime,
+				endDateTime,
 				null,
 				null,
 				null,
