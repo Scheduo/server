@@ -18,7 +18,10 @@ public interface ScheduleService {
 	void updateSchedule(ScheduleRequestDto.Update request, Member member, Long calendarId, Long scheduleId,
 		String date);
 
-	ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate, String endDate);
+	ScheduleResponseDto.SchedulesInRange getSchedulesInRange(Member member, Long calendarId, String startDate,
+		String endDate);
+
+	void deleteSchedule(Member member, Long calendarId, Long scheduleId, String date, ScheduleRequestDto.Scope scope);
 
 	void shareSchedule(Member member, Long calendarId, Long targetCalendarId, List<ScheduleRequestDto.ScheduleTime> schedules);
 
