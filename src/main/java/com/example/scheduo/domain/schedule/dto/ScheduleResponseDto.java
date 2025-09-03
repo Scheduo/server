@@ -1,8 +1,8 @@
 package com.example.scheduo.domain.schedule.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,8 +28,8 @@ public class ScheduleResponseDto {
 				.map(schedule -> new ScheduleOnMonth(
 					schedule.getId(),
 					schedule.getTitle(),
-					schedule.getStartDate(),
-					schedule.getEndDate(),
+					schedule.getStart().toLocalDate(),
+					schedule.getEnd().toLocalDate(),
 					new Category(schedule.getCategory().getName(), schedule.getCategory().getColor())
 				))
 				.toList();
@@ -79,8 +79,8 @@ public class ScheduleResponseDto {
 			return new ScheduleOnDate(
 				schedule.getId(),
 				schedule.getTitle(),
-				schedule.getStartTime().format(formatter),
-				schedule.getEndTime().format(formatter),
+				schedule.getStart().toLocalTime().format(formatter),
+				schedule.getEnd().toLocalTime().format(formatter),
 				schedule.isAllDay(),
 				Category.from(schedule.getCategory().getName(), schedule.getCategory().getColor())
 			);
@@ -106,10 +106,8 @@ public class ScheduleResponseDto {
 		private Long id;
 		private String title;
 		private boolean isAllDay;
-		private LocalDate startDate;
-		private LocalDate endDate;
-		private String startTime;
-		private String endTime;
+		private LocalDateTime startDateTime;
+		private LocalDateTime endDateTime;
 		private String location;
 		private String category;
 		private String memo;
@@ -121,16 +119,16 @@ public class ScheduleResponseDto {
 				? schedule.getRecurrence().getFrequency()
 				: null;
 
-			LocalDate startDate = (date == null || date.isBlank())
-				? schedule.getStartDate()
-				: LocalDate.parse(date);
+			LocalDateTime startDate = (date == null || date.isBlank())
+				? schedule.getStart()
+				: LocalDateTime.of(LocalDate.parse(date), schedule.getStart().toLocalTime());
 
-			LocalDate endDate;
+			LocalDateTime endDate;
 			if (date == null || date.isBlank()) {
-				endDate = schedule.getEndDate();
+				endDate = schedule.getEnd();
 			} else {
-				long daysDiff = ChronoUnit.DAYS.between(schedule.getStartDate(), schedule.getEndDate());
-				endDate = startDate.plusDays(daysDiff);
+				long daysDiff = ChronoUnit.DAYS.between(schedule.getStart(), schedule.getEnd());
+				endDate = LocalDateTime.of(LocalDate.parse(date).plusDays(daysDiff), schedule.getEnd().toLocalTime());
 			}
 
 			return new ScheduleInfo(
@@ -139,8 +137,6 @@ public class ScheduleResponseDto {
 				schedule.isAllDay(),
 				startDate,
 				endDate,
-				schedule.getStartTime().toString(),
-				schedule.getEndTime().toString(),
 				schedule.getLocation(),
 				schedule.getCategory().getName(),
 				schedule.getMemo(),
@@ -181,19 +177,53 @@ public class ScheduleResponseDto {
 	private static class ScheduleInRange {
 		private Long id;
 		private String title;
-		private String startDate;
-		private String endDate;
-		private String startTime;
-		private String endTime;
+		private LocalDateTime startDateTime;
+		private LocalDateTime endDateTime;
 
 		public static ScheduleInRange from(Schedule schedule) {
 			return new ScheduleInRange(
 				schedule.getId(),
 				schedule.getTitle(),
-				schedule.getStartDate().toString(),
-				schedule.getEndDate().toString(),
-				schedule.getStartTime().toString(),
-				schedule.getEndTime().toString()
+				schedule.getStart(),
+				schedule.getEnd()
+			);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SearchList {
+		private List<SearchContent> contents;
+
+		public static SearchList from(List<Schedule> schedules) {
+			List<SearchContent> searchContents = schedules.stream()
+				.map(SearchContent::from)
+				.collect(Collectors.toList());
+
+			return new SearchList(searchContents);
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SearchContent {
+		private Long scheduleId;
+		private Long calendarId;
+		private String calendarName;
+		private String title;
+		private LocalDateTime startDateTime;
+		private LocalDateTime endDateTime;
+
+		public static SearchContent from(Schedule schedule) {
+			return new SearchContent(
+				schedule.getId(),
+				schedule.getCalendar().getId(),
+				schedule.getCalendar().getName(),
+				schedule.getTitle(),
+				schedule.getStart(),
+				schedule.getEnd()
 			);
 		}
 	}
