@@ -2,16 +2,6 @@
 -- Scheduo 프로젝트의 기존 스키마를 Flyway 베이스라인으로 생성
 -- 테이블 생성 순서: 참조되는 테이블부터 생성 (의존성 순서 고려)
 
--- 기존 테이블 삭제 (역순으로 삭제 - 외래키 제약조건 때문)
-DROP TABLE IF EXISTS schedule;
-DROP TABLE IF EXISTS notification;
-DROP TABLE IF EXISTS exception;
-DROP TABLE IF EXISTS recurrence;
-DROP TABLE IF EXISTS participant;
-DROP TABLE IF EXISTS calendar;
-DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS member;
-
 -- 1. Member 테이블 (기준 테이블)
 CREATE TABLE member (
     id BIGINT NOT NULL AUTO_INCREMENT,
