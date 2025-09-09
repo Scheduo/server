@@ -16,12 +16,16 @@ spring:
       naming:
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         show-sql: true
         format_sql: true
         use_sql_comments: true
+  flyway:
+    baseline-version: 1
+    baseline-on-migrate: true
+    locations: classpath:db/migration
   security:
     oauth2:
       client:
