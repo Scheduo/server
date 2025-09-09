@@ -3,15 +3,19 @@ package com.example.scheduo.domain.schedule_v2.entity;
 import java.time.LocalDateTime;
 
 import com.example.scheduo.domain.common.BaseEntity;
+import com.example.scheduo.domain.schedule.entity.Category;
 import com.example.scheduo.domain.schedule.entity.NotificationTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,6 +36,10 @@ public class ScheduleV2 extends BaseEntity {
 
 	@Column(name = "calendar_id", nullable = false)
 	private Long calendarId;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "category_id", nullable = false)
+	private Category category;
 
 	@Column(name = "serial_id", nullable = false, length = 100)
 	private String serialId;
