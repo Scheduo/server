@@ -12,6 +12,6 @@ public class OccurrenceV2 {
 	private final Long scheduleId;
 	private final LocalDateTime occurrenceStart;
 	private final LocalDateTime occurrenceEnd;
-	private final String notificationTime;
+	private final LocalDateTime notificationTime; // 실제 일정 알림 발생 시간
 	private final boolean isException;
 }
