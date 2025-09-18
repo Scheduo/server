@@ -24,7 +24,7 @@ public class OccurrenceService {
 
 	private List<Occurrence> createRecurringOccurrences(Schedule schedule, LocalDateTime rangeStart,
 		LocalDateTime rangeEnd) {
-		List<Schedule> schedules = schedule.createSchedulesFromRecurrence();
+		List<Schedule> schedules = schedule.createSchedulesFromRecurrence(rangeStart, rangeEnd);
 		return schedules.stream()
 			.filter(s -> !s.getStart().isBefore(rangeStart) && s.getStart().isBefore(rangeEnd))
 			.map(this::create)

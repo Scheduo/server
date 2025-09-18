@@ -70,6 +70,14 @@ public class Recurrence {
 		return recur.getDates(startDate, this.recurrenceEndDate);
 	}
 
+	public List<LocalDate> createRecurDates(LocalDate startDate, LocalDate endDate) {
+		String recurrenceRule = this.recurrenceRule.replaceFirst("^RRULE:\\s*", "").trim();
+		RRule<LocalDate> rrule = new RRule<>(recurrenceRule);
+		Recur<LocalDate> recur = rrule.getRecur();
+
+		return recur.getDates(startDate, endDate);
+	}
+
 	public String getFrequency() {
 		return this.recurrenceRule.split(":")[1].split(";")[0].split("=")[1];
 	}
