@@ -139,6 +139,36 @@ public class Schedule extends BaseEntity {
 			.toList();
 	}
 
+	public List<Schedule> createSchedulesFromRecurrence(
+		LocalDateTime rangeStart, LocalDateTime rangeEnd
+	) {
+		if (recurrence == null) {
+			return List.of(this);
+		}
+		LocalDate startDate = this.start.toLocalDate();
+		LocalTime startTime = this.start.toLocalTime();
+		LocalDate endDate = this.end.toLocalDate();
+		LocalTime endTime = this.end.toLocalTime();
+		Period duration = Period.between(startDate, endDate);
+
+		return recurrence.createRecurDates(rangeStart.toLocalDate(), rangeEnd.toLocalDate()).stream()
+			.map(date -> Schedule.builder()
+				.id(id)
+				.title(title)
+				.isAllDay(isAllDay)
+				.start(LocalDateTime.of(date, startTime))
+				.end(LocalDateTime.of(date.plus(duration), endTime))
+				.location(location)
+				.memo(memo)
+				.notificationTime(notificationTime)
+				.category(category)
+				.member(member)
+				.calendar(calendar)
+				.recurrence(recurrence)
+				.build())
+			.toList();
+	}
+
 	public void update(
 		String title,
 		boolean isAllDay,

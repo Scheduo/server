@@ -125,4 +125,34 @@ public class ScheduleJpqlRepositoryImpl implements ScheduleJpqlRepository {
 			.setParameter("kw", likeParam)
 			.getResultList();
 	}
+
+	@Override
+	public List<Schedule> findUpcomingSchedules(LocalDateTime from, LocalDateTime to) {
+		String jpql = """
+			SELECT s FROM Schedule s
+			WHERE s.recurrence IS NULL
+			AND s.start >= :from
+			AND s.start < :to
+			ORDER BY s.start, s.id
+			""";
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("from", from)
+			.setParameter("to", to)
+			.getResultList();
+	}
+
+	@Override
+	public List<Schedule> findUpcomingSchedulesWithRecurrence(LocalDateTime from, LocalDateTime to) {
+		String jpql = """
+			SELECT DISTINCT s FROM Schedule s
+			JOIN FETCH s.recurrence r
+			WHERE s.start < :to
+			AND (r.recurrenceEndDate IS NULL OR r.recurrenceEndDate >= :from)
+			ORDER BY s.start, s.id
+			""";
+		return entityManager.createQuery(jpql, Schedule.class)
+			.setParameter("from", from.toLocalDate())
+			.setParameter("to", to)
+			.getResultList();
+	}
 }
