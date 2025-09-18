@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class OccurrenceV2 {
+public class Occurrence {
 	private final String occurrenceId; // {scheduleId}_{occurrenceStart}
 	private final Long scheduleId;
 	private final LocalDateTime occurrenceStart;

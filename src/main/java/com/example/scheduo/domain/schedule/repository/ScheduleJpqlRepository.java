@@ -1,6 +1,7 @@
 package com.example.scheduo.domain.schedule.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,4 +26,8 @@ public interface ScheduleJpqlRepository {
 
 	// 키워드 prefix 기반으로 내가 속해있는 모든 캘린더의 일정 검색 (내가 만든 일정이 아님)
 	List<Schedule> searchByMemberIdAndKeywordPrefix(Long memberId, String keyword);
+
+	List<Schedule> findUpcomingSchedules(LocalDateTime from, LocalDateTime to);
+
+	List<Schedule> findUpcomingSchedulesWithRecurrence(LocalDateTime from, LocalDateTime to);
 }
